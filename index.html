@@ -95,7 +95,7 @@
         #session-timer { 
             position: fixed; bottom: calc(var(--safe-bottom) + 20px); right: 20px; 
             font-size: 1rem; font-weight: 400; color: var(--text-color); font-variant-numeric: tabular-nums;
-            opacity: 0; transition: opacity 0.5s; z-index: 5; pointer-events: none; 
+            opacity: 0; transition: opacity 0.5s; z-index: 240; pointer-events: none; 
         }
         #session-timer.visible { opacity: 0.6; pointer-events: auto; }
         #session-timer:hover { opacity: 1; }
@@ -584,11 +584,9 @@
             this.abortCtrl = new AbortController();
             this.loop(this.abortCtrl.signal);
 
-            if (this.sessionDuration > 0) {
-                document.getElementById('session-timer').classList.add('visible');
-                this.updateSessionTimer();
-                this.sessionTimerInterval = setInterval(() => this.updateSessionTimer(), 1000);
-            }
+            document.getElementById('session-timer').classList.add('visible');
+            this.updateSessionTimer();
+            this.sessionTimerInterval = setInterval(() => this.updateSessionTimer(), 1000);
             
         } catch (err) {
             // Falls Audio fehlschlägt, Reset
@@ -630,16 +628,22 @@
         }
 
         updateSessionTimer() {
-            if (this.sessionDuration <= 0) return;
             const elapsed = Date.now() - this.startTime;
-            const totalMs = this.sessionDuration * 60 * 1000;
-            const remaining = Math.max(0, totalMs - elapsed);
             
-            const m = Math.floor(remaining / 60000);
-            const s = Math.floor((remaining % 60000) / 1000);
-            document.getElementById('session-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            
-            if (remaining <= 0) this.stop();
+            if (this.sessionDuration > 0) {
+                // Countdown (bei fester Dauer)
+                const totalMs = this.sessionDuration * 60 * 1000;
+                const remaining = Math.max(0, totalMs - elapsed);
+                const m = Math.floor(remaining / 60000);
+                const s = Math.floor((remaining % 60000) / 1000);
+                document.getElementById('session-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                if (remaining <= 0) this.stop();
+            } else {
+                // Stoppuhr (bei Endlos-Modus)
+                const m = Math.floor(elapsed / 60000);
+                const s = Math.floor((elapsed % 60000) / 1000);
+                document.getElementById('session-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
         }
 
         async loop(signal) {
