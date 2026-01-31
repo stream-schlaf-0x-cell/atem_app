@@ -427,23 +427,64 @@
         }
 
         renderCircle() {
-            const rBase = Math.min(this.width, this.height) * 0.3 * (0.4 + this.breathValue * 0.6);
-            this.ctx.beginPath();
-            const time = Date.now()*0.0003;
-            for(let i=0; i<=100; i++) {
-                const a = (i/100)*6.28;
-                const n = this.noise.noise2D(Math.cos(a)+time, Math.sin(a));
-                const r = rBase + n * 20 * this.breathValue;
-                const x = this.centerX + Math.cos(a)*r, y = this.centerY + Math.sin(a)*r;
-                if(i===0) this.ctx.moveTo(x,y); else this.ctx.lineTo(x,y);
+            const time = Date.now() * 0.0004;
+            const pulse = this.breathValue;
+            const center = { x: this.centerX, y: this.centerY };
+            const maxR = Math.min(this.width, this.height) * 0.35;
+            const rBase = maxR * (0.5 + pulse * 0.5);
+            const { r, g, b } = this.colors;
+
+            this.ctx.globalCompositeOperation = 'screen'; 
+
+            // 4 Layers for volumetric gas effect
+            for(let l=0; l<4; l++) {
+                const layerFract = l / 3; 
+                const layerR = rBase + (l * 15); 
+                
+                this.ctx.beginPath();
+                
+                // Noise parameters: Inner layers faster/tighter, outer slower/smoother
+                const noiseFreq = 1.2 - layerFract * 0.6; 
+                const noiseAmp = (20 + pulse * 20) * (1 + layerFract);
+                const rot = time * (1 - layerFract * 0.4) * (l % 2 === 0 ? 1 : -1);
+                
+                const points = 90;
+                for(let i=0; i<=points; i++) {
+                    const angle = (i/points) * Math.PI * 2;
+                    const nx = Math.cos(angle + rot) * noiseFreq + time * 0.3;
+                    const ny = Math.sin(angle + rot) * noiseFreq;
+                    const n = this.noise.noise2D(nx, ny);
+                    
+                    const rad = layerR + n * noiseAmp;
+                    const x = center.x + Math.cos(angle) * rad;
+                    const y = center.y + Math.sin(angle) * rad;
+                    
+                    if(i===0) this.ctx.moveTo(x, y); else this.ctx.lineTo(x, y);
+                }
+                this.ctx.closePath();
+
+                // Volumetric Gradient (Offset for 3D sphere look)
+                const offX = center.x - layerR * 0.25;
+                const offY = center.y - layerR * 0.25;
+                const grad = this.ctx.createRadialGradient(offX, offY, 0, center.x, center.y, layerR * 1.6);
+                
+                const alpha = 0.15 + (pulse * 0.1);
+                
+                if(l === 0) {
+                    // Core: White/Bright glow
+                    grad.addColorStop(0, `rgba(255,255,255, ${0.7 + pulse * 0.3})`);
+                    grad.addColorStop(0.3, `rgba(${r},${g},${b}, ${alpha + 0.3})`);
+                    grad.addColorStop(1, `rgba(${r},${g},${b}, 0)`);
+                } else {
+                    // Outer gas shells
+                    grad.addColorStop(0, `rgba(${r},${g},${b}, ${alpha})`);
+                    grad.addColorStop(1, `rgba(${r},${g},${b}, 0)`);
+                }
+                
+                this.ctx.fillStyle = grad;
+                this.ctx.fill();
             }
-            this.ctx.closePath();
-            this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},0.3)`;
-            this.ctx.stroke();
-            const g = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, rBase*1.2);
-            g.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${0.3+this.breathValue*0.3})`);
-            g.addColorStop(1, "rgba(0,0,0,0)");
-            this.ctx.fillStyle = g; this.ctx.fill();
+            this.ctx.globalCompositeOperation = 'source-over';
         }
 
         renderRipple() {
