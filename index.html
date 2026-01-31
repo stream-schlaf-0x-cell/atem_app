@@ -93,11 +93,11 @@
         .summary-author { font-size: 1.05rem; opacity: 0.65; margin: 5px auto 0; font-family: sans-serif; font-weight: 300; }
 
         /* VOLUME CONTROL */
-        #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 20px; display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s ease; z-index: 250; width: auto; }
+        #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s ease; z-index: 250; width: auto; }
         #volume-control:hover { background: rgba(0,0,0,0.4); }
-        #vol-icon { width: 24px; height: 24px; fill: var(--text-color); opacity: 0.6; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
-        #vol-slider { width: 80px; height: 2px; -webkit-appearance: none; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; opacity: 1; }
-        #vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-primary); cursor: pointer; transition: transform 0.1s; }
+        #vol-icon { width: 28px; height: 28px; fill: var(--text-color); opacity: 0.6; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
+        #vol-slider { width: 100px; height: 4px; -webkit-appearance: none; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; opacity: 1; cursor: pointer; }
+        #vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-primary); cursor: pointer; transition: transform 0.1s; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
         #vol-slider::-webkit-slider-thumb:active { transform: scale(1.3); }
 
         /* BOTTOM CONTROLS (Refresh & Timer) */
@@ -140,14 +140,14 @@
         #preset-display.visible { opacity: 1; }
 
         /* TEXT POSITIONS */
-        .pos-top .instruction-text { top: calc(var(--safe-top) + 12px); bottom: auto; transform: translateX(-50%); }
-        .pos-top #breath-timer { top: calc(var(--safe-top) + 56px); bottom: auto; transform: translateX(-50%); }
+        .pos-top .instruction-text { top: calc(var(--safe-top) + 25px); bottom: auto; transform: translateX(-50%); }
+        .pos-top #breath-timer { top: calc(var(--safe-top) + 85px); bottom: auto; transform: translateX(-50%); }
 
-        .pos-center .instruction-text { top: 46%; bottom: auto; transform: translate(-50%, -50%); }
-        .pos-center #breath-timer { top: 54%; bottom: auto; transform: translate(-50%, -50%); }
+        .pos-center .instruction-text { top: 42%; bottom: auto; transform: translate(-50%, -50%); }
+        .pos-center #breath-timer { top: 58%; bottom: auto; transform: translate(-50%, -50%); }
 
-        .pos-bottom .instruction-text { top: auto; bottom: 140px; transform: translateX(-50%); }
-        .pos-bottom #breath-timer { top: auto; bottom: 95px; transform: translateX(-50%); }
+        .pos-bottom .instruction-text { top: auto; bottom: 180px; transform: translateX(-50%); }
+        .pos-bottom #breath-timer { top: auto; bottom: 120px; transform: translateX(-50%); }
 
         /* Hide text when UI is visible */
         body:not(.ui-hidden) .instruction-text, body:not(.ui-hidden) #breath-timer {
