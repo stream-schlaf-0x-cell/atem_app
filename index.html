@@ -184,6 +184,23 @@
             #preset-display {
                 bottom: 95px !important; left: 50% !important; transform: translateX(-50%) !important;
             }
+            
+            /* Session Timer Tag */
+            #session-timer {
+                display: flex; flex-direction: column; align-items: center; line-height: 1;
+            }
+            #session-timer::after {
+                content: 'ZEIT'; font-size: 0.5rem; opacity: 0.5; margin-top: 2px; letter-spacing: 0.1em;
+            }
+
+            /* Pacer Indicators */
+            #breath-timer::before {
+                display: inline-block; margin-right: 4px; font-size: 0.7em; opacity: 0.7; vertical-align: 1px;
+            }
+            #breath-timer[data-phase="in"]::before { content: "↑"; }
+            #breath-timer[data-phase="out"]::before { content: "↓"; }
+            #breath-timer[data-phase="hold-full"]::before { content: "="; }
+            #breath-timer[data-phase="hold-empty"]::before { content: "="; }
         }
 
         /* Mobile Summary Screen Fix */
@@ -192,6 +209,10 @@
             .summary-stat { font-size: 2.8rem; margin: 10px 0; }
             .summary-quote { font-size: 1.1rem; line-height: 1.4; }
             .summary-author { font-size: 0.95rem; }
+            
+            /* Fix Header Overlap */
+            .pos-top .instruction-text { top: calc(var(--safe-top) + 60px); }
+            .pos-top #breath-timer { top: calc(var(--safe-top) + 110px); }
         }
     </style>
 </head>
@@ -1089,6 +1110,8 @@
             if (startV < endV) pType = 'in';
             else if (startV > endV) pType = 'out';
             else if (startV === 1) pType = 'hold-full';
+            
+            document.getElementById('breath-timer').setAttribute('data-phase', pType);
             
             if (this.audio.currentType === 'bowl') {
                 if (pType === 'in') this.audio.triggerBowl(0);
