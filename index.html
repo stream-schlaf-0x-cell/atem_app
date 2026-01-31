@@ -140,13 +140,13 @@
         #preset-display.visible { opacity: 1; }
 
         /* TEXT POSITIONS */
-        .pos-top .instruction-text { top: calc(var(--safe-top) + 25px); bottom: auto; transform: translateX(-50%); }
-        .pos-top #breath-timer { top: calc(var(--safe-top) + 85px); bottom: auto; transform: translateX(-50%); }
+        .pos-top .instruction-text { top: calc(var(--safe-top) + 30px); bottom: auto; transform: translateX(-50%); }
+        .pos-top #breath-timer { top: calc(var(--safe-top) + 75px); bottom: auto; transform: translateX(-50%); }
 
-        .pos-center .instruction-text { top: 42%; bottom: auto; transform: translate(-50%, -50%); }
-        .pos-center #breath-timer { top: 58%; bottom: auto; transform: translate(-50%, -50%); }
+        .pos-center .instruction-text { top: 47%; bottom: auto; transform: translate(-50%, -50%); }
+        .pos-center #breath-timer { top: 53%; bottom: auto; transform: translate(-50%, -50%); }
 
-        .pos-bottom .instruction-text { top: auto; bottom: 180px; transform: translateX(-50%); }
+        .pos-bottom .instruction-text { top: auto; bottom: 165px; transform: translateX(-50%); }
         .pos-bottom #breath-timer { top: auto; bottom: 120px; transform: translateX(-50%); }
 
         /* Hide text when UI is visible */
@@ -154,6 +154,15 @@
             opacity: 0 !important;
             pointer-events: none;
         }
+
+        /* Pacer Indicators (Global) */
+        #breath-timer::before {
+            display: inline-block; margin-right: 4px; font-size: 0.7em; opacity: 0.7; vertical-align: 1px;
+        }
+        #breath-timer[data-phase="in"]::before { content: "↑"; }
+        #breath-timer[data-phase="out"]::before { content: "↓"; }
+        #breath-timer[data-phase="hold-full"]::before { content: "="; }
+        #breath-timer[data-phase="hold-empty"]::before { content: "="; }
 
         /* DESKTOP TWEAKS (Keep iPad/Mobile as is) */
         @media (min-width: 1025px) {
@@ -193,15 +202,6 @@
                 content: 'ZEIT'; font-size: 0.5rem; opacity: 0.5; margin-top: 2px; letter-spacing: 0.1em;
             }
 
-            /* Pacer Indicators */
-            #breath-timer::before {
-                display: inline-block; margin-right: 4px; font-size: 0.7em; opacity: 0.7; vertical-align: 1px;
-            }
-            #breath-timer[data-phase="in"]::before { content: "↑"; }
-            #breath-timer[data-phase="out"]::before { content: "↓"; }
-            #breath-timer[data-phase="hold-full"]::before { content: "="; }
-            #breath-timer[data-phase="hold-empty"]::before { content: "="; }
-            
             /* Center Instruction Readability & Position */
             .pos-center .instruction-text {
                 top: 50% !important;
@@ -219,7 +219,7 @@
             
             /* Fix Header Overlap */
             .pos-top .instruction-text { top: calc(var(--safe-top) + 60px); }
-            .pos-top #breath-timer { top: calc(var(--safe-top) + 110px); }
+            .pos-top #breath-timer { top: calc(var(--safe-top) + 105px); }
         }
     </style>
 </head>
