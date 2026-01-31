@@ -115,7 +115,7 @@
     </div>
 
     <div id="summary-modal">
-        <h2 style="font-weight: 100; opacity: 0.5; font-size: 1.8rem;">Atem vollendet</h2>
+        <h2 style="font-weight: 100; opacity: 0.5; font-size: 1.8rem;">Breathwork abgeschlossen</h2>
         <div id="summary-time" class="summary-stat">0m</div>
         <p class="summary-quote" id="quote-text"></p>
         <div id="quote-author" class="summary-author"></div>
@@ -619,7 +619,7 @@
             const elapsedSec = Math.floor((Date.now() - this.startTime) / 1000);
             const m = Math.floor(elapsedSec / 60);
             const s = elapsedSec % 60;
-            document.getElementById('summary-time').innerText = `${m} Min ${s} Sek`;
+            document.getElementById('summary-time').innerText = `${m} Minuten und ${s} Sekunden`;
 
             const q = quotes[Math.floor(Math.random()*quotes.length)];
             document.getElementById('quote-text').innerText = q.t;
