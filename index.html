@@ -65,6 +65,9 @@
 
         .chip { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); padding: 7px 14px; border-radius: 18px; font-size: 0.75rem; white-space: nowrap; cursor: pointer; transition: all 0.4s; }
         .chip.active { background: rgba(255,255,255,0.08); color: var(--accent-primary); border-color: rgba(200, 200, 200, 0.1); }
+        
+        #duration-scroll input { width: 60px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 7px; border-radius: 18px; font-size: 0.75rem; text-align: center; transition: all 0.4s; }
+        #duration-scroll input:focus { border-color: var(--accent-primary); background: rgba(255,255,255,0.08); }
 
         .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
         label { font-size: 0.6rem; text-transform: uppercase; font-weight: 500; color: rgba(255,255,255,0.25); margin-bottom: 5px; display: block; }
@@ -189,7 +192,7 @@
             <button class="chip" onclick="app.setDuration(20, this)">20</button>
             <button class="chip" onclick="app.setDuration(25, this)">25</button>
             <button class="chip" onclick="app.setDuration(30, this)">30</button>
-            <input type="number" placeholder="Min" style="width: 60px; padding: 7px; height: 32px;" onchange="app.setDuration(this.value, null)">
+            <input type="number" placeholder="Min" onchange="app.setDuration(this.value, null)">
         </div>
 
         <button class="btn" id="startBtn">Beginnen</button>
@@ -535,10 +538,8 @@
 
         setDuration(min, el) {
             this.sessionDuration = parseInt(min);
-            if(el) {
-                document.querySelectorAll('#duration-scroll .chip').forEach(c=>c.classList.remove('active'));
-                el.classList.add('active');
-            }
+            document.querySelectorAll('#duration-scroll .chip').forEach(c=>c.classList.remove('active'));
+            if(el) el.classList.add('active');
         }
 
         toggleMute() {
