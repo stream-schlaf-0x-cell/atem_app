@@ -168,6 +168,31 @@
             
             .preset-scroll { flex-wrap: wrap; justify-content: center; overflow: visible; }
         }
+
+        /* MOBILE PLAYER LAYOUT (Symmetrical around Stop button) */
+        @media (max-width: 1024px) {
+            body.ui-hidden #breath-timer {
+                top: auto !important; bottom: 32px !important;
+                left: auto !important; right: 50% !important;
+                margin-right: 120px !important; transform: none !important;
+                font-size: 1.4rem !important;
+            }
+            #bottom-controls {
+                right: auto !important; left: 50% !important;
+                bottom: 32px !important; margin-left: 120px !important;
+            }
+            #preset-display {
+                bottom: 95px !important; left: 50% !important; transform: translateX(-50%) !important;
+            }
+        }
+
+        /* Mobile Summary Screen Fix */
+        @media (max-width: 768px) {
+            #summary-modal { overflow-y: auto; justify-content: flex-start; padding-top: 60px; touch-action: pan-y; }
+            .summary-stat { font-size: 2.8rem; margin: 10px 0; }
+            .summary-quote { font-size: 1.1rem; line-height: 1.4; }
+            .summary-author { font-size: 0.95rem; }
+        }
     </style>
 </head>
 <body class="theme-lotusabend">
