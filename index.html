@@ -27,7 +27,7 @@
             font-family: var(--font-stack); margin: 0; height: 100dvh;
             display: flex; flex-direction: column; overflow: hidden;
             transition: background-color 2s ease; 
-            overscroll-behavior: none; touch-action: none; /* iOS Scroll Fix */
+            overscroll-behavior: none; /* iOS Scroll Fix */
         }
         /* THEMES */
         body.theme-himmelblau { --bg-color: #0b1026; --accent-primary: #6b8c96; --glass-bg: rgba(11, 16, 38, 0.65); }
@@ -62,8 +62,11 @@
             padding: 8px 20px calc(15px + var(--safe-bottom));
             transform: translateY(0); transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
             z-index: 1000; will-change: transform;
+            max-height: 80dvh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
         }
         #ui-container.hidden { transform: translateY(110%); }
+        #ui-container::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
         .handle { width: 35px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 10px; margin: 10px auto 20px; cursor: pointer; touch-action: none; }
         .preset-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 12px; scrollbar-width: none; mask-image: linear-gradient(to right, black 90%, transparent 100%); -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%); }
