@@ -427,23 +427,67 @@
         }
 
         renderCircle() {
-            const rBase = Math.min(this.width, this.height) * 0.3 * (0.4 + this.breathValue * 0.6);
-            this.ctx.beginPath();
-            const time = Date.now()*0.0003;
-            for(let i=0; i<=100; i++) {
-                const a = (i/100)*6.28;
-                const n = this.noise.noise2D(Math.cos(a)+time, Math.sin(a));
-                const r = rBase + n * 20 * this.breathValue;
-                const x = this.centerX + Math.cos(a)*r, y = this.centerY + Math.sin(a)*r;
-                if(i===0) this.ctx.moveTo(x,y); else this.ctx.lineTo(x,y);
+            const time = Date.now() * 0.0004;
+            const pulse = this.breathValue;
+            const center = { x: this.centerX, y: this.centerY };
+            const minDim = Math.min(this.width, this.height);
+            // Base radius slightly smaller to fit iPad screens nicely with layers
+            const rBase = minDim * 0.18 * (0.6 + pulse * 0.4);
+            const { r, g, b } = this.colors;
+
+            this.ctx.globalCompositeOperation = 'screen'; 
+
+            // 3 Layers: Core, Inner Shell, Outer Shell (Optimized for iPad performance)
+            for(let l=0; l<3; l++) {
+                // Spacing relative to base radius for consistent proportions across devices
+                const spacing = l === 0 ? 0 : (l === 1 ? rBase * 0.15 : rBase * 0.35);
+                const layerR = rBase + spacing; 
+                
+                this.ctx.beginPath();
+                
+                // Noise: Inner is fast/jagged, Outer is slow/smooth
+                const noiseFreq = l === 0 ? 1.5 : (l === 1 ? 1.0 : 0.6); 
+                const noiseAmp = (10 + pulse * 15) * (1 + l*0.5);
+                const rot = time * (1 - l * 0.3) * (l % 2 === 0 ? 1 : -1);
+                
+                // Reduced points for performance (70 is sufficient)
+                const points = 70;
+                for(let i=0; i<=points; i++) {
+                    const angle = (i/points) * Math.PI * 2;
+                    const nx = Math.cos(angle + rot) * noiseFreq + time * 0.2;
+                    const ny = Math.sin(angle + rot) * noiseFreq;
+                    const n = this.noise.noise2D(nx, ny);
+                    
+                    const rad = layerR + n * noiseAmp;
+                    const x = center.x + Math.cos(angle) * rad;
+                    const y = center.y + Math.sin(angle) * rad;
+                    
+                    if(i===0) this.ctx.moveTo(x, y); else this.ctx.lineTo(x, y);
+                }
+                this.ctx.closePath();
+
+                // Gradient with offset for 3D spherical look
+                const offX = center.x - layerR * 0.2;
+                const offY = center.y - layerR * 0.2;
+                const grad = this.ctx.createRadialGradient(offX, offY, 0, center.x, center.y, layerR * 1.5);
+                
+                const alpha = 0.2 + (pulse * 0.15);
+                
+                if(l === 0) {
+                    // Core: Hot center (White/Bright)
+                    grad.addColorStop(0, `rgba(255,255,255, ${0.8 + pulse * 0.2})`);
+                    grad.addColorStop(0.4, `rgba(${r},${g},${b}, ${alpha + 0.3})`);
+                    grad.addColorStop(1, `rgba(${r},${g},${b}, 0)`);
+                } else {
+                    // Outer Smoke Shells
+                    grad.addColorStop(0, `rgba(${r},${g},${b}, ${alpha * (1 - l*0.2)})`);
+                    grad.addColorStop(1, `rgba(${r},${g},${b}, 0)`);
+                }
+                
+                this.ctx.fillStyle = grad;
+                this.ctx.fill();
             }
-            this.ctx.closePath();
-            this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},0.3)`;
-            this.ctx.stroke();
-            const g = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, rBase*1.2);
-            g.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${0.3+this.breathValue*0.3})`);
-            g.addColorStop(1, "rgba(0,0,0,0)");
-            this.ctx.fillStyle = g; this.ctx.fill();
+            this.ctx.globalCompositeOperation = 'source-over';
         }
 
         renderRipple() {
