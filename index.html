@@ -43,14 +43,14 @@
         
         .instruction-text {
             position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 12px);
-            font-size: 1.35rem; font-weight: 300; letter-spacing: 0.1em; padding: 6px 12px; border-radius: 12px;
+            font-size: 1.5rem; font-weight: 300; letter-spacing: 0.1em; padding: 6px 12px; border-radius: 12px;
             pointer-events: none; opacity: 0.95; color: var(--text-color); 
             background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(255,255,255,0.02));
             z-index: 100; will-change: transform, opacity; transition: opacity 0.5s ease, color 0.8s ease;
         }
         #breath-timer {
             position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 56px);
-            font-size: 1.6rem; font-weight: 300; letter-spacing: 0.1em; color: var(--accent-secondary); background: rgba(0,0,0,0.18);
+            font-size: 1.8rem; font-weight: 300; letter-spacing: 0.1em; color: var(--accent-secondary); background: rgba(0,0,0,0.18);
             padding: 6px 12px; border-radius: 14px; pointer-events: none; z-index: 110;
             font-variant-numeric: tabular-nums; transition: opacity 0.5s ease;
         }
@@ -69,17 +69,17 @@
         .preset-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 12px; scrollbar-width: none; mask-image: linear-gradient(to right, black 90%, transparent 100%); -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%); }
         .preset-scroll::-webkit-scrollbar { display: none; }
 
-        .chip { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); padding: 7px 14px; border-radius: 18px; font-size: 0.75rem; white-space: nowrap; cursor: pointer; transition: all 0.4s; -webkit-tap-highlight-color: transparent; }
+        .chip { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); padding: 7px 14px; border-radius: 18px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; transition: all 0.4s; -webkit-tap-highlight-color: transparent; }
         .chip.active { background: rgba(255,255,255,0.08); color: var(--accent-primary); border-color: rgba(200, 200, 200, 0.1); }
         
-        #duration-scroll input { width: 60px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 7px; border-radius: 18px; font-size: 0.75rem; text-align: center; transition: all 0.4s; }
+        #duration-scroll input { width: 60px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 7px; border-radius: 18px; font-size: 0.85rem; text-align: center; transition: all 0.4s; }
         #duration-scroll input:focus { border-color: var(--accent-primary); background: rgba(255,255,255,0.08); }
 
         .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-        label { font-size: 0.6rem; text-transform: uppercase; font-weight: 500; color: rgba(255,255,255,0.25); margin-bottom: 5px; display: block; }
-        input, select { width: 100%; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 10px; border-radius: 10px; font-size: 0.95rem; outline: none; appearance: none; }
+        label { font-size: 0.7rem; text-transform: uppercase; font-weight: 500; color: rgba(255,255,255,0.25); margin-bottom: 5px; display: block; }
+        input, select { width: 100%; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 10px; border-radius: 10px; font-size: 1.05rem; outline: none; appearance: none; }
 
-        .btn { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: #fff; border: none; padding: 16px; border-radius: 14px; font-size: 0.95rem; font-weight: 500; width: 100%; text-transform: uppercase; cursor: pointer; transition: transform 0.15s; user-select: none; }
+        .btn { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: #fff; border: none; padding: 16px; border-radius: 14px; font-size: 1.05rem; font-weight: 500; width: 100%; text-transform: uppercase; cursor: pointer; transition: transform 0.15s; user-select: none; }
         .btn:active { transform: scale(0.985); }
         .btn.stop-mode { background: var(--accent-primary); opacity: 0.9; }
 
@@ -88,9 +88,9 @@
         /* Summary Overlay */
         #summary-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.92); backdrop-filter: blur(15px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1100; padding: 30px; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
         #summary-modal.visible { opacity: 1; pointer-events: all; }
-        .summary-stat { font-size: 3.5rem; font-weight: 100; color: var(--accent-primary); margin: 15px 0; font-variant-numeric: tabular-nums; }
-        .summary-quote { font-size: 1.3rem; opacity: 0.85; line-height: 1.4; margin: 20px auto 10px; max-width: 500px; }
-        .summary-author { font-size: 0.95rem; opacity: 0.65; margin: 5px auto 0; }
+        .summary-stat { font-size: 3.8rem; font-weight: 100; color: var(--accent-primary); margin: 15px 0; font-variant-numeric: tabular-nums; }
+        .summary-quote { font-size: 1.4rem; opacity: 0.85; line-height: 1.4; margin: 20px auto 10px; max-width: 500px; }
+        .summary-author { font-size: 1.05rem; opacity: 0.65; margin: 5px auto 0; }
 
         /* VOLUME CONTROL */
         #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 20px; display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s ease; z-index: 250; width: auto; }
@@ -106,20 +106,21 @@
             display: flex; align-items: center; gap: 12px; z-index: 240;
             pointer-events: none; /* Allow clicks to pass through empty areas */
         }
-        #refresh-btn {
-            width: 36px; height: 36px; border-radius: 50%;
-            background: rgba(0,0,0,0.18); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: var(--text-color); display: flex; align-items: center; justify-content: center;
-            cursor: pointer; pointer-events: auto; transition: all 0.4s ease;
-            opacity: 0.6;
+        
+        #menu-shuffle-btn {
+            position: absolute; top: 15px; right: 20px;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.3s ease; z-index: 20;
+            color: var(--text-color); opacity: 0.6;
         }
-        #refresh-btn:hover { opacity: 1; background: rgba(0,0,0,0.3); transform: rotate(180deg); }
-        #refresh-btn svg { width: 18px; height: 18px; fill: currentColor; opacity: 0.9; }
+        #menu-shuffle-btn:hover { background: rgba(255,255,255,0.15); opacity: 1; transform: scale(1.05); }
+        #menu-shuffle-btn svg { width: 24px; height: 24px; fill: currentColor; }
 
         #session-timer { 
             position: static; /* Flex item */
-            font-size: 1rem; font-weight: 400; color: var(--text-color); font-variant-numeric: tabular-nums;
+            font-size: 1.1rem; font-weight: 400; color: var(--text-color); font-variant-numeric: tabular-nums;
             opacity: 0; max-width: 0; padding: 0; overflow: hidden; white-space: nowrap;
             transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; 
             background: rgba(0,0,0,0.18); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -127,6 +128,16 @@
         }
         #session-timer.visible { opacity: 0.8; max-width: 100px; padding: 6px 12px; pointer-events: auto; }
         #session-timer:hover { opacity: 1; }
+        
+        #preset-display {
+            position: fixed; bottom: 35px; left: calc(50% + 125px); transform: none;
+            font-size: 1.05rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.9);
+            background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 8px 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
+            pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 190;
+            text-transform: uppercase; font-weight: 500; font-family: sans-serif;
+        }
+        #preset-display.visible { opacity: 1; }
 
         /* TEXT POSITIONS */
         .pos-top .instruction-text { top: calc(var(--safe-top) + 12px); bottom: auto; transform: translateX(-50%); }
@@ -143,6 +154,20 @@
             opacity: 0 !important;
             pointer-events: none;
         }
+
+        /* DESKTOP TWEAKS (Keep iPad/Mobile as is) */
+        @media (min-width: 1025px) {
+            #ui-container { 
+                max-width: 640px; left: 50%; bottom: 40px; transform: translateX(-50%); 
+                border-radius: 24px; 
+            }
+            #ui-container.hidden { transform: translate(-50%, 130%); }
+            
+            .controls-grid { gap: 12px; margin-bottom: 16px; }
+            input, select, .btn { padding: 12px; font-size: 1rem; }
+            
+            .preset-scroll { flex-wrap: wrap; justify-content: center; overflow: visible; }
+        }
     </style>
 </head>
 <body class="theme-lotusabend">
@@ -151,10 +176,8 @@
         <canvas id="viz-canvas" class="viz-canvas"></canvas>
         <div class="instruction-text" id="instruction">Atmen</div>
         <div id="breath-timer"></div>
+        <div id="preset-display"></div>
         <div id="bottom-controls">
-            <div id="refresh-btn" onclick="app.randomizeInit()" role="button" aria-label="Refresh Theme">
-                <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-            </div>
             <div id="session-timer"></div>
         </div>
         <div id="volume-control">
@@ -173,6 +196,9 @@
 
     <div id="ui-container">
         <div class="handle" onclick="app.toggleUI()"></div>
+        <div id="menu-shuffle-btn" onclick="app.shuffleSession()" role="button" aria-label="Zufällig">
+            <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zM14.83 13.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04L14.83 13.41z"/></svg>
+        </div>
 
         <div class="mode-row">
             <button class="chip active" onclick="app.setVisualMode('mist', this)">Nebel</button>
@@ -491,6 +517,7 @@
             this.currentType = 'none';
             this.genNodes = {};
             this.reverbNode = null;
+            this.musicGain = null;
         }
         async init() {
             const AC = window.AudioContext || window.webkitAudioContext;
@@ -500,12 +527,16 @@
                 this.masterGain.gain.value = this.volume;
                 this.masterGain.connect(this.ctx.destination);
                 
+                this.musicGain = this.ctx.createGain();
+                this.musicGain.gain.value = 0.25;
+                this.musicGain.connect(this.masterGain);
+                
                 this.reverbNode = this.ctx.createConvolver();
                 this.reverbNode.buffer = this.createReverbBuffer();
                 this.reverbNode.connect(this.masterGain);
                 
                 this.mediaSource = this.ctx.createMediaElementSource(this.audioEl);
-                this.mediaSource.connect(this.masterGain);
+                this.mediaSource.connect(this.musicGain);
             }
             // Ensure running context (iOS fix)
             if (this.ctx && this.ctx.state === 'suspended') {
@@ -611,7 +642,11 @@
             const src = this.ctx.createBufferSource();
             src.buffer = this.bowlBuffer;
             src.detune.value = semitones * 100;
-            src.connect(this.masterGain);
+            
+            const g = this.ctx.createGain();
+            g.gain.value = 0.25;
+            src.connect(g); g.connect(this.masterGain);
+            
             src.start(0);
             src.onended = () => { const i = this.nodes.indexOf(src); if(i>-1)this.nodes.splice(i,1); };
             this.nodes.push(src);
@@ -633,7 +668,7 @@
                 src.loop = true;
                 const g = this.ctx.createGain();
                 g.gain.value = 0; 
-                g.gain.linearRampToValueAtTime(1, this.ctx.currentTime + 2.0);
+                g.gain.linearRampToValueAtTime(0.25, this.ctx.currentTime + 2.0);
                 src.connect(g); g.connect(this.masterGain);
                 src.start(0);
                 this.nodes.push(src); this.nodes.push(g);
@@ -712,8 +747,11 @@
             this.sessionDuration = 0;
             this.startTime = 0;
             this.sessionTimerInterval = null;
+            this.currentPreset = "";
             this.setupUI();
-            this.randomizeInit();
+            this.randomizeVisuals();
+            const p1Btn = document.querySelector(`.preset-scroll .chip[onclick*="'p1'"]`);
+            this.loadPreset('p1', p1Btn);
         }
 
         setupUI() {
@@ -761,7 +799,7 @@
             }, { passive: true });
         }
 
-        randomizeInit() {
+        randomizeVisuals() {
             const themes = ['theme-lotusabend', 'theme-dantian-gruen', 'theme-mani-glanz', 'theme-himmelblau', 'theme-goldene-ruhe', 'theme-reines-licht'];
             const randomTheme = themes[Math.floor(Math.random() * themes.length)];
             document.body.className = randomTheme;
@@ -778,9 +816,18 @@
             const vizArea = document.getElementById('visual-area');
             vizArea.classList.remove('pos-top', 'pos-center', 'pos-bottom');
             vizArea.classList.add(randomPos);
+        }
 
-            const p1Btn = document.querySelector(`.preset-scroll .chip[onclick*="'p1'"]`);
-            this.loadPreset('p1', p1Btn);
+        shuffleSession() {
+            this.randomizeVisuals();
+            
+            const opts = Array.from(document.getElementById('soundSelect').options);
+            const valid = opts.filter(o => o.value !== 'none').map(o => o.value);
+            const rndSound = valid[Math.floor(Math.random() * valid.length)];
+            document.getElementById('soundSelect').value = rndSound;
+            if(this.isRunning) this.audio.play(rndSound);
+
+            this.setDuration(0, document.querySelector('#duration-scroll .chip:first-child'));
         }
 
         loadPreset(k, el) {
@@ -790,6 +837,7 @@
             };
             const v = presets[k];
             if(!v) return;
+            if(el) this.currentPreset = el.innerText;
 
             document.getElementById('inTime').value = v[0];
             document.getElementById('holdFullTime').value = v.length>2?v[1]:0;
@@ -868,6 +916,9 @@
                 btn.disabled = false;
                 document.getElementById('stop-float').style.display = 'block';
                 
+                document.getElementById('preset-display').innerText = this.currentPreset || "Freies Atmen";
+                document.getElementById('preset-display').classList.add('visible');
+                
                 // Cleanup old controller if exists
                 if(this.abortCtrl) this.abortCtrl.abort();
                 this.abortCtrl = new AbortController();
@@ -894,6 +945,7 @@
             this.audio.stop();
             if(this.sessionTimerInterval) clearInterval(this.sessionTimerInterval);
             document.getElementById('session-timer').classList.remove('visible');
+            document.getElementById('preset-display').classList.remove('visible');
 
             if(this.wakelock) this.wakelock.release();
             
@@ -910,14 +962,17 @@
             this.viz.setBreathState(0.5, 'hold-empty');
             
             const elapsedSec = Math.floor((Date.now() - this.startTime) / 1000);
-            const m = Math.floor(elapsedSec / 60);
-            const s = elapsedSec % 60;
-            document.getElementById('summary-time').innerText = `${m} Minuten und ${s} Sekunden`;
+            
+            if (elapsedSec >= 30) {
+                const m = Math.floor(elapsedSec / 60);
+                const s = elapsedSec % 60;
+                document.getElementById('summary-time').innerText = `${m} Minuten und ${s} Sekunden`;
 
-            const q = quotes[Math.floor(Math.random()*quotes.length)];
-            document.getElementById('quote-text').innerText = q.t;
-            document.getElementById('quote-author').innerText = q.a;
-            document.getElementById('summary-modal').classList.add('visible');
+                const q = quotes[Math.floor(Math.random()*quotes.length)];
+                document.getElementById('quote-text').innerText = q.t;
+                document.getElementById('quote-author').innerText = q.a;
+                document.getElementById('summary-modal').classList.add('visible');
+            }
         }
 
         updateSessionTimer() {
