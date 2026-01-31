@@ -1,3 +1,4 @@
+<!-- START OF FILE Paste January 31, 2026 - Optimized -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -22,7 +23,8 @@
             background-color: var(--bg-color); color: var(--text-color);
             font-family: var(--font-stack); margin: 0; height: 100dvh;
             display: flex; flex-direction: column; overflow: hidden;
-            transition: background-color 2s ease; overscroll-behavior: none;
+            transition: background-color 2s ease; 
+            overscroll-behavior: none; touch-action: none; /* iOS Scroll Fix */
         }
         /* THEMES */
         body.theme-himmelblau { --bg-color: #0b1026; --accent-primary: #5c8a99; --glass-bg: rgba(11, 16, 38, 0.65); }
@@ -33,20 +35,21 @@
         body.theme-mani-glanz { --bg-color: #070709; --accent-primary: #2b4f8c; --glass-bg: rgba(6,6,6,0.58); }
         
         /* LAYOUT */
-        #visual-area { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%; }
-        .viz-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+        #visual-area { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%; touch-action: none; }
+        .viz-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; touch-action: none; }
         
         .instruction-text {
             position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 12px);
             font-size: 1.35rem; font-weight: 500; padding: 6px 12px; border-radius: 12px;
             pointer-events: none; opacity: 0.95; color: var(--text-color); 
             background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(255,255,255,0.02));
-            z-index: 220;
+            z-index: 220; will-change: transform, opacity;
         }
         #breath-timer {
             position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 56px);
             font-size: 1.6rem; color: var(--accent-secondary); background: rgba(0,0,0,0.18);
             padding: 6px 12px; border-radius: 14px; pointer-events: none; z-index: 230;
+            font-variant-numeric: tabular-nums;
         }
 
         #ui-container {
@@ -55,7 +58,7 @@
             border-top: 1px solid rgba(255,255,255,0.03); border-radius: 20px 20px 0 0;
             padding: 8px 20px calc(15px + var(--safe-bottom));
             transform: translateY(0); transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-            z-index: 10;
+            z-index: 10; will-change: transform;
         }
         #ui-container.hidden { transform: translateY(110%); }
 
@@ -63,7 +66,7 @@
         .preset-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 12px; scrollbar-width: none; mask-image: linear-gradient(to right, black 90%, transparent 100%); -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%); }
         .preset-scroll::-webkit-scrollbar { display: none; }
 
-        .chip { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); padding: 7px 14px; border-radius: 18px; font-size: 0.75rem; white-space: nowrap; cursor: pointer; transition: all 0.4s; }
+        .chip { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); padding: 7px 14px; border-radius: 18px; font-size: 0.75rem; white-space: nowrap; cursor: pointer; transition: all 0.4s; -webkit-tap-highlight-color: transparent; }
         .chip.active { background: rgba(255,255,255,0.08); color: var(--accent-primary); border-color: rgba(200, 200, 200, 0.1); }
         
         #duration-scroll input { width: 60px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 7px; border-radius: 18px; font-size: 0.75rem; text-align: center; transition: all 0.4s; }
@@ -73,7 +76,7 @@
         label { font-size: 0.6rem; text-transform: uppercase; font-weight: 500; color: rgba(255,255,255,0.25); margin-bottom: 5px; display: block; }
         input, select { width: 100%; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 10px; border-radius: 10px; font-size: 0.95rem; outline: none; appearance: none; }
 
-        .btn { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: #fff; border: none; padding: 16px; border-radius: 14px; font-size: 0.95rem; font-weight: 500; width: 100%; text-transform: uppercase; cursor: pointer; transition: transform 0.15s; }
+        .btn { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: #fff; border: none; padding: 16px; border-radius: 14px; font-size: 0.95rem; font-weight: 500; width: 100%; text-transform: uppercase; cursor: pointer; transition: transform 0.15s; user-select: none; }
         .btn:active { transform: scale(0.985); }
         .btn.stop-mode { background: var(--accent-primary); opacity: 0.9; }
 
@@ -82,14 +85,14 @@
         /* Summary Overlay */
         #summary-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.92); backdrop-filter: blur(15px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; padding: 30px; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
         #summary-modal.visible { opacity: 1; pointer-events: all; }
-        .summary-stat { font-size: 3.5rem; font-weight: 100; color: var(--accent-primary); margin: 15px 0; }
+        .summary-stat { font-size: 3.5rem; font-weight: 100; color: var(--accent-primary); margin: 15px 0; font-variant-numeric: tabular-nums; }
         .summary-quote { font-size: 1.3rem; opacity: 0.85; line-height: 1.4; margin: 20px auto 10px; max-width: 500px; }
         .summary-author { font-size: 0.95rem; opacity: 0.65; margin: 5px auto 0; }
 
         /* VOLUME CONTROL */
         #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 20px; display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s ease; z-index: 250; width: auto; }
         #volume-control:hover { background: rgba(0,0,0,0.4); }
-        #vol-icon { width: 24px; height: 24px; fill: var(--text-color); opacity: 0.6; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; }
+        #vol-icon { width: 24px; height: 24px; fill: var(--text-color); opacity: 0.6; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
         #vol-slider { width: 80px; height: 2px; -webkit-appearance: none; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; opacity: 1; }
         #vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-primary); cursor: pointer; transition: transform 0.1s; }
         #vol-slider::-webkit-slider-thumb:active { transform: scale(1.3); }
@@ -198,22 +201,66 @@
         <button class="btn" id="startBtn">Beginnen</button>
     </div>
 
-    <button id="stop-float" class="btn stop-mode" style="display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:26px; z-index:200; width:220px;">Beenden</button>
+    <button id="stop-float" class="btn stop-mode" style="display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:26px; z-index:200; width:220px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">Beenden</button>
 
     <script>
-    class SimplexNoise { constructor(){this.p=new Uint8Array(256);for(let i=0;i<256;i++)this.p[i]=i;for(let i=0;i<256;i++){let r=Math.random()*256|0,t=this.p[i];this.p[i]=this.p[r];this.p[r]=t}this.perm=new Uint8Array(512);for(let i=0;i<512;i++)this.perm[i]=this.p[i&255]}noise2D(x,y){const F2=0.5*(Math.sqrt(3.0)-1.0);let s=(x+y)*F2,i=Math.floor(x+s),j=Math.floor(y+s);let t=(i+j)*((3.0-Math.sqrt(3.0))/6.0);let X0=i-t,Y0=j-t,x0=x-X0,y0=y-Y0;let i1,j1;if(x0>y0){i1=1;j1=0}else{i1=0;j1=1}let x1=x0-i1+((3.0-Math.sqrt(3.0))/6.0),y1=y0-j1+((3.0-Math.sqrt(3.0))/6.0),x2=x0-1.0+2.0*((3.0-Math.sqrt(3.0))/6.0),y2=y0-1.0+2.0*((3.0-Math.sqrt(3.0))/6.0);let ii=i&255,jj=j&255;let gi0=this.perm[ii+this.perm[jj]]%12,gi1=this.perm[ii+i1+this.perm[jj+j1]]%12,gi2=this.perm[ii+1+this.perm[jj+1]]%12;let grad3=[[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[1,0],[-1,0],[0,1],[0,-1],[0,1],[0,-1]];let t0=0.5-x0*x0-y0*y0,n0=t0<0?0:t0*t0*(grad3[gi0][0]*x0+grad3[gi0][1]*y0);let t1=0.5-x1*x1-y1*y1,n1=t1<0?0:t1*t1*(grad3[gi1][0]*x1+grad3[gi1][1]*y1);let t2=0.5-x2*x2-y2*y2,n2=t2<0?0:t2*t2*(grad3[gi2][0]*x2+grad3[gi2][1]*y2);return 70.0*(n0+n1+n2)}}
+    // Optimized Simplex Noise with Zero Allocation per Call
+    const GRAD3 = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[1,0],[-1,0],[0,1],[0,-1],[0,1],[0,-1]];
+    class SimplexNoise { 
+        constructor() {
+            this.p = new Uint8Array(256);
+            for(let i=0;i<256;i++) this.p[i]=i;
+            for(let i=0;i<256;i++) {
+                let r = Math.random()*256|0, t = this.p[i];
+                this.p[i] = this.p[r]; this.p[r] = t;
+            }
+            this.perm = new Uint8Array(512);
+            for(let i=0;i<512;i++) this.perm[i] = this.p[i&255];
+        }
+        noise2D(x, y) {
+            const F2 = 0.5*(Math.sqrt(3.0)-1.0), G2 = (3.0-Math.sqrt(3.0))/6.0;
+            let s = (x+y)*F2, i = Math.floor(x+s), j = Math.floor(y+s);
+            let t = (i+j)*G2, X0 = i-t, Y0 = j-t, x0 = x-X0, y0 = y-Y0;
+            let i1 = x0>y0 ? 1 : 0, j1 = x0>y0 ? 0 : 1;
+            let x1 = x0 - i1 + G2, y1 = y0 - j1 + G2;
+            let x2 = x0 - 1.0 + 2.0*G2, y2 = y0 - 1.0 + 2.0*G2;
+            let ii = i&255, jj = j&255;
+            let gi0 = this.perm[ii+this.perm[jj]]%12, gi1 = this.perm[ii+i1+this.perm[jj+j1]]%12, gi2 = this.perm[ii+1+this.perm[jj+1]]%12;
+            let t0 = 0.5 - x0*x0 - y0*y0, n0 = t0<0 ? 0 : t0*t0 * (GRAD3[gi0][0]*x0 + GRAD3[gi0][1]*y0);
+            let t1 = 0.5 - x1*x1 - y1*y1, n1 = t1<0 ? 0 : t1*t1 * (GRAD3[gi1][0]*x1 + GRAD3[gi1][1]*y1);
+            let t2 = 0.5 - x2*x2 - y2*y2, n2 = t2<0 ? 0 : t2*t2 * (GRAD3[gi2][0]*x2 + GRAD3[gi2][1]*y2);
+            return 70.0 * (n0 + n1 + n2);
+        }
+    }
 
     class BreathVisuals {
         constructor(canvas) {
-            this.canvas = canvas; this.ctx = this.canvas.getContext('2d', { alpha: false });
-            this.noise = new SimplexNoise(); this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+            this.canvas = canvas; this.ctx = this.canvas.getContext('2d', { alpha: false, desynchronized: true });
+            this.noise = new SimplexNoise(); 
+            this.dpr = Math.min(window.devicePixelRatio || 1, 2);
             this.width = 0; this.height = 0; this.centerX = 0; this.centerY = 0;
             this.mode = 'mist'; this.breathValue = 0.5; this.colors = { r:138, g:138, b:138 };
-            this.mistParticles = null;
+            
+            // Optimization: Structure of Arrays (SoA) for zero-GC particles
+            this.pCount = 500;
+            this.p_x = new Float32Array(this.pCount);
+            this.p_y = new Float32Array(this.pCount);
+            this.p_vx = new Float32Array(this.pCount);
+            this.p_vy = new Float32Array(this.pCount);
+            this.p_life = new Float32Array(this.pCount);
+            this.p_maxLife = new Float32Array(this.pCount);
+            this.p_size = new Float32Array(this.pCount);
+            this.p_baseAlpha = new Float32Array(this.pCount);
+            
             this.particleSprite = null;
             this.phase = 'hold-empty';
-            window.addEventListener('resize', () => this.resize()); this.resize(); this.animate();
+            this.initParticles = false;
+            
+            window.addEventListener('resize', () => this.resize(), { passive: true }); 
+            this.resize(); 
+            this.animate();
         }
+
         updateThemeColors() {
             const style = getComputedStyle(document.body);
             const hex = (style.getPropertyValue('--accent-primary') || '#8a8a8a').trim().replace('#', '');
@@ -222,6 +269,7 @@
             }
             this.generateSprite();
         }
+
         generateSprite() {
             this.particleSprite = document.createElement('canvas');
             const s = 64; this.particleSprite.width = s; this.particleSprite.height = s;
@@ -231,6 +279,7 @@
             g.addColorStop(1, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},0)`);
             ctx.fillStyle = g; ctx.fillRect(0, 0, s, s);
         }
+
         resize() {
             const rect = this.canvas.parentElement.getBoundingClientRect();
             this.width = rect.width; this.height = rect.height;
@@ -238,8 +287,10 @@
             this.canvas.style.width = this.width + 'px'; this.canvas.style.height = this.height + 'px';
             this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
             this.centerX = this.width / 2; this.centerY = this.height / 2;
-            this.updateThemeColors(); this.mistParticles = null;
+            this.updateThemeColors(); 
+            this.initParticles = false; // Trigger reset
         }
+
         setBreathState(v, p) { 
             this.breathValue = Math.max(0, Math.min(1, v)); 
             this.phase = p;
@@ -247,104 +298,114 @@
         
         animate() {
             requestAnimationFrame(() => this.animate());
+            
+            // Clear / Fade
             const fade = this.mode === 'mist' ? 0.12 : 0.025;
             this.ctx.globalCompositeOperation = 'source-over';
-            this.ctx.fillStyle = `rgba(${this.hexToRgb(getComputedStyle(document.body).getPropertyValue('--bg-color'))}, ${fade})`;
+            // Cache BG Color would be better, but css variable might change
+            const bgStr = getComputedStyle(document.body).getPropertyValue('--bg-color').trim();
+            const r = parseInt(bgStr.slice(1,3),16), g = parseInt(bgStr.slice(3,5),16), b = parseInt(bgStr.slice(5,7),16);
+            this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${fade})`;
             this.ctx.fillRect(0, 0, this.width, this.height);
             this.ctx.globalCompositeOperation = 'lighter';
+
             if (this.mode === 'mist') this.renderMist();
             else if (this.mode === 'circle') this.renderCircle();
             else if (this.mode === 'ripple') this.renderRipple();
         }
 
+        resetParticle(i) {
+            this.p_x[i] = Math.random() * this.width;
+            this.p_y[i] = Math.random() * this.height;
+            this.p_vx[i] = 0; 
+            this.p_vy[i] = 0;
+            this.p_life[i] = 0; 
+            this.p_maxLife[i] = 150 + Math.random() * 250;
+            this.p_size[i] = (4 + Math.random() * 24) * (this.dpr * 0.6);
+            this.p_baseAlpha[i] = 0.05 + Math.random() * 0.25;
+        }
+
         renderMist() {
-            const time = Date.now() * 0.0003;
-            const count = 500;
-            if (!this.mistParticles || this.mistParticles.length !== count) {
-                this.mistParticles = [];
-                for (let i = 0; i < count; i++) this.mistParticles.push(this.resetParticle({}));
+            if (!this.initParticles) {
+                for (let i = 0; i < this.pCount; i++) this.resetParticle(i);
+                this.initParticles = true;
             }
-            
+
+            const time = Date.now() * 0.0003;
             const center = { x: this.centerX, y: this.centerY };
-            // Max radius for the cloud (approx 40% of screen min dimension)
             const maxR = Math.min(this.width, this.height) * 0.4;
-            
-            for (let p of this.mistParticles) {
-                p.life++;
-                if (p.life > p.maxLife) this.resetParticle(p);
+            const targetR = 20 + (maxR * this.breathValue);
 
-                const n = this.noise.noise2D(p.x * 0.0015, p.y * 0.0015 + time);
-                const angle = n * Math.PI * 4;
-                
-                // Base turbulence
-                let turbulence = 0.03;
-                if (this.phase === 'hold-full') turbulence = 0.05; // Vibrate
-                if (this.phase === 'hold-empty') turbulence = 0.01; // Calm
-                
-                p.vx += Math.cos(angle) * turbulence;
-                p.vy += Math.sin(angle) * turbulence;
+            let turbulence = 0.03;
+            if (this.phase === 'hold-full') turbulence = 0.05;
+            else if (this.phase === 'hold-empty') turbulence = 0.01;
 
-                // Radial Logic (Sync with Breath)
-                const dx = p.x - center.x;
-                const dy = p.y - center.y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                const dirX = dx / (dist || 1);
-                const dirY = dy / (dist || 1);
+            const noiseScale = 0.0015;
 
-                // Target Radius based on breathValue (Expansion/Contraction)
-                // We define a "soft shell" where particles want to be.
-                const targetR = 20 + (maxR * this.breathValue);
+            for (let i = 0; i < this.pCount; i++) {
+                this.p_life[i]++;
+                if (this.p_life[i] > this.p_maxLife[i]) this.resetParticle(i);
+
+                // Noise lookup - heavily optimized
+                const n = this.noise.noise2D(this.p_x[i] * noiseScale, this.p_y[i] * noiseScale + time);
+                const angle = n * 12.56; // 4 * PI
                 
-                // Force calculation
+                this.p_vx[i] += Math.cos(angle) * turbulence;
+                this.p_vy[i] += Math.sin(angle) * turbulence;
+
+                const dx = this.p_x[i] - center.x;
+                const dy = this.p_y[i] - center.y;
+                const distSq = dx*dx + dy*dy;
+                const dist = Math.sqrt(distSq); // Needed for linear force logic
+                
+                // Avoid division by zero
+                const invDist = dist > 0.1 ? 1.0 / dist : 0;
+                const dirX = dx * invDist;
+                const dirY = dy * invDist;
+
                 let force = 0;
                 if (this.phase === 'in') {
-                    // Expansion: Push out, but keep within growing bounds
                     force = (targetR - dist) * 0.0005; 
-                    if (dist < targetR * 0.5) force += 0.002; // Core push
+                    if (dist < targetR * 0.5) force += 0.002;
                 } else if (this.phase === 'out') {
-                    // Contraction: Pull in
                     force = (targetR - dist) * 0.0008;
                 } else if (this.phase === 'hold-full') {
-                    // Hold: Spring to max, vibrate
                     force = (targetR - dist) * 0.001;
                 } else {
-                    // Empty: Drift near center
                     force = (targetR - dist) * 0.0005;
                 }
 
-                p.vx += dirX * force;
-                p.vy += dirY * force;
+                this.p_vx[i] += dirX * force;
+                this.p_vy[i] += dirY * force;
                 
-                p.vx *= 0.92; p.vy *= 0.92;
-                p.x += p.vx; p.y += p.vy;
+                this.p_vx[i] *= 0.92; 
+                this.p_vy[i] *= 0.92;
+                this.p_x[i] += this.p_vx[i]; 
+                this.p_y[i] += this.p_vy[i];
 
-                const lifeProg = p.life / p.maxLife;
-                // Alpha & Size modulation
+                const lifeProg = this.p_life[i] / this.p_maxLife[i];
                 let alphaMult = 0.5 + this.breathValue * 0.5;
-                if (this.phase === 'out') alphaMult *= 0.8; // Fade out slightly
+                if (this.phase === 'out') alphaMult *= 0.8;
                 
-                const alpha = Math.sin(lifeProg * Math.PI) * p.baseAlpha * alphaMult;
-                const size = p.size * (0.8 + this.breathValue * 0.8);
+                const alpha = Math.sin(lifeProg * Math.PI) * this.p_baseAlpha[i] * alphaMult;
+                const size = this.p_size[i] * (0.8 + this.breathValue * 0.8);
 
+                // Direct draw (saving context save/restore for speed)
                 this.ctx.globalAlpha = alpha;
-                if(this.particleSprite) this.ctx.drawImage(this.particleSprite, p.x - size/2, p.y - size/2, size, size);
+                if(this.particleSprite) {
+                    this.ctx.drawImage(this.particleSprite, this.p_x[i] - size/2, this.p_y[i] - size/2, size, size);
+                }
             }
             this.ctx.globalAlpha = 1.0;
         }
-        resetParticle(p) {
-            p.x = Math.random() * this.width; p.y = Math.random() * this.height;
-            p.vx = 0; p.vy = 0;
-            p.life = 0; p.maxLife = 150 + Math.random() * 250;
-            p.size = (4 + Math.random() * 24) * (this.dpr * 0.6);
-            p.baseAlpha = 0.05 + Math.random() * 0.25;
-            return p;
-        }
+
         renderCircle() {
             const rBase = Math.min(this.width, this.height) * 0.3 * (0.4 + this.breathValue * 0.6);
             this.ctx.beginPath();
+            const time = Date.now()*0.0003;
             for(let i=0; i<=100; i++) {
                 const a = (i/100)*6.28;
-                const n = this.noise.noise2D(Math.cos(a)+Date.now()*0.0003, Math.sin(a));
+                const n = this.noise.noise2D(Math.cos(a)+time, Math.sin(a));
                 const r = rBase + n * 20 * this.breathValue;
                 const x = this.centerX + Math.cos(a)*r, y = this.centerY + Math.sin(a)*r;
                 if(i===0) this.ctx.moveTo(x,y); else this.ctx.lineTo(x,y);
@@ -357,6 +418,7 @@
             g.addColorStop(1, "rgba(0,0,0,0)");
             this.ctx.fillStyle = g; this.ctx.fill();
         }
+
         renderRipple() {
             const t = Date.now()*0.0005;
             for(let i=0; i<8; i++) {
@@ -367,10 +429,9 @@
                 this.ctx.stroke();
             }
         }
-        hexToRgb(h){ const b = parseInt(h.trim().replace('#',''),16); return `${(b>>16)&255},${(b>>8)&255},${b&255}`; }
     }
 
-    /* --- AUDIO ENGINE (FIX: Instant Start & Sync) --- */
+    /* --- AUDIO ENGINE --- */
     class GentleAudio {
         constructor() { 
             this.ctx = null; this.nodes = []; 
@@ -382,53 +443,59 @@
             this.mediaSource = null;
         }
         async init() {
-            if (!this.ctx) { 
-                const AC = window.AudioContext || window.webkitAudioContext; 
-                if (AC) this.ctx = new AC();
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!this.ctx && AC) { 
+                this.ctx = new AC();
                 this.masterGain = this.ctx.createGain();
                 this.masterGain.gain.value = this.volume;
                 this.masterGain.connect(this.ctx.destination);
                 
-                // HTML5 Audio Source Setup
                 this.mediaSource = this.ctx.createMediaElementSource(this.audioEl);
                 this.mediaSource.connect(this.masterGain);
             }
-            if (this.ctx && this.ctx.state === 'suspended') await this.ctx.resume();
+            // Ensure running context (iOS fix)
+            if (this.ctx && this.ctx.state === 'suspended') {
+                await this.ctx.resume();
+            }
         }
         setVolume(v) {
             this.volume = parseFloat(v); localStorage.setItem('atem-volume', this.volume);
             if(this.masterGain) this.masterGain.gain.setTargetAtTime(this.volume, this.ctx.currentTime, 0.1);
         }
         async play(type) {
-            this.stop();
-            if (!this.ctx || type === 'none') return;
+            this.stop(); // Clear previous
+            if (!this.ctx) await this.init();
+            
+            if (type === 'none') return;
             
             if (type === 'gentle' || type === 'ambient') {
-                // Oszillator-Logik
                 const gain = this.ctx.createGain();
                 gain.connect(this.masterGain);
                 gain.gain.setValueAtTime(0, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(1.0, this.ctx.currentTime + 0.05);
+                gain.gain.linearRampToValueAtTime(1.0, this.ctx.currentTime + 1.0); // Soft fade in
 
                 const osc = this.ctx.createOscillator();
                 osc.type = type === 'gentle' ? 'sine' : 'triangle';
                 osc.frequency.value = type === 'gentle' ? 55 : 110;
-                osc.connect(gain); osc.start(); this.nodes.push(osc);
-                this.nodes.push(gain);
+                osc.connect(gain); osc.start(); 
+                this.nodes.push(osc); this.nodes.push(gain);
             } else {
-                // HTML5 Audio Streaming
                 try {
                     this.audioEl.src = type;
+                    // Reset to 0 for replay
+                    this.audioEl.currentTime = 0;
                     await this.audioEl.play();
                 } catch (e) {
-                    console.error("Audio Load Error:", e);
+                    console.warn("Audio play failed/aborted", e);
                 }
             }
         }
         stop() { 
-            this.nodes.forEach(n => { try{if(n.stop)n.stop();n.disconnect();}catch(e){} }); this.nodes = []; 
+            // Cleanup oscillators
+            this.nodes.forEach(n => { try{if(n.stop)n.stop();n.disconnect();}catch(e){} }); 
+            this.nodes = []; 
+            // Cleanup HTML Audio
             this.audioEl.pause();
-            this.audioEl.currentTime = 0;
         }
     }
 
@@ -443,8 +510,9 @@
         constructor() {
             this.viz = new BreathVisuals(document.getElementById('viz-canvas'));
             this.audio = new GentleAudio();
-            this.isRunning = false; this.abortCtrl = null;
-            this.sessionDuration = 0; // 0 = unendlich
+            this.isRunning = false; 
+            this.abortCtrl = null;
+            this.sessionDuration = 0;
             this.startTime = 0;
             this.sessionTimerInterval = null;
             this.setupUI();
@@ -469,7 +537,6 @@
                 }
             });
             
-            // Volume Init
             const volSlider = document.getElementById('vol-slider');
             volSlider.value = this.audio.volume;
             this.updateVolumeIcon(this.audio.volume);
@@ -478,7 +545,7 @@
                 const v = parseFloat(e.target.value);
                 this.audio.setVolume(v);
                 this.updateVolumeIcon(v);
-            });
+            }, { passive: true });
         }
 
         randomizeInit() {
@@ -493,7 +560,6 @@
             const modeBtn = document.querySelector(`.mode-row .chip[onclick*="'${randomMode}'"]`);
             this.setVisualMode(randomMode, modeBtn);
 
-            // Standard-Startzustand: Preset p1 (5.5 : 5.5) laden
             const p1Btn = document.querySelector(`.preset-scroll .chip[onclick*="'p1'"]`);
             this.loadPreset('p1', p1Btn);
         }
@@ -506,26 +572,16 @@
             const v = presets[k];
             if(!v) return;
 
-            // Zeiten setzen
             document.getElementById('inTime').value = v[0];
             document.getElementById('holdFullTime').value = v.length>2?v[1]:0;
             document.getElementById('outTime').value = v.length>2?v[2]:v[1];
             document.getElementById('holdEmptyTime').value = v.length==4?v[3]:0;
 
-            // LOGIK: Audio automatisch wählen
             const soundSelect = document.getElementById('soundSelect');
-            if (k === 'p8') {
-                // Bei 5:5 (p8) -> Yrrpheus Track
-                soundSelect.value = "audio/yrrpheus_coherence.mp3";
-            } else if (k === 'p1') {
-                // Bei 5.5:5.5 (p1) -> Altus Track
-                soundSelect.value = "audio/altus_session3.mp3";
-            } else {
-                // Bei allen anderen -> Stille
-                soundSelect.value = "none";
-            }
+            if (k === 'p8') soundSelect.value = "audio/yrrpheus_coherence.mp3";
+            else if (k === 'p1') soundSelect.value = "audio/altus_session3.mp3";
+            else soundSelect.value = "none";
 
-            // Styles
             document.querySelectorAll('.preset-scroll .chip').forEach(c=>c.classList.remove('active'));
             if(el) el.classList.add('active');
         }
@@ -544,21 +600,18 @@
 
         toggleMute() {
             const slider = document.getElementById('vol-slider');
-            
             if (this.audio.volume > 0) {
-                // Mute Action: Set volume to 0
                 this.audio.setVolume(0);
                 slider.value = 0;
                 this.updateVolumeIcon(0);
             } else {
-                // Unmute Action: Just change icon to indicate readiness, volume stays 0 (Manual Recovery)
-                this.updateVolumeIcon(1); // Force speaker icon
+                this.updateVolumeIcon(1); // Visual feedback only, user slides manually
             }
         }
 
         updateVolumeIcon(vol) {
             const path = document.querySelector('#vol-icon path');
-            const isMuted = vol <= 0;
+            const isMuted = vol <= 0.01;
             document.getElementById('vol-icon').style.opacity = isMuted ? 0.5 : 0.9;
             if(isMuted) path.setAttribute('d', 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z');
             else path.setAttribute('d', 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z');
@@ -569,50 +622,52 @@
         
         async toggle() { this.isRunning ? this.stop() : this.start(); }
 
-    async start() {
-        if (this.isRunning) return;
-        
-        // 1. UI Feedback: Laden...
-        const btn = document.getElementById('startBtn');
-        const oldText = btn.innerText;
-        btn.innerText = "Laden...";
-        btn.disabled = true;
-
-        try {
-            // 2. WARTEN auf Audio (Sync-Punkt)
-            await this.audio.init();
-            await this.audio.play(document.getElementById('soundSelect').value);
+        async start() {
+            if (this.isRunning) return;
             
-            // 3. Wenn Audio läuft, Rest starten
-            if(navigator.wakeLock) try { this.wakelock = await navigator.wakeLock.request('screen'); } catch(e){}
+            const btn = document.getElementById('startBtn');
+            const oldText = btn.innerText;
+            btn.innerText = "Laden...";
+            btn.disabled = true;
 
-            this.isRunning = true;
-            this.startTime = Date.now();
-            document.getElementById('ui-container').classList.add('hidden');
-            btn.innerText = "Beenden";
-            btn.classList.add('stop-mode');
-            btn.disabled = false;
-            document.getElementById('stop-float').style.display = 'block';
-            
-            this.abortCtrl = new AbortController();
-            this.loop(this.abortCtrl.signal);
+            try {
+                // Audio init & WakeLock
+                await this.audio.init();
+                this.audio.play(document.getElementById('soundSelect').value);
+                if(navigator.wakeLock) try { this.wakelock = await navigator.wakeLock.request('screen'); } catch(e){}
 
-            document.getElementById('session-timer').classList.add('visible');
-            this.updateSessionTimer();
-            this.sessionTimerInterval = setInterval(() => this.updateSessionTimer(), 1000);
-            
-        } catch (err) {
-            // Falls Audio fehlschlägt, Reset
-            console.error(err);
-            this.isRunning = false;
-            btn.innerText = oldText;
-            btn.disabled = false;
+                this.isRunning = true;
+                this.startTime = Date.now();
+                
+                document.getElementById('ui-container').classList.add('hidden');
+                btn.innerText = "Beenden";
+                btn.classList.add('stop-mode');
+                btn.disabled = false;
+                document.getElementById('stop-float').style.display = 'block';
+                
+                // Cleanup old controller if exists
+                if(this.abortCtrl) this.abortCtrl.abort();
+                this.abortCtrl = new AbortController();
+                
+                this.loop(this.abortCtrl.signal);
+
+                document.getElementById('session-timer').classList.add('visible');
+                this.updateSessionTimer();
+                // Clear any existing interval
+                if(this.sessionTimerInterval) clearInterval(this.sessionTimerInterval);
+                this.sessionTimerInterval = setInterval(() => this.updateSessionTimer(), 1000);
+                
+            } catch (err) {
+                console.error(err);
+                this.isRunning = false;
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
         }
-    }
 
         stop() {
             this.isRunning = false;
-            if(this.abortCtrl) this.abortCtrl.abort();
+            if(this.abortCtrl) { this.abortCtrl.abort(); this.abortCtrl = null; }
             this.audio.stop();
             if(this.sessionTimerInterval) clearInterval(this.sessionTimerInterval);
             document.getElementById('session-timer').classList.remove('visible');
@@ -623,6 +678,7 @@
             document.getElementById('startBtn').innerText = "Beginnen";
             document.getElementById('startBtn').classList.remove('stop-mode');
             document.getElementById('stop-float').style.display = 'none';
+            
             const instr = document.getElementById('instruction');
             instr.innerText = "Atmen";
             instr.style.color = '';
@@ -642,9 +698,7 @@
 
         updateSessionTimer() {
             const elapsed = Date.now() - this.startTime;
-            
             if (this.sessionDuration > 0) {
-                // Countdown (bei fester Dauer)
                 const totalMs = this.sessionDuration * 60 * 1000;
                 const remaining = Math.max(0, totalMs - elapsed);
                 const m = Math.floor(remaining / 60000);
@@ -652,7 +706,6 @@
                 document.getElementById('session-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
                 if (remaining <= 0) this.stop();
             } else {
-                // Stoppuhr (bei Endlos-Modus)
                 const m = Math.floor(elapsed / 60000);
                 const s = Math.floor((elapsed % 60000) / 1000);
                 document.getElementById('session-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
@@ -661,8 +714,8 @@
 
         async loop(signal) {
             const val = id => parseFloat(document.getElementById(id).value) || 0;
-            while(!signal.aborted) {
-                // Timer check moved to updateSessionTimer/interval for better precision
+            // The isRunning check here ensures we don't start a new loop if stop() was called during a phase transition
+            while(!signal.aborted && this.isRunning) {
                 await this.phase("Einatmen ↑", val('inTime'), 0, 1, '#64B5F6', signal, true);
                 await this.phase("Halten", val('holdFullTime'), 1, 1, '#fff', signal, false);
                 await this.phase("Ausatmen ↓", val('outTime'), 1, 0, '#E57373', signal, false);
@@ -670,13 +723,13 @@
             }
         }
         
-        async phase(text, dur, startV, endV, col, signal, countUp = false) {
-            if(signal.aborted || dur <= 0) return;
+        async phase(text, dur, startV, endV, col, signal, countUp) {
+            if(signal.aborted || !this.isRunning || dur <= 0) return;
+            
             const instr = document.getElementById('instruction');
             instr.innerText = text;
             instr.style.color = col;
             
-            // Determine Phase Type
             let pType = 'hold-empty';
             if (startV < endV) pType = 'in';
             else if (startV > endV) pType = 'out';
@@ -685,8 +738,10 @@
             const start = Date.now();
             return new Promise(resolve => {
                 const tick = () => {
-                    if(signal.aborted) return resolve();
-                    const prog = Math.min(1, (Date.now()-start)/(dur*1000));
+                    if(signal.aborted || !this.isRunning) return resolve();
+                    
+                    const now = Date.now();
+                    const prog = Math.min(1, (now - start)/(dur*1000));
                     const eased = 0.5 * (1 - Math.cos(Math.PI * prog)); 
                     const currentBreath = startV + (endV - startV) * eased;
                     
@@ -694,7 +749,8 @@
                     
                     const timeVal = countUp ? (dur * prog) : (dur - (dur * prog));
                     const timer = document.getElementById('breath-timer');
-                    timer.innerText = timeVal.toFixed(0); timer.style.color = col;
+                    timer.innerText = timeVal.toFixed(0); 
+                    timer.style.color = col;
                     
                     if(prog < 1) requestAnimationFrame(tick); else resolve();
                 };
