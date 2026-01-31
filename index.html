@@ -549,6 +549,14 @@
         setupUI() {
             document.getElementById('startBtn').addEventListener('click', () => this.toggle());
             document.getElementById('stop-float').addEventListener('click', () => this.stop());
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' || e.key === ' ') {
+                    e.preventDefault();
+                    this.toggle();
+                }
+            });
+
             document.getElementById('themeSelect').addEventListener('change', (e) => {
                 document.body.className = e.target.value; this.viz.updateThemeColors();
             });
@@ -667,6 +675,7 @@
                 this.startTime = Date.now();
                 
                 document.getElementById('ui-container').classList.add('hidden');
+                document.getElementById('summary-modal').classList.remove('visible');
                 btn.innerText = "Beenden";
                 btn.classList.add('stop-mode');
                 btn.disabled = false;
