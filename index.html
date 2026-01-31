@@ -90,6 +90,15 @@
         #vol-slider { width: 100px; height: 4px; -webkit-appearance: none; background: rgba(255,255,255,0.1); border-radius: 2px; outline: none; opacity: 0; transition: opacity 0.3s; }
         #volume-control:hover #vol-slider, #volume-control:focus-within #vol-slider, #volume-control.active #vol-slider { opacity: 1; }
         #vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent-secondary); cursor: pointer; }
+
+        /* SESSION TIMER */
+        #session-timer { 
+            position: fixed; bottom: calc(var(--safe-bottom) + 20px); right: 20px; 
+            font-size: 1rem; font-weight: 400; color: var(--text-color); font-variant-numeric: tabular-nums;
+            opacity: 0; transition: opacity 0.5s; z-index: 5; pointer-events: none; 
+        }
+        #session-timer.visible { opacity: 0.6; pointer-events: auto; }
+        #session-timer:hover { opacity: 1; }
     </style>
 </head>
 <body class="theme-lotusabend">
@@ -98,6 +107,7 @@
         <canvas id="viz-canvas" class="viz-canvas"></canvas>
         <div class="instruction-text" id="instruction">Atmen</div>
         <div id="breath-timer"></div>
+        <div id="session-timer"></div>
         <div id="volume-control">
             <svg id="vol-icon" viewBox="0 0 24 24" onclick="app.toggleMute()"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             <input type="range" id="vol-slider" min="0" max="1" step="0.01">
@@ -198,6 +208,7 @@
             this.mode = 'mist'; this.breathValue = 0.5; this.colors = { r:138, g:138, b:138 };
             this.mistParticles = null;
             this.particleSprite = null;
+            this.phase = 'hold-empty';
             window.addEventListener('resize', () => this.resize()); this.resize(); this.animate();
         }
         updateThemeColors() {
@@ -226,7 +237,10 @@
             this.centerX = this.width / 2; this.centerY = this.height / 2;
             this.updateThemeColors(); this.mistParticles = null;
         }
-        setBreathValue(v) { this.breathValue = Math.max(0, Math.min(1, v)); }
+        setBreathState(v, p) { 
+            this.breathValue = Math.max(0, Math.min(1, v)); 
+            this.phase = p;
+        }
         
         animate() {
             requestAnimationFrame(() => this.animate());
@@ -241,12 +255,16 @@
         }
 
         renderMist() {
-            const time = Date.now() * 0.0002;
+            const time = Date.now() * 0.0003;
             const count = 500;
             if (!this.mistParticles || this.mistParticles.length !== count) {
                 this.mistParticles = [];
                 for (let i = 0; i < count; i++) this.mistParticles.push(this.resetParticle({}));
             }
+            
+            const center = { x: this.centerX, y: this.centerY };
+            // Max radius for the cloud (approx 40% of screen min dimension)
+            const maxR = Math.min(this.width, this.height) * 0.4;
             
             for (let p of this.mistParticles) {
                 p.life++;
@@ -255,26 +273,55 @@
                 const n = this.noise.noise2D(p.x * 0.0015, p.y * 0.0015 + time);
                 const angle = n * Math.PI * 4;
                 
-                p.vx += Math.cos(angle) * 0.03;
-                p.vy += Math.sin(angle) * 0.03;
-
-                const dx = this.centerX - p.x;
-                const dy = this.centerY - p.y;
+                // Base turbulence
+                let turbulence = 0.03;
+                if (this.phase === 'hold-full') turbulence = 0.05; // Vibrate
+                if (this.phase === 'hold-empty') turbulence = 0.01; // Calm
                 
-                if (this.breathValue > 0.5) {
-                    const strength = (this.breathValue - 0.5) * 0.005;
-                    p.vx += dx * strength; p.vy += dy * strength;
+                p.vx += Math.cos(angle) * turbulence;
+                p.vy += Math.sin(angle) * turbulence;
+
+                // Radial Logic (Sync with Breath)
+                const dx = p.x - center.x;
+                const dy = p.y - center.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const dirX = dx / (dist || 1);
+                const dirY = dy / (dist || 1);
+
+                // Target Radius based on breathValue (Expansion/Contraction)
+                // We define a "soft shell" where particles want to be.
+                const targetR = 20 + (maxR * this.breathValue);
+                
+                // Force calculation
+                let force = 0;
+                if (this.phase === 'in') {
+                    // Expansion: Push out, but keep within growing bounds
+                    force = (targetR - dist) * 0.0005; 
+                    if (dist < targetR * 0.5) force += 0.002; // Core push
+                } else if (this.phase === 'out') {
+                    // Contraction: Pull in
+                    force = (targetR - dist) * 0.0008;
+                } else if (this.phase === 'hold-full') {
+                    // Hold: Spring to max, vibrate
+                    force = (targetR - dist) * 0.001;
                 } else {
-                    const strength = (0.5 - this.breathValue) * 0.002;
-                    p.vx -= dx * strength; p.vy -= dy * strength;
+                    // Empty: Drift near center
+                    force = (targetR - dist) * 0.0005;
                 }
 
-                p.vx *= 0.95; p.vy *= 0.95;
+                p.vx += dirX * force;
+                p.vy += dirY * force;
+                
+                p.vx *= 0.92; p.vy *= 0.92;
                 p.x += p.vx; p.y += p.vy;
 
                 const lifeProg = p.life / p.maxLife;
-                const alpha = Math.sin(lifeProg * Math.PI) * p.baseAlpha * (0.5 + this.breathValue * 0.5);
-                const size = p.size * (0.8 + this.breathValue * 0.6);
+                // Alpha & Size modulation
+                let alphaMult = 0.5 + this.breathValue * 0.5;
+                if (this.phase === 'out') alphaMult *= 0.8; // Fade out slightly
+                
+                const alpha = Math.sin(lifeProg * Math.PI) * p.baseAlpha * alphaMult;
+                const size = p.size * (0.8 + this.breathValue * 0.8);
 
                 this.ctx.globalAlpha = alpha;
                 if(this.particleSprite) this.ctx.drawImage(this.particleSprite, p.x - size/2, p.y - size/2, size, size);
@@ -402,6 +449,7 @@
             this.isRunning = false; this.abortCtrl = null;
             this.sessionDuration = 0; // 0 = unendlich
             this.startTime = 0;
+            this.sessionTimerInterval = null;
             this.setupUI();
             this.randomizeInit();
         }
@@ -535,6 +583,12 @@
             
             this.abortCtrl = new AbortController();
             this.loop(this.abortCtrl.signal);
+
+            if (this.sessionDuration > 0) {
+                document.getElementById('session-timer').classList.add('visible');
+                this.updateSessionTimer();
+                this.sessionTimerInterval = setInterval(() => this.updateSessionTimer(), 1000);
+            }
             
         } catch (err) {
             // Falls Audio fehlschlägt, Reset
@@ -549,6 +603,9 @@
             this.isRunning = false;
             if(this.abortCtrl) this.abortCtrl.abort();
             this.audio.stop();
+            if(this.sessionTimerInterval) clearInterval(this.sessionTimerInterval);
+            document.getElementById('session-timer').classList.remove('visible');
+
             if(this.wakelock) this.wakelock.release();
             
             document.getElementById('ui-container').classList.remove('hidden');
@@ -559,7 +616,7 @@
             instr.innerText = "Atmen";
             instr.style.color = '';
             document.getElementById('breath-timer').innerText = "";
-            this.viz.setBreathValue(0.5);
+            this.viz.setBreathState(0.5, 'hold-empty');
             
             const elapsedSec = Math.floor((Date.now() - this.startTime) / 1000);
             const m = Math.floor(elapsedSec / 60);
@@ -572,13 +629,23 @@
             document.getElementById('summary-modal').classList.add('visible');
         }
 
+        updateSessionTimer() {
+            if (this.sessionDuration <= 0) return;
+            const elapsed = Date.now() - this.startTime;
+            const totalMs = this.sessionDuration * 60 * 1000;
+            const remaining = Math.max(0, totalMs - elapsed);
+            
+            const m = Math.floor(remaining / 60000);
+            const s = Math.floor((remaining % 60000) / 1000);
+            document.getElementById('session-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            
+            if (remaining <= 0) this.stop();
+        }
+
         async loop(signal) {
             const val = id => parseFloat(document.getElementById(id).value) || 0;
             while(!signal.aborted) {
-                if (this.sessionDuration > 0) {
-                    const elapsedMin = (Date.now() - this.startTime) / 60000;
-                    if (elapsedMin >= this.sessionDuration) { this.stop(); break; }
-                }
+                // Timer check moved to updateSessionTimer/interval for better precision
                 await this.phase("Einatmen ↑", val('inTime'), 0, 1, '#64B5F6', signal, true);
                 await this.phase("Halten", val('holdFullTime'), 1, 1, '#fff', signal, false);
                 await this.phase("Ausatmen ↓", val('outTime'), 1, 0, '#E57373', signal, false);
@@ -591,6 +658,13 @@
             const instr = document.getElementById('instruction');
             instr.innerText = text;
             instr.style.color = col;
+            
+            // Determine Phase Type
+            let pType = 'hold-empty';
+            if (startV < endV) pType = 'in';
+            else if (startV > endV) pType = 'out';
+            else if (startV === 1) pType = 'hold-full';
+            
             const start = Date.now();
             return new Promise(resolve => {
                 const tick = () => {
@@ -599,7 +673,7 @@
                     const eased = 0.5 * (1 - Math.cos(Math.PI * prog)); 
                     const currentBreath = startV + (endV - startV) * eased;
                     
-                    this.viz.setBreathValue(currentBreath);
+                    this.viz.setBreathState(currentBreath, pType);
                     
                     const timeVal = countUp ? (dur * prog) : (dur - (dur * prog));
                     const timer = document.getElementById('breath-timer');
