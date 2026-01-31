@@ -100,6 +100,46 @@
         #vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-primary); cursor: pointer; transition: transform 0.1s; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
         #vol-slider::-webkit-slider-thumb:active { transform: scale(1.3); }
 
+        /* XY PAD MIXER */
+        #xy-pad-container { width: 100%; display: none; justify-content: center; margin-bottom: 20px; }
+        #xy-pad {
+            width: 100%; max-width: 280px; height: 200px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            position: relative;
+            touch-action: none; /* Prevents scrolling on touch devices */
+            cursor: crosshair;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        }
+        #xy-cursor {
+            width: 24px; height: 24px;
+            background: var(--accent-primary);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 0; left: 0;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        #xy-pad:active #xy-cursor { transform: translate(-50%, -50%) scale(1.2); transition: none; }
+        
+        .xy-label {
+            position: absolute;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            pointer-events: none;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+        .xy-tl { top: 12px; left: 12px; }
+        .xy-tr { top: 12px; right: 12px; }
+        .xy-bl { bottom: 12px; left: 12px; }
+        .xy-br { bottom: 12px; right: 12px; }
+
         /* BOTTOM CONTROLS (Refresh & Timer) */
         #bottom-controls {
             position: fixed; bottom: calc(var(--safe-bottom) + 20px); right: 20px;
@@ -257,6 +297,21 @@
             <button class="chip active" onclick="app.setVisualMode('mist', this)">Nebel</button>
             <button class="chip" onclick="app.setVisualMode('circle', this)">Kreis</button>
             <button class="chip" onclick="app.setVisualMode('ripple', this)">Welle</button>
+            <button class="chip" onclick="app.setVisualMode('luma', this)">Licht</button>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <button class="chip" id="mixer-toggle" onclick="app.toggleMixer()">Visuals anpassen</button>
+        </div>
+
+        <div id="xy-pad-container">
+            <div id="xy-pad">
+                <div class="xy-label xy-tl">Nebel</div>
+                <div class="xy-label xy-tr">Kreis</div>
+                <div class="xy-label xy-bl">Welle</div>
+                <div class="xy-label xy-br">Licht</div>
+                <div id="xy-cursor" style="left: 0%; top: 0%;"></div>
+            </div>
         </div>
 
         <label style="margin-left: 5px;">Presets</label>
@@ -363,7 +418,7 @@
             this.noise = new SimplexNoise(); 
             this.dpr = Math.min(window.devicePixelRatio || 1, 2);
             this.width = 0; this.height = 0; this.centerX = 0; this.centerY = 0;
-            this.mode = 'mist'; this.breathValue = 0.5; this.colors = { r:138, g:138, b:138 };
+            this.weights = { mist: 1, circle: 0, ripple: 0, luma: 0 }; this.breathValue = 0.5; this.colors = { r:138, g:138, b:138 };
             
             // Optimization: Structure of Arrays (SoA) for zero-GC particles
             this.pCount = 500;
@@ -423,8 +478,14 @@
         animate() {
             requestAnimationFrame(() => this.animate());
             
-            // Clear / Fade
-            const fade = this.mode === 'mist' ? 0.12 : 0.025;
+            // Dynamic Fade based on active layers
+            let totalW = 0, weightedFade = 0;
+            for(let k in this.weights) {
+                const w = this.weights[k];
+                totalW += w; weightedFade += w * (k==='mist' ? 0.12 : 0.025);
+            }
+            const fade = totalW > 0.01 ? weightedFade / totalW : 0.05;
+
             this.ctx.globalCompositeOperation = 'source-over';
             // Cache BG Color would be better, but css variable might change
             const bgStr = getComputedStyle(document.body).getPropertyValue('--bg-color').trim();
@@ -433,9 +494,22 @@
             this.ctx.fillRect(0, 0, this.width, this.height);
             this.ctx.globalCompositeOperation = 'lighter';
 
-            if (this.mode === 'mist') this.renderMist();
-            else if (this.mode === 'circle') this.renderCircle();
-            else if (this.mode === 'ripple') this.renderRipple();
+            if (this.weights.mist > 0.01) this.renderMist(this.weights.mist);
+            
+            if (this.weights.circle > 0.01) {
+                this.ctx.save(); this.ctx.globalAlpha = this.weights.circle;
+                this.renderCircle(); this.ctx.restore();
+            }
+            
+            if (this.weights.ripple > 0.01) {
+                this.ctx.save(); this.ctx.globalAlpha = this.weights.ripple;
+                this.renderRipple(); this.ctx.restore();
+            }
+            
+            if (this.weights.luma > 0.01) {
+                this.ctx.save(); this.ctx.globalAlpha = this.weights.luma;
+                this.renderLuma(); this.ctx.restore();
+            }
         }
 
         resetParticle(i) {
@@ -449,7 +523,7 @@
             this.p_baseAlpha[i] = 0.05 + Math.random() * 0.25;
         }
 
-        renderMist() {
+        renderMist(intensity) {
             if (!this.initParticles) {
                 for (let i = 0; i < this.pCount; i++) this.resetParticle(i);
                 this.initParticles = true;
@@ -511,7 +585,7 @@
                 let alphaMult = 0.5 + this.breathValue * 0.5;
                 if (this.phase === 'out') alphaMult *= 0.8;
                 
-                const alpha = Math.sin(lifeProg * Math.PI) * this.p_baseAlpha[i] * alphaMult;
+                const alpha = Math.sin(lifeProg * Math.PI) * this.p_baseAlpha[i] * alphaMult * intensity;
                 const size = this.p_size[i] * (0.8 + this.breathValue * 0.8);
 
                 // Direct draw (saving context save/restore for speed)
@@ -552,6 +626,213 @@
                 this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${0.1 + this.breathValue * 0.1})`;
                 this.ctx.stroke();
             }
+        }
+
+        renderLuma() {
+            // 1. Licht/Glow (Reduzierte Intensität)
+            const t = Date.now() * 0.0004;
+            const baseR = Math.min(this.width, this.height) * 0.20; // Kleinerer Basisradius
+            const pulse = 1 + Math.sin(t) * 0.05; // Subtiles Grundrauschen
+            
+            // Dynamische Radien basierend auf Atemwert
+            const innerR = baseR * (0.5 + this.breathValue * 0.8) * pulse; // Weniger Expansion
+            const outerR = baseR * (1.0 + this.breathValue * 1.0);
+
+            // Äußerer Glow (Aura)
+            const g2 = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, outerR);
+            g2.addColorStop(0, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, ${0.02 * this.breathValue})`);
+            g2.addColorStop(1, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, 0)`);
+            
+            this.ctx.fillStyle = g2;
+            this.ctx.fillRect(0, 0, this.width, this.height);
+
+            // Innerer Kern (Zentrum)
+            const g1 = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, innerR);
+            const alpha = 0.05 + (this.breathValue * 0.1);
+            g1.addColorStop(0, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, ${alpha})`);
+            g1.addColorStop(0.5, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, ${alpha * 0.3})`);
+            g1.addColorStop(1, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, 0)`);
+
+            this.ctx.beginPath();
+            this.ctx.arc(this.centerX, this.centerY, innerR, 0, Math.PI * 2);
+            this.ctx.fillStyle = g1;
+            this.ctx.fill();
+            
+            // 2. Mandala Overlay (Integriert)
+            const t2 = Date.now() * 0.0008;
+            const petals = 8;
+            const mInnerR = Math.min(this.width, this.height) * 0.1;
+            const expansion = this.breathValue * (Math.min(this.width, this.height) * 0.2);
+            
+            this.ctx.save();
+            this.ctx.translate(this.centerX, this.centerY);
+            
+            // Layer 1: Clockwise Mandala
+            this.ctx.save();
+            this.ctx.rotate(t2 * 0.15); 
+            
+            for (let i = 0; i < petals; i++) {
+                const angle = (i / petals) * Math.PI * 2 + (t2 * 0.5);
+                const noiseVal = this.noise.noise2D(Math.cos(angle) + t2 * 0.1, Math.sin(angle));
+                
+                this.ctx.beginPath();
+                this.ctx.rotate((Math.PI * 2) / petals);
+                
+                // Die "psychedelische" Komplexität: Sub-Kurven innerhalb der Blütenblätter
+                for (let a = 0; a < Math.PI * 2; a += 0.1) {
+                    const r = (mInnerR + expansion) + Math.sin(a * 5 + t2 * 2) * (10 * this.breathValue);
+                    const x = Math.cos(a) * r;
+                    const y = Math.sin(a) * (r * 0.4); // Elliptische Streckung
+                    
+                    if (a === 0) this.ctx.moveTo(x, y);
+                    else this.ctx.lineTo(x, y);
+                }
+                
+                // Farbe mit leichtem Zufalls-Offset (Noise)
+                const hueShift = noiseVal * 30; 
+                this.ctx.strokeStyle = `rgba(${this.colors.r + hueShift}, ${this.colors.g}, ${this.colors.b + hueShift}, ${0.1 + this.breathValue * 0.2})`;
+                this.ctx.lineWidth = 1.5;
+                this.ctx.stroke();
+            }
+            this.ctx.restore();
+
+            // Layer 2: Counter-Clockwise Sparkle Ring
+            this.ctx.save();
+            this.ctx.rotate(-t2 * 0.1); 
+            const sparkleCount = 12;
+            for(let i=0; i<sparkleCount; i++) {
+                const a = (i/sparkleCount) * Math.PI * 2;
+                const n = this.noise.noise2D(Math.cos(a), Math.sin(a) + t2);
+                if(n > 0) {
+                    const r = (mInnerR + expansion) * 1.5 + n * 20;
+                    const x = Math.cos(a) * r;
+                    const y = Math.sin(a) * r;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${n * (0.1 + this.breathValue * 0.3)})`;
+                    // Draw diamond shape
+                    this.ctx.moveTo(x, y-3);
+                    this.ctx.lineTo(x+2, y);
+                    this.ctx.lineTo(x, y+3);
+                    this.ctx.lineTo(x-2, y);
+                    this.ctx.fill();
+                }
+            }
+            this.ctx.restore();
+
+            this.ctx.restore();
+
+            // 3. Final Layer: Complexity (Center & Rands)
+            
+            // Center: "Singularity" - High frequency vibration
+            this.ctx.save();
+            this.ctx.translate(this.centerX, this.centerY);
+            this.ctx.rotate(-t2 * 8.0); // Counter-rotation
+            
+            const coreR = mInnerR * 0.3;
+            this.ctx.beginPath();
+            // Draw a spiky starburst
+            for (let i = 0; i < 32; i++) { 
+                const a = (i / 32) * Math.PI * 2;
+                // Spike length modulated by breath
+                const spike = (i % 2 === 0 ? 2 : 8) * (0.5 + this.breathValue); 
+                const r = coreR + spike;
+                this.ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+            }
+            this.ctx.closePath();
+            // Bright center
+            this.ctx.fillStyle = `rgba(255, 255, 255, ${0.01 + this.breathValue * 0.08})`;
+            this.ctx.fill();
+            this.ctx.strokeStyle = `rgba(255, 255, 255, ${0.05 + this.breathValue * 0.05})`;
+            this.ctx.lineWidth = 0.5;
+            this.ctx.stroke();
+            this.ctx.restore();
+
+            // Inner Sphere: Dark, soft, complex lines
+            this.ctx.save();
+            // Organic drift to match surroundings
+            const driftX = Math.sin(t * 3) * (4 + 8 * this.breathValue);
+            const driftY = Math.cos(t * 2.5) * (4 + 8 * this.breathValue);
+            this.ctx.translate(this.centerX + driftX, this.centerY + driftY);
+            
+            const sphereR = mInnerR * 0.5;
+            
+            // Faint dark core
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, sphereR * (0.6 + Math.sin(t*5)*0.05), 0, Math.PI*2);
+            this.ctx.fillStyle = `rgba(0, 0, 0, ${0.1 * this.breathValue})`;
+            this.ctx.fill();
+
+            // Complex evolving lines
+            for(let i=0; i<4; i++) {
+                this.ctx.beginPath();
+                this.ctx.rotate(t2 * (5.0 + i*1.5) + Math.sin(t)*0.5); 
+                for(let a=0; a<=Math.PI*2; a+=0.1) {
+                    const n = this.noise.noise2D(Math.cos(a) + t2 * 2, Math.sin(a) + i);
+                    const r = sphereR + n * (12 * this.breathValue);
+                    const x = Math.cos(a) * r;
+                    const y = Math.sin(a) * (r * (0.6 + Math.sin(t2 + i)*0.3));
+                    if(a===0) this.ctx.moveTo(x, y); else this.ctx.lineTo(x, y);
+                }
+                this.ctx.strokeStyle = `rgba(0, 0, 0, ${0.15 + this.breathValue * 0.15})`;
+                this.ctx.lineWidth = 0.6;
+                this.ctx.stroke();
+            }
+            this.ctx.restore();
+
+            // Rands: "Etheric Field" - Noise rings/particles at the edge
+            const rimR = Math.min(this.width, this.height) * 0.44;
+            this.ctx.save();
+            this.ctx.translate(this.centerX, this.centerY);
+            
+            // Layer 1: Main Field (Rotating)
+            this.ctx.save();
+            this.ctx.rotate(t * 0.12); 
+            this.ctx.beginPath();
+            for (let i = 0; i < 90; i++) {
+                // Organic wobble: no straight lines
+                const wobble = Math.sin(t * 2 + i * 0.1) * 0.15;
+                const a = (i / 90) * Math.PI * 2 + wobble;
+                const n = this.noise.noise2D(Math.cos(a) * 1.5, Math.sin(a) * 1.5 + t * 0.3);
+                
+                if (n > -0.2) {
+                    const r = rimR + (n * 50 * this.breathValue) + (Math.sin(i * 13.1 + t) * 8);
+                    const x = Math.cos(a) * r;
+                    const y = Math.sin(a) * r;
+                    
+                    this.ctx.moveTo(x, y);
+                    const size = (1.0 + n * 1.5) + (this.breathValue * 1.5);
+                    this.ctx.arc(x, y, Math.max(0.5, size), 0, Math.PI*2); 
+                }
+            }
+            this.ctx.fillStyle = `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, ${0.08 + this.breathValue * 0.12})`;
+            this.ctx.fill();
+            this.ctx.restore();
+
+            // Layer 2: Chaotic Sparkles (Counter-rotating)
+            this.ctx.save();
+            this.ctx.rotate(-t * 0.18);
+            this.ctx.beginPath();
+            for (let i = 0; i < 50; i++) {
+                // Erratic spiritual movement
+                const dance = Math.sin(t * 3 + i) * 0.3 + Math.cos(t * 5 + i * 2) * 0.1;
+                const a = (i / 50) * Math.PI * 2 + dance;
+                const n = this.noise.noise2D(Math.cos(a), Math.sin(a) - t * 0.5);
+                
+                if (n > 0.1) {
+                     const r = rimR * (0.9 + n * 0.4) + (this.breathValue * 20) + Math.sin(t * 4 + i) * 5;
+                     const x = Math.cos(a) * r;
+                     const y = Math.sin(a) * r;
+                     this.ctx.moveTo(x, y);
+                     const flicker = 1.2 + Math.sin(t * 15 + i) * 0.6;
+                     this.ctx.arc(x, y, Math.max(0.5, flicker), 0, Math.PI*2);
+                }
+            }
+            this.ctx.fillStyle = `rgba(255, 255, 255, ${0.05 + this.breathValue * 0.2})`; 
+            this.ctx.fill();
+            this.ctx.restore();
+
+            this.ctx.restore();
         }
     }
 
@@ -886,6 +1167,44 @@
                 this.audio.setVolume(v);
                 this.updateVolumeIcon(v);
             }, { passive: true });
+            
+            // XY Pad Logic
+            const pad = document.getElementById('xy-pad');
+            const handleXY = (e) => {
+                const rect = pad.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                let x = (clientX - rect.left) / rect.width;
+                let y = (clientY - rect.top) / rect.height;
+                x = Math.max(0, Math.min(1, x));
+                y = Math.max(0, Math.min(1, y));
+                this.updateXY(x, y);
+            };
+            pad.addEventListener('pointerdown', (e) => {
+                pad.setPointerCapture(e.pointerId);
+                pad.addEventListener('pointermove', handleXY);
+                pad.addEventListener('pointerup', () => pad.removeEventListener('pointermove', handleXY), { once: true });
+                handleXY(e);
+            });
+        }
+
+        updateXY(x, y) {
+            const cursor = document.getElementById('xy-cursor');
+            cursor.style.left = (x * 100) + '%';
+            cursor.style.top = (y * 100) + '%';
+            
+            // Bilinear interpolation for weights
+            // TL(0,0): Mist, TR(1,0): Circle, BL(0,1): Ripple, BR(1,1): Luma
+            this.viz.weights = {
+                mist: (1-x) * (1-y),
+                circle: x * (1-y),
+                ripple: (1-x) * y,
+                luma: x * y
+            };
+            
+            // Deactivate buttons if mixing
+            if (x%1!==0 || y%1!==0) document.querySelectorAll('.mode-row .chip').forEach(c => c.classList.remove('active'));
         }
 
         randomizeVisuals() {
@@ -895,7 +1214,7 @@
             document.getElementById('themeSelect').value = randomTheme;
             this.viz.updateThemeColors();
 
-            const modes = ['mist', 'circle', 'ripple'];
+            const modes = ['mist', 'circle', 'ripple', 'luma'];
             const randomMode = modes[Math.floor(Math.random() * modes.length)];
             const modeBtn = document.querySelector(`.mode-row .chip[onclick*="'${randomMode}'"]`);
             this.setVisualMode(randomMode, modeBtn);
@@ -944,8 +1263,14 @@
             if(el) el.classList.add('active');
         }
         
-        setVisualMode(m, el) { 
-            this.viz.mode = m; 
+        setVisualMode(mode, el) {
+            let x=0, y=0;
+            if(mode === 'mist') { x=0; y=0; }
+            else if(mode === 'circle') { x=1; y=0; }
+            else if(mode === 'ripple') { x=0; y=1; }
+            else if(mode === 'luma') { x=1; y=1; }
+            this.updateXY(x, y);
+            
             document.querySelectorAll('.mode-row .chip').forEach(c=>c.classList.remove('active'));
             if(el) el.classList.add('active');
         }
@@ -975,6 +1300,14 @@
             else path.setAttribute('d', 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z');
         }
         
+        toggleMixer() {
+            const el = document.getElementById('xy-pad-container');
+            const btn = document.getElementById('mixer-toggle');
+            const isHidden = el.style.display === 'none';
+            el.style.display = isHidden ? 'flex' : 'none';
+            if(isHidden) btn.classList.add('active'); else btn.classList.remove('active');
+        }
+
         toggleUI() { document.getElementById('ui-container').classList.toggle('hidden'); }
         closeSummary() { document.getElementById('summary-modal').classList.remove('visible'); }
         
