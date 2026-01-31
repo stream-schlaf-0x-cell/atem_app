@@ -553,7 +553,12 @@
             document.addEventListener('keydown', (e) => {
                 if (e.code === 'Space' || e.key === ' ') {
                     e.preventDefault();
-                    this.toggle();
+                    const summary = document.getElementById('summary-modal');
+                    if (summary.classList.contains('visible')) {
+                        this.closeSummary();
+                    } else {
+                        this.toggle();
+                    }
                 }
             });
 
