@@ -219,6 +219,7 @@
                         <option value="gentle">Generator: Sanft</option>
                         <option value="ambient">Generator: Ambient</option>
                         <option value="bowl">Tibetische Klangschale</option>
+                        <option value="water">Fließendes Wasser</option>
                         <option value="audio/accede_atem_track-5_5.mp3">Accede: Atem Track (5.5)</option>
                         <option value="audio/altus_session3.mp3">Altus: Session 3 (5.5)</option>
                         <option value="audio/yrrpheus_coherence.mp3">Yrrpheus: Coherence</option>
@@ -486,6 +487,7 @@
             this.audioEl.loop = true;
             this.mediaSource = null;
             this.bowlBuffer = null;
+            this.waterBuffer = null;
             this.currentType = 'none';
             this.genNodes = {};
             this.reverbNode = null;
@@ -539,6 +541,22 @@
                 }
                 this.bowlBuffer = await this.ctx.decodeAudioData(ab);
             } catch(e) { console.warn("Bowl load failed", e); }
+        }
+        async loadWater() {
+            if(this.waterBuffer) return;
+            const file = 'flowing-water-loop-1-183953.mp3';
+            try {
+                let ab;
+                try {
+                    const resp = await fetch(file);
+                    if(!resp.ok) throw new Error('404');
+                    ab = await resp.arrayBuffer();
+                } catch(e) {
+                    const resp = await fetch('audio/' + file);
+                    ab = await resp.arrayBuffer();
+                }
+                this.waterBuffer = await this.ctx.decodeAudioData(ab);
+            } catch(e) { console.warn("Water load failed", e); }
         }
         updateGenerator(breathVal) {
             if ((this.currentType !== 'gentle' && this.currentType !== 'ambient') || !this.ctx) return;
@@ -606,6 +624,21 @@
             if (type === 'none') return;
             
             if (type === 'bowl') { await this.loadBowl(); return; }
+            
+            if (type === 'water') {
+                await this.loadWater();
+                if(!this.waterBuffer) return;
+                const src = this.ctx.createBufferSource();
+                src.buffer = this.waterBuffer;
+                src.loop = true;
+                const g = this.ctx.createGain();
+                g.gain.value = 0; 
+                g.gain.linearRampToValueAtTime(1, this.ctx.currentTime + 2.0);
+                src.connect(g); g.connect(this.masterGain);
+                src.start(0);
+                this.nodes.push(src); this.nodes.push(g);
+                return;
+            }
             
             if (type === 'gentle' || type === 'ambient') {
                 const master = this.ctx.createGain();
