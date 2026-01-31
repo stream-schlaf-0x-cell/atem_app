@@ -463,7 +463,8 @@
         constructor() { 
             this.ctx = null; this.nodes = []; 
             this.masterGain = null;
-            this.volume = parseFloat(localStorage.getItem('atem-volume')) || 0.5;
+            const savedVol = localStorage.getItem('atem-volume');
+            this.volume = savedVol !== null ? parseFloat(savedVol) : 0.5;
             this.audioEl = new Audio();
             this.audioEl.crossOrigin = "anonymous";
             this.audioEl.loop = true;
@@ -544,6 +545,9 @@
             this.sessionTimerInterval = null;
             this.setupUI();
             this.randomizeInit();
+            // Load default preset on startup only (preserves settings on subsequent refreshes)
+            const p1Btn = document.querySelector(`.preset-scroll .chip[onclick*="'p1'"]`);
+            this.loadPreset('p1', p1Btn);
         }
 
         setupUI() {
@@ -599,9 +603,6 @@
             const randomMode = modes[Math.floor(Math.random() * modes.length)];
             const modeBtn = document.querySelector(`.mode-row .chip[onclick*="'${randomMode}'"]`);
             this.setVisualMode(randomMode, modeBtn);
-
-            const p1Btn = document.querySelector(`.preset-scroll .chip[onclick*="'p1'"]`);
-            this.loadPreset('p1', p1Btn);
         }
 
         loadPreset(k, el) {
@@ -641,11 +642,16 @@
         toggleMute() {
             const slider = document.getElementById('vol-slider');
             if (this.audio.volume > 0) {
+                localStorage.setItem('atem-last-volume', this.audio.volume);
                 this.audio.setVolume(0);
                 slider.value = 0;
                 this.updateVolumeIcon(0);
             } else {
-                this.updateVolumeIcon(1); // Visual feedback only, user slides manually
+                let last = parseFloat(localStorage.getItem('atem-last-volume'));
+                if (isNaN(last) || last <= 0) last = 0.5;
+                this.audio.setVolume(last);
+                slider.value = last;
+                this.updateVolumeIcon(last);
             }
         }
 
