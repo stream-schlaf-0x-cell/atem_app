@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Atem & Stille</title>
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            --bg-color: #0a0a0a; --text-color: #efece6;
+            --accent-primary: #2b4f8c; --accent-secondary: #e6c65a;
+            --glass-bg: rgba(10, 10, 10, 0.65);
+            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background-color: var(--bg-color); color: var(--text-color);
+            font-family: var(--font-stack); margin: 0; height: 100dvh;
+            display: flex; flex-direction: column; overflow: hidden;
+            transition: background-color 2s ease;
+        }
+        /* THEMES */
+        body.theme-himmelblau { --bg-color: #0b1026; --accent-primary: #5c8a99; --glass-bg: rgba(11, 16, 38, 0.65); }
+        body.theme-goldene-ruhe { --bg-color: #120c08; --accent-primary: #c58f28; --glass-bg: rgba(18, 12, 8, 0.65); }
+        body.theme-lotusabend { --bg-color: #0e0b0c; --accent-primary: #b33a3a; --glass-bg: rgba(10,8,9,0.55); }
+        body.theme-dantian-gruen { --bg-color: #071012; --accent-primary: #4a7a5a; --glass-bg: rgba(8,12,10,0.56); }
+        body.theme-reines-licht { --bg-color: #121212; --accent-primary: #b0bec5; --glass-bg: rgba(18, 18, 18, 0.65); }
+        body.theme-mani-glanz { --bg-color: #070709; --accent-primary: #2b4f8c; --glass-bg: rgba(6,6,6,0.58); }
+        
+        /* LAYOUT */
+        #visual-area { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%; }
+        .viz-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+        
+        .instruction-text {
+            position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 12px);
+            font-size: 1.35rem; font-weight: 500; padding: 6px 12px; border-radius: 12px;
+            pointer-events: none; opacity: 0.95; color: var(--text-color); 
+            background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(255,255,255,0.02));
+            z-index: 220;
+        }
+        #breath-timer {
+            position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 56px);
+            font-size: 1.6rem; color: var(--accent-secondary); background: rgba(0,0,0,0.18);
+            padding: 6px 12px; border-radius: 14px; pointer-events: none; z-index: 230;
+        }
+
+        #ui-container {
+            position: absolute; bottom: 0; width: 100%; background: var(--glass-bg);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255,255,255,0.03); border-radius: 20px 20px 0 0;
+            padding: 8px 20px calc(15px + var(--safe-bottom));
+            transform: translateY(0); transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            z-index: 10;
+        }
+        #ui-container.hidden { transform: translateY(110%); }
+
+        .handle { width: 35px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 10px; margin: 10px auto 20px; cursor: pointer; }
+        .preset-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 12px; scrollbar-width: none; mask-image: linear-gradient(to right, black 90%, transparent 100%); -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%); }
+        .preset-scroll::-webkit-scrollbar { display: none; }
+
+        .chip { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); padding: 7px 14px; border-radius: 18px; font-size: 0.75rem; white-space: nowrap; cursor: pointer; transition: all 0.4s; }
+        .chip.active { background: rgba(255,255,255,0.08); color: var(--accent-primary); border-color: rgba(200, 200, 200, 0.1); }
+
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        label { font-size: 0.6rem; text-transform: uppercase; font-weight: 500; color: rgba(255,255,255,0.25); margin-bottom: 5px; display: block; }
+        input, select { width: 100%; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 10px; border-radius: 10px; font-size: 0.95rem; outline: none; appearance: none; }
+
+        .btn { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: #fff; border: none; padding: 16px; border-radius: 14px; font-size: 0.95rem; font-weight: 500; width: 100%; text-transform: uppercase; cursor: pointer; transition: transform 0.15s; }
+        .btn:active { transform: scale(0.985); }
+        .btn.stop-mode { background: var(--accent-primary); opacity: 0.9; }
+
+        .mode-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; }
+
+        /* Summary Overlay */
+        #summary-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.92); backdrop-filter: blur(15px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; padding: 30px; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
+        #summary-modal.visible { opacity: 1; pointer-events: all; }
+        .summary-stat { font-size: 3.5rem; font-weight: 100; color: var(--accent-primary); margin: 15px 0; }
+        .summary-quote { font-size: 1.3rem; opacity: 0.85; line-height: 1.4; margin: 20px auto 10px; max-width: 500px; }
+        .summary-author { font-size: 0.95rem; opacity: 0.65; margin: 5px auto 0; }
+
+        /* VOLUME CONTROL */
+        #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 20px; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; z-index: 250; width: 40px; overflow: hidden; }
+        #volume-control:hover, #volume-control:focus-within, #volume-control.active { width: 160px; background: rgba(0,0,0,0.4); }
+        #vol-icon { width: 24px; height: 24px; fill: var(--text-color); opacity: 0.6; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; }
+        #vol-slider { width: 100px; height: 4px; -webkit-appearance: none; background: rgba(255,255,255,0.1); border-radius: 2px; outline: none; opacity: 0; transition: opacity 0.3s; }
+        #volume-control:hover #vol-slider, #volume-control:focus-within #vol-slider, #volume-control.active #vol-slider { opacity: 1; }
+        #vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent-secondary); cursor: pointer; }
+    </style>
+</head>
+<body class="theme-lotusabend">
+
+    <div id="visual-area">
+        <canvas id="viz-canvas" class="viz-canvas"></canvas>
+        <div class="instruction-text" id="instruction">Atmen</div>
+        <div id="breath-timer"></div>
+        <div id="volume-control">
+            <svg id="vol-icon" viewBox="0 0 24 24" onclick="app.toggleMute()"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+            <input type="range" id="vol-slider" min="0" max="1" step="0.01">
+        </div>
+    </div>
+
+    <div id="summary-modal">
+        <h2 style="font-weight: 100; opacity: 0.5; font-size: 1.8rem;">Atem vollendet</h2>
+        <div id="summary-time" class="summary-stat">0m</div>
+        <p class="summary-quote" id="quote-text"></p>
+        <div id="quote-author" class="summary-author"></div>
+        <button class="btn" style="margin-top: 30px; width: auto; padding: 12px 35px;" onclick="app.closeSummary()">Schließen</button>
+    </div>
+
+    <div id="ui-container">
+        <div class="handle" onclick="app.toggleUI()"></div>
+
+        <div class="mode-row">
+            <button class="chip active" onclick="app.setVisualMode('mist', this)">Nebel</button>
+            <button class="chip" onclick="app.setVisualMode('circle', this)">Kreis</button>
+            <button class="chip" onclick="app.setVisualMode('ripple', this)">Welle</button>
+        </div>
+
+        <label style="margin-left: 5px;">Presets</label>
+        <div class="preset-scroll">
+            <button class="chip" onclick="app.loadPreset('p1', this)">5.5 : 5.5</button>
+            <button class="chip" onclick="app.loadPreset('p2', this)">4 : 4</button>
+            <button class="chip" onclick="app.loadPreset('p8', this)">5 : 5</button>
+            <button class="chip" onclick="app.loadPreset('p3', this)">4 : 7 : 8</button>
+            <button class="chip" onclick="app.loadPreset('p4', this)">5 : 5 : 5 : 5</button>
+            <button class="chip" onclick="app.loadPreset('p5', this)">6 : 6</button>
+            <button class="chip" onclick="app.loadPreset('p6', this)">7 : 7</button>
+            <button class="chip" onclick="app.loadPreset('p7', this)">8 : 8</button>
+        </div>
+
+        <div class="controls-grid">
+            <div><label>Einatmen</label><input type="number" id="inTime" value="5.5" min="2" step="0.5"></div>
+            <div><label>Ausatmen</label><input type="number" id="outTime" value="5.5" min="2" step="0.5"></div>
+            <div><label>Halten (voll)</label><input type="number" id="holdFullTime" value="0" min="0" step="1"></div>
+            <div><label>Pause (leer)</label><input type="number" id="holdEmptyTime" value="0" min="0" step="1"></div>
+        </div>
+
+        <div class="controls-grid">
+            <div>
+                <label>Atmosphäre</label>
+                <select id="themeSelect">
+                    <option value="theme-lotusabend">Lotusabend</option>
+                    <option value="theme-dantian-gruen">Dantian‑Grün</option>
+                    <option value="theme-mani-glanz">Mani‑Glanz</option>
+                    <option value="theme-himmelblau">Himmelblau</option>
+                    <option value="theme-goldene-ruhe">Goldene Ruhe</option>
+                    <option value="theme-reines-licht">Reines Licht</option>
+                </select>
+            </div>
+            <div>
+                <label>Audio / Musik</label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <select id="soundSelect" style="flex:1;">
+                        <option value="none">Stille</option>
+                        <option value="gentle">Generator: Sanft</option>
+                        <option value="ambient">Generator: Ambient</option>
+                        <option value="audio/accede_atem_track-5_5.mp3">Accede: Atem Track (5.5)</option>
+                        <option value="audio/altus_session3.mp3">Altus: Session 3 (5.5)</option>
+                        <option value="audio/yrrpheus_coherence.mp3">Yrrpheus: Coherence</option>
+                    </select>
+                    <input type="file" id="audioFileInput" accept="audio/*" style="display:none">
+                    <button class="btn" id="uploadBtn" style="width:auto; padding:8px 10px;">+</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn" id="startBtn">Beginnen</button>
+    </div>
+
+    <button id="stop-float" class="btn stop-mode" style="display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:26px; z-index:200; width:220px;">Beenden</button>
+
+    <script>
+    class SimplexNoise { constructor(){this.p=new Uint8Array(256);for(let i=0;i<256;i++)this.p[i]=i;for(let i=0;i<256;i++){let r=Math.random()*256|0,t=this.p[i];this.p[i]=this.p[r];this.p[r]=t}this.perm=new Uint8Array(512);for(let i=0;i<512;i++)this.perm[i]=this.p[i&255]}noise2D(x,y){const F2=0.5*(Math.sqrt(3.0)-1.0);let s=(x+y)*F2,i=Math.floor(x+s),j=Math.floor(y+s);let t=(i+j)*((3.0-Math.sqrt(3.0))/6.0);let X0=i-t,Y0=j-t,x0=x-X0,y0=y-Y0;let i1,j1;if(x0>y0){i1=1;j1=0}else{i1=0;j1=1}let x1=x0-i1+((3.0-Math.sqrt(3.0))/6.0),y1=y0-j1+((3.0-Math.sqrt(3.0))/6.0),x2=x0-1.0+2.0*((3.0-Math.sqrt(3.0))/6.0),y2=y0-1.0+2.0*((3.0-Math.sqrt(3.0))/6.0);let ii=i&255,jj=j&255;let gi0=this.perm[ii+this.perm[jj]]%12,gi1=this.perm[ii+i1+this.perm[jj+j1]]%12,gi2=this.perm[ii+1+this.perm[jj+1]]%12;let grad3=[[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[1,0],[-1,0],[0,1],[0,-1],[0,1],[0,-1]];let t0=0.5-x0*x0-y0*y0,n0=t0<0?0:t0*t0*(grad3[gi0][0]*x0+grad3[gi0][1]*y0);let t1=0.5-x1*x1-y1*y1,n1=t1<0?0:t1*t1*(grad3[gi1][0]*x1+grad3[gi1][1]*y1);let t2=0.5-x2*x2-y2*y2,n2=t2<0?0:t2*t2*(grad3[gi2][0]*x2+grad3[gi2][1]*y2);return 70.0*(n0+n1+n2)}}
+
+    class BreathVisuals {
+        constructor(canvas) {
+            this.canvas = canvas; this.ctx = this.canvas.getContext('2d', { alpha: false });
+            this.noise = new SimplexNoise(); this.dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+            this.width = 0; this.height = 0; this.centerX = 0; this.centerY = 0;
+            this.mode = 'mist'; this.breathValue = 0.5; this.colors = { r:138, g:138, b:138 };
+            this.mistParticles = null;
+            window.addEventListener('resize', () => this.resize()); this.resize(); this.animate();
+        }
+        updateThemeColors() {
+            const style = getComputedStyle(document.body);
+            const hex = (style.getPropertyValue('--accent-primary') || '#8a8a8a').trim().replace('#', '');
+            if (hex.length === 6) {
+                const bi = parseInt(hex, 16); this.colors = { r: (bi >> 16) & 255, g: (bi >> 8) & 255, b: bi & 255 };
+            }
+        }
+        resize() {
+            const rect = this.canvas.parentElement.getBoundingClientRect();
+            this.width = rect.width; this.height = rect.height;
+            this.canvas.width = this.width * this.dpr; this.canvas.height = this.height * this.dpr;
+            this.canvas.style.width = this.width + 'px'; this.canvas.style.height = this.height + 'px';
+            this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+            this.centerX = this.width / 2; this.centerY = this.height / 2;
+            this.updateThemeColors(); this.mistParticles = null;
+        }
+        setBreathValue(v) { this.breathValue = Math.max(0, Math.min(1, v)); }
+        
+        animate() {
+            requestAnimationFrame(() => this.animate());
+            const fade = this.mode === 'mist' ? 0.02 : 0.025;
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.ctx.fillStyle = `rgba(${this.hexToRgb(getComputedStyle(document.body).getPropertyValue('--bg-color'))}, ${fade})`;
+            this.ctx.fillRect(0, 0, this.width, this.height);
+            this.ctx.globalCompositeOperation = 'lighter';
+            if (this.mode === 'mist') this.renderMist();
+            else if (this.mode === 'circle') this.renderCircle();
+            else if (this.mode === 'ripple') this.renderRipple();
+        }
+
+        renderMist() {
+            const time = Date.now() * 0.0005;
+            if (!this.mistParticles) {
+                this.mistParticles = [];
+                for (let i = 0; i < 200; i++) {
+                    const angle = Math.random() * 6.28;
+                    // FIX: Zufällige Startposition statt Punkt 0,0
+                    const startRadius = Math.random() * 20; 
+                    const startX = this.centerX + Math.cos(angle) * startRadius;
+                    const startY = this.centerY + Math.sin(angle) * startRadius;
+                    
+                    this.mistParticles.push({ 
+                        x: startX, y: startY, 
+                        vx: (Math.random()-0.5)*0.2, vy: (Math.random()-0.5)*0.2, // FIX: Zufälliger Impuls
+                        seed: Math.random()*1000, 
+                        rOff: Math.random() 
+                    });
+                }
+            }
+            const targetRad = Math.min(this.width, this.height) * 0.4 * (0.2 + 0.8 * this.breathValue);
+            for (let p of this.mistParticles) {
+                const n = this.noise.noise2D((p.x)*0.002, (p.y+time)*0.002);
+                const dx = p.x - this.centerX, dy = p.y - this.centerY;
+                const dist = Math.sqrt(dx*dx + dy*dy) + 0.1;
+                const target = targetRad * (0.5 + p.rOff);
+                const force = (target - dist) * 0.005;
+                p.vx += (dx/dist * force) + n * 0.03; p.vy += (dy/dist * force) + n * 0.03;
+                p.vx *= 0.92; p.vy *= 0.92;
+                p.x += p.vx; p.y += p.vy;
+                const alpha = 0.05 + this.breathValue * 0.1;
+                this.ctx.fillStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${alpha})`;
+                this.ctx.beginPath(); this.ctx.arc(p.x, p.y, 2 + this.breathValue * 8, 0, 6.28); this.ctx.fill();
+            }
+        }
+        renderCircle() {
+            const rBase = Math.min(this.width, this.height) * 0.3 * (0.4 + this.breathValue * 0.6);
+            this.ctx.beginPath();
+            for(let i=0; i<=100; i++) {
+                const a = (i/100)*6.28;
+                const n = this.noise.noise2D(Math.cos(a)+Date.now()*0.0003, Math.sin(a));
+                const r = rBase + n * 20 * this.breathValue;
+                const x = this.centerX + Math.cos(a)*r, y = this.centerY + Math.sin(a)*r;
+                if(i===0) this.ctx.moveTo(x,y); else this.ctx.lineTo(x,y);
+            }
+            this.ctx.closePath();
+            this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},0.3)`;
+            this.ctx.stroke();
+            const g = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, rBase*1.2);
+            g.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${0.3+this.breathValue*0.3})`);
+            g.addColorStop(1, "rgba(0,0,0,0)");
+            this.ctx.fillStyle = g; this.ctx.fill();
+        }
+        renderRipple() {
+            const t = Date.now()*0.0005;
+            for(let i=0; i<8; i++) {
+                const r = (Math.min(this.width, this.height)*0.4) * ((i+1)/8) * (0.8 + this.breathValue * 0.2);
+                this.ctx.beginPath();
+                this.ctx.arc(this.centerX, this.centerY, r + Math.sin(t+i)*5, 0, 6.28);
+                this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${0.1 + this.breathValue * 0.1})`;
+                this.ctx.stroke();
+            }
+        }
+        hexToRgb(h){ const b = parseInt(h.trim().replace('#',''),16); return `${(b>>16)&255},${(b>>8)&255},${b&255}`; }
+    }
+
+    /* --- AUDIO ENGINE (FIX: Instant Start & Sync) --- */
+    class GentleAudio {
+        constructor() { 
+            this.ctx = null; this.nodes = []; 
+            this.masterGain = null;
+            this.volume = parseFloat(localStorage.getItem('atem-volume')) || 0.5;
+            this.isMuted = false;
+        }
+        async init() {
+            if (!this.ctx) { 
+                const AC = window.AudioContext || window.webkitAudioContext; 
+                if (AC) this.ctx = new AC();
+                this.masterGain = this.ctx.createGain();
+                this.masterGain.gain.value = this.volume;
+                this.masterGain.connect(this.ctx.destination);
+            }
+            if (this.ctx && this.ctx.state === 'suspended') await this.ctx.resume();
+        }
+        setVolume(v) {
+            this.volume = parseFloat(v); localStorage.setItem('atem-volume', this.volume);
+            if(this.masterGain && !this.isMuted) this.masterGain.gain.setTargetAtTime(this.volume, this.ctx.currentTime, 0.1);
+        }
+        toggleMute() {
+            this.isMuted = !this.isMuted;
+            if(this.masterGain) this.masterGain.gain.setTargetAtTime(this.isMuted ? 0 : this.volume, this.ctx.currentTime, 0.1);
+            return this.isMuted;
+        }
+        async play(type) {
+            this.stop();
+            if (!this.ctx || type === 'none') return;
+            
+            const gain = this.ctx.createGain();
+            if(!this.masterGain) { // Fallback
+                this.masterGain = this.ctx.createGain(); 
+                this.masterGain.gain.value = this.isMuted ? 0 : this.volume; 
+                this.masterGain.connect(this.ctx.destination); 
+            }
+            gain.connect(this.masterGain);
+            
+            // FIX: Kein Fade-In mehr, sondern sofortiger Start (nur 0.05s gegen Knacken)
+            gain.gain.setValueAtTime(0, this.ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(1.0, this.ctx.currentTime + 0.05);
+            
+            this.nodes.push(gain);
+
+            if (type === 'gentle' || type === 'ambient') {
+                const osc = this.ctx.createOscillator();
+                osc.type = type === 'gentle' ? 'sine' : 'triangle';
+                osc.frequency.value = type === 'gentle' ? 55 : 110;
+                osc.connect(gain); osc.start(); this.nodes.push(osc);
+            } else {
+                // FIX: Warten, bis Datei wirklich geladen ist
+                try {
+                    const response = await fetch(type);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const ab = await response.arrayBuffer();
+                    const audioBuffer = await this.ctx.decodeAudioData(ab);
+                    
+                    const source = this.ctx.createBufferSource();
+                    source.buffer = audioBuffer; 
+                    source.loop = true;
+                    source.connect(gain);
+                    source.start(0); // Sofort abspielen
+                    this.nodes.push(source);
+                } catch (e) {
+                    console.error("Audio Load Error:", e);
+                    alert("Konnte Audio nicht laden: " + type);
+                    throw e; // Fehler werfen, damit App nicht startet
+                }
+            }
+        }
+        stop() { this.nodes.forEach(n => { try{if(n.stop)n.stop();n.disconnect();}catch(e){} }); this.nodes = []; }
+    }
+
+    const quotes = [
+        { t: "Atmen ist die Brücke zwischen Körper und Geist.", a: "Thich Nhat Hanh" },
+        { t: "Im Atem liegt die Ruhe des Universums.", a: "Yogische Weisheit" },
+        { t: "Lasse los und atme ein.", a: "Unbekannt" },
+        { t: "Gefühle kommen und gehen wie Wolken. Der Atem ist mein Anker.", a: "Thich Nhat Hanh" }
+    ];
+
+    class BreathApp {
+        constructor() {
+            this.viz = new BreathVisuals(document.getElementById('viz-canvas'));
+            this.audio = new GentleAudio();
+            this.isRunning = false; this.abortCtrl = null;
+            this.setupUI();
+            this.randomizeInit();
+        }
+
+        setupUI() {
+            document.getElementById('startBtn').addEventListener('click', () => this.toggle());
+            document.getElementById('stop-float').addEventListener('click', () => this.stop());
+            document.getElementById('themeSelect').addEventListener('change', (e) => {
+                document.body.className = e.target.value; this.viz.updateThemeColors();
+            });
+            document.getElementById('uploadBtn').addEventListener('click', () => document.getElementById('audioFileInput').click());
+            document.getElementById('audioFileInput').addEventListener('change', (e) => {
+                if(e.target.files[0]) {
+                    const url = URL.createObjectURL(e.target.files[0]);
+                    const sel = document.getElementById('soundSelect');
+                    const opt = document.createElement('option');
+                    opt.value = url; opt.text = "♫ " + e.target.files[0].name; opt.selected = true;
+                    sel.add(opt);
+                    if(this.isRunning) this.audio.play(url);
+                }
+            });
+            
+            // Volume Init
+            const volSlider = document.getElementById('vol-slider');
+            volSlider.value = this.audio.volume;
+            volSlider.addEventListener('input', (e) => this.audio.setVolume(e.target.value));
+            const volCtrl = document.getElementById('volume-control');
+            volCtrl.addEventListener('touchstart', () => { volCtrl.classList.add('active'); setTimeout(()=>volCtrl.classList.remove('active'),3000); });
+        }
+
+        randomizeInit() {
+            const themes = ['theme-lotusabend', 'theme-dantian-gruen', 'theme-mani-glanz', 'theme-himmelblau', 'theme-goldene-ruhe', 'theme-reines-licht'];
+            const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+            document.body.className = randomTheme;
+            document.getElementById('themeSelect').value = randomTheme;
+            this.viz.updateThemeColors();
+
+            const modes = ['mist', 'circle', 'ripple'];
+            const randomMode = modes[Math.floor(Math.random() * modes.length)];
+            const modeBtn = document.querySelector(`.mode-row .chip[onclick*="'${randomMode}'"]`);
+            this.setVisualMode(randomMode, modeBtn);
+
+            // Standard-Startzustand: Preset p1 (5.5 : 5.5) laden
+            const p1Btn = document.querySelector(`.preset-scroll .chip[onclick*="'p1'"]`);
+            this.loadPreset('p1', p1Btn);
+        }
+
+        loadPreset(k, el) {
+            const presets = { 
+                p1:[5.5,5.5], p2:[4,4], p3:[4,7,8], p4:[5,5,5,5], 
+                p5:[6,6], p6:[7,7], p7:[8,8], p8:[5,5] 
+            };
+            const v = presets[k];
+            if(!v) return;
+
+            // Zeiten setzen
+            document.getElementById('inTime').value = v[0];
+            document.getElementById('holdFullTime').value = v.length>2?v[1]:0;
+            document.getElementById('outTime').value = v.length>2?v[2]:v[1];
+            document.getElementById('holdEmptyTime').value = v.length==4?v[3]:0;
+
+            // LOGIK: Audio automatisch wählen
+            const soundSelect = document.getElementById('soundSelect');
+            if (k === 'p8') {
+                // Bei 5:5 (p8) -> Yrrpheus Track
+                soundSelect.value = "audio/yrrpheus_coherence.mp3";
+            } else if (k === 'p1') {
+                // Bei 5.5:5.5 (p1) -> Altus Track
+                soundSelect.value = "audio/altus_session3.mp3";
+            } else {
+                // Bei allen anderen -> Stille
+                soundSelect.value = "none";
+            }
+
+            // Styles
+            document.querySelectorAll('.preset-scroll .chip').forEach(c=>c.classList.remove('active'));
+            if(el) el.classList.add('active');
+        }
+        
+        setVisualMode(m, el) { 
+            this.viz.mode = m; 
+            document.querySelectorAll('.mode-row .chip').forEach(c=>c.classList.remove('active'));
+            if(el) el.classList.add('active');
+        }
+
+        toggleMute() {
+            const isMuted = this.audio.toggleMute();
+            const path = document.querySelector('#vol-icon path');
+            document.getElementById('vol-icon').style.opacity = isMuted ? 0.4 : 0.8;
+            if(isMuted) path.setAttribute('d', 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z');
+            else path.setAttribute('d', 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z');
+        }
+        
+        toggleUI() { document.getElementById('ui-container').classList.toggle('hidden'); }
+        closeSummary() { document.getElementById('summary-modal').classList.remove('visible'); }
+        
+        async toggle() { this.isRunning ? this.stop() : this.start(); }
+
+    async start() {
+        if (this.isRunning) return;
+        
+        // 1. UI Feedback: Laden...
+        const btn = document.getElementById('startBtn');
+        const oldText = btn.innerText;
+        btn.innerText = "Laden...";
+        btn.disabled = true;
+
+        try {
+            // 2. WARTEN auf Audio (Sync-Punkt)
+            await this.audio.init();
+            await this.audio.play(document.getElementById('soundSelect').value);
+            
+            // 3. Wenn Audio läuft, Rest starten
+            if(navigator.wakeLock) try { this.wakelock = await navigator.wakeLock.request('screen'); } catch(e){}
+
+            this.isRunning = true;
+            document.getElementById('ui-container').classList.add('hidden');
+            btn.innerText = "Beenden";
+            btn.classList.add('stop-mode');
+            btn.disabled = false;
+            document.getElementById('stop-float').style.display = 'block';
+            
+            this.abortCtrl = new AbortController();
+            this.loop(this.abortCtrl.signal);
+            
+        } catch (err) {
+            // Falls Audio fehlschlägt, Reset
+            console.error(err);
+            this.isRunning = false;
+            btn.innerText = oldText;
+            btn.disabled = false;
+        }
+    }
+
+        stop() {
+            this.isRunning = false;
+            if(this.abortCtrl) this.abortCtrl.abort();
+            this.audio.stop();
+            if(this.wakelock) this.wakelock.release();
+            
+            document.getElementById('ui-container').classList.remove('hidden');
+            document.getElementById('startBtn').innerText = "Beginnen";
+            document.getElementById('startBtn').classList.remove('stop-mode');
+            document.getElementById('stop-float').style.display = 'none';
+            const instr = document.getElementById('instruction');
+            instr.innerText = "Atmen";
+            instr.style.color = '';
+            document.getElementById('breath-timer').innerText = "";
+            this.viz.setBreathValue(0.5);
+            
+            const q = quotes[Math.floor(Math.random()*quotes.length)];
+            document.getElementById('quote-text').innerText = q.t;
+            document.getElementById('quote-author').innerText = q.a;
+            document.getElementById('summary-modal').classList.add('visible');
+        }
+
+        async loop(signal) {
+            const val = id => parseFloat(document.getElementById(id).value) || 0;
+            while(!signal.aborted) {
+                await this.phase("Einatmen ↑", val('inTime'), 0, 1, '#64B5F6', signal, true);
+                await this.phase("Halten", val('holdFullTime'), 1, 1, '#fff', signal, false);
+                await this.phase("Ausatmen ↓", val('outTime'), 1, 0, '#E57373', signal, false);
+                await this.phase("Pause", val('holdEmptyTime'), 0, 0, '#fff', signal, false);
+            }
+        }
+        
+        async phase(text, dur, startV, endV, col, signal, countUp = false) {
+            if(signal.aborted || dur <= 0) return;
+            const instr = document.getElementById('instruction');
+            instr.innerText = text;
+            instr.style.color = col;
+            const start = Date.now();
+            return new Promise(resolve => {
+                const tick = () => {
+                    if(signal.aborted) return resolve();
+                    const prog = Math.min(1, (Date.now()-start)/(dur*1000));
+                    const eased = 0.5 * (1 - Math.cos(Math.PI * prog)); 
+                    const currentBreath = startV + (endV - startV) * eased;
+                    
+                    this.viz.setBreathValue(currentBreath);
+                    
+                    const timeVal = countUp ? (dur * prog) : (dur - (dur * prog));
+                    const timer = document.getElementById('breath-timer');
+                    timer.innerText = timeVal.toFixed(1); timer.style.color = col;
+                    
+                    if(prog < 1) requestAnimationFrame(tick); else resolve();
+                };
+                tick();
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => window.app = new BreathApp());
+    </script>
+</body>
+</html>
