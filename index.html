@@ -46,13 +46,13 @@
             font-size: 1.35rem; font-weight: 300; letter-spacing: 0.1em; padding: 6px 12px; border-radius: 12px;
             pointer-events: none; opacity: 0.95; color: var(--text-color); 
             background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(255,255,255,0.02));
-            z-index: 220; will-change: transform, opacity;
+            z-index: 100; will-change: transform, opacity; transition: opacity 0.5s ease, color 0.8s ease;
         }
         #breath-timer {
             position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 56px);
             font-size: 1.6rem; font-weight: 300; letter-spacing: 0.1em; color: var(--accent-secondary); background: rgba(0,0,0,0.18);
-            padding: 6px 12px; border-radius: 14px; pointer-events: none; z-index: 230;
-            font-variant-numeric: tabular-nums;
+            padding: 6px 12px; border-radius: 14px; pointer-events: none; z-index: 110;
+            font-variant-numeric: tabular-nums; transition: opacity 0.5s ease;
         }
 
         #ui-container {
@@ -61,7 +61,7 @@
             border-top: 1px solid rgba(255,255,255,0.03); border-radius: 20px 20px 0 0;
             padding: 8px 20px calc(15px + var(--safe-bottom));
             transform: translateY(0); transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-            z-index: 10; will-change: transform;
+            z-index: 1000; will-change: transform;
         }
         #ui-container.hidden { transform: translateY(110%); }
 
@@ -86,7 +86,7 @@
         .mode-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; }
 
         /* Summary Overlay */
-        #summary-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.92); backdrop-filter: blur(15px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; padding: 30px; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
+        #summary-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.92); backdrop-filter: blur(15px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1100; padding: 30px; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
         #summary-modal.visible { opacity: 1; pointer-events: all; }
         .summary-stat { font-size: 3.5rem; font-weight: 100; color: var(--accent-primary); margin: 15px 0; font-variant-numeric: tabular-nums; }
         .summary-quote { font-size: 1.3rem; opacity: 0.85; line-height: 1.4; margin: 20px auto 10px; max-width: 500px; }
@@ -127,6 +127,22 @@
         }
         #session-timer.visible { opacity: 0.8; max-width: 100px; padding: 6px 12px; pointer-events: auto; }
         #session-timer:hover { opacity: 1; }
+
+        /* TEXT POSITIONS */
+        .pos-top .instruction-text { top: calc(var(--safe-top) + 12px); bottom: auto; transform: translateX(-50%); }
+        .pos-top #breath-timer { top: calc(var(--safe-top) + 56px); bottom: auto; transform: translateX(-50%); }
+
+        .pos-center .instruction-text { top: 46%; bottom: auto; transform: translate(-50%, -50%); }
+        .pos-center #breath-timer { top: 54%; bottom: auto; transform: translate(-50%, -50%); }
+
+        .pos-bottom .instruction-text { top: auto; bottom: 140px; transform: translateX(-50%); }
+        .pos-bottom #breath-timer { top: auto; bottom: 95px; transform: translateX(-50%); }
+
+        /* Hide text when UI is visible */
+        body:not(.ui-hidden) .instruction-text, body:not(.ui-hidden) #breath-timer {
+            opacity: 0 !important;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="theme-lotusabend">
@@ -202,6 +218,7 @@
                         <option value="none">Stille</option>
                         <option value="gentle">Generator: Sanft</option>
                         <option value="ambient">Generator: Ambient</option>
+                        <option value="bowl">Tibetische Klangschale</option>
                         <option value="audio/accede_atem_track-5_5.mp3">Accede: Atem Track (5.5)</option>
                         <option value="audio/altus_session3.mp3">Altus: Session 3 (5.5)</option>
                         <option value="audio/yrrpheus_coherence.mp3">Yrrpheus: Coherence</option>
@@ -463,12 +480,15 @@
         constructor() { 
             this.ctx = null; this.nodes = []; 
             this.masterGain = null;
-            const savedVol = localStorage.getItem('atem-volume');
-            this.volume = savedVol !== null ? parseFloat(savedVol) : 0.5;
+            this.volume = parseFloat(localStorage.getItem('atem-volume')) || 0.3;
             this.audioEl = new Audio();
             this.audioEl.crossOrigin = "anonymous";
             this.audioEl.loop = true;
             this.mediaSource = null;
+            this.bowlBuffer = null;
+            this.currentType = 'none';
+            this.genNodes = {};
+            this.reverbNode = null;
         }
         async init() {
             const AC = window.AudioContext || window.webkitAudioContext;
@@ -477,6 +497,10 @@
                 this.masterGain = this.ctx.createGain();
                 this.masterGain.gain.value = this.volume;
                 this.masterGain.connect(this.ctx.destination);
+                
+                this.reverbNode = this.ctx.createConvolver();
+                this.reverbNode.buffer = this.createReverbBuffer();
+                this.reverbNode.connect(this.masterGain);
                 
                 this.mediaSource = this.ctx.createMediaElementSource(this.audioEl);
                 this.mediaSource.connect(this.masterGain);
@@ -490,23 +514,135 @@
             this.volume = parseFloat(v); localStorage.setItem('atem-volume', this.volume);
             if(this.masterGain) this.masterGain.gain.setTargetAtTime(this.volume, this.ctx.currentTime, 0.1);
         }
+        createReverbBuffer() {
+            const len = this.ctx.sampleRate * 3.0;
+            const buf = this.ctx.createBuffer(2, len, this.ctx.sampleRate);
+            for(let c=0;c<2;c++){
+                const d = buf.getChannelData(c);
+                for(let i=0;i<len;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/len, 3);
+            }
+            return buf;
+        }
+        async loadBowl() {
+            if(this.bowlBuffer) return;
+            const file = 'e-flat-tibetan-singing-bowl-struck-38746.mp3';
+            try {
+                let ab;
+                try {
+                    const resp = await fetch(file);
+                    if(!resp.ok) throw new Error('404');
+                    ab = await resp.arrayBuffer();
+                } catch(e) {
+                    // Fallback: Versuche audio/ Ordner
+                    const resp = await fetch('audio/' + file);
+                    ab = await resp.arrayBuffer();
+                }
+                this.bowlBuffer = await this.ctx.decodeAudioData(ab);
+            } catch(e) { console.warn("Bowl load failed", e); }
+        }
+        updateGenerator(breathVal) {
+            if ((this.currentType !== 'gentle' && this.currentType !== 'ambient') || !this.ctx) return;
+            const t = this.ctx.currentTime;
+            // Organic drift using non-repeating sine sums
+            const drift = Math.sin(t * 0.2) * 4 + Math.sin(t * 0.37) * 4; 
+
+            if (this.currentType === 'gentle') {
+                // Gentle: Sine chord (F3 Major7-ish). Volume swells with breath.
+                // Target gain: Soft (0.05) to Moderate (0.25) to avoid clipping 3 oscs
+                const targetGain = 0.02 + (breathVal * 0.15);
+                if(this.genNodes.gain) this.genNodes.gain.gain.setTargetAtTime(targetGain, t, 0.2);
+                
+                if(this.genNodes.oscs) {
+                    this.genNodes.oscs.forEach((osc, i) => {
+                        // Subtle detune drift for "human" feel
+                        osc.detune.setTargetAtTime(drift * (i % 2 === 0 ? 1 : -1), t, 0.2);
+                    });
+                }
+            } else if (this.currentType === 'ambient') {
+                // Ambient: Deep Drone. Filter opens with breath.
+                // Filter: 60Hz (closed) -> 280Hz (open)
+                const targetFreq = 60 + (breathVal * 220);
+                if(this.genNodes.filter) this.genNodes.filter.frequency.setTargetAtTime(targetFreq, t, 0.2);
+                
+                // Volume static or slight swell
+                const targetGain = 0.08 + (breathVal * 0.04);
+                if(this.genNodes.gain) this.genNodes.gain.gain.setTargetAtTime(targetGain, t, 0.2);
+                // Detune is handled by initial setup + slight drift could be added here if needed
+            }
+        }
+        triggerImpulse(pType) {
+            if(!this.ctx) return;
+            const t = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            osc.connect(g); g.connect(this.masterGain);
+            if(this.reverbNode) g.connect(this.reverbNode);
+
+            let f = 440;
+            if(this.currentType === 'gentle') f = pType==='in' ? 698.46 : 523.25; // F5 / C5
+            else f = pType==='in' ? 392.00 : 196.00; // G4 / G3
+
+            osc.frequency.value = f; osc.type = 'sine';
+            g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.08, t+0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, t+2.5);
+            osc.start(t); osc.stop(t+2.5);
+            setTimeout(()=>{osc.disconnect();g.disconnect();}, 2600);
+        }
+        triggerBowl(semitones) {
+            if(!this.bowlBuffer || !this.ctx) return;
+            const src = this.ctx.createBufferSource();
+            src.buffer = this.bowlBuffer;
+            src.detune.value = semitones * 100;
+            src.connect(this.masterGain);
+            src.start(0);
+            src.onended = () => { const i = this.nodes.indexOf(src); if(i>-1)this.nodes.splice(i,1); };
+            this.nodes.push(src);
+        }
         async play(type) {
             this.stop(); // Clear previous
+            this.currentType = type;
             if (!this.ctx) await this.init();
             
             if (type === 'none') return;
             
+            if (type === 'bowl') { await this.loadBowl(); return; }
+            
             if (type === 'gentle' || type === 'ambient') {
-                const gain = this.ctx.createGain();
-                gain.connect(this.masterGain);
-                gain.gain.setValueAtTime(0, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(1.0, this.ctx.currentTime + 1.0); // Soft fade in
+                const master = this.ctx.createGain();
+                master.connect(this.masterGain);
+                master.gain.value = 0;
+                // Fade in
+                master.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 2.0);
+                this.nodes.push(master);
+                
+                this.genNodes = { gain: master, oscs: [] };
 
-                const osc = this.ctx.createOscillator();
-                osc.type = type === 'gentle' ? 'sine' : 'triangle';
-                osc.frequency.value = type === 'gentle' ? 55 : 110;
-                osc.connect(gain); osc.start(); 
-                this.nodes.push(osc); this.nodes.push(gain);
+                if (type === 'gentle') {
+                    // Harmonious Chord: F3 (174.61), C4 (261.63), A4 (440) -> F Major
+                    // Using 174Hz (Solfeggio 'Healing') as base
+                    const freqs = [174.61, 261.63, 349.23]; 
+                    freqs.forEach((f, i) => {
+                        const osc = this.ctx.createOscillator();
+                        osc.type = 'sine'; osc.frequency.value = f;
+                        osc.detune.value = (i * 5) - 5; // Spread frequencies slightly to reduce pressure
+                        osc.connect(master); osc.start();
+                        this.nodes.push(osc); this.genNodes.oscs.push(osc);
+                    });
+                } else {
+                    // Ambient: Filtered Triangle Drone (C2 base)
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'lowpass'; filter.frequency.value = 80; filter.Q.value = 0.5;
+                    filter.connect(master); this.genNodes.filter = filter;
+                    
+                    [65.41, 98.00].forEach((f, i) => { // C2, G2
+                        const osc = this.ctx.createOscillator();
+                        osc.type = i === 0 ? 'sine' : 'triangle'; // Root as sine for cleaner bottom
+                        osc.frequency.value = f;
+                        osc.detune.value = i===0 ? -4 : 4; // Thickener
+                        osc.connect(filter); osc.start();
+                        this.nodes.push(osc); this.genNodes.oscs.push(osc);
+                    });
+                }
             } else {
                 try {
                     this.audioEl.src = type;
@@ -545,9 +681,6 @@
             this.sessionTimerInterval = null;
             this.setupUI();
             this.randomizeInit();
-            // Load default preset on startup only (preserves settings on subsequent refreshes)
-            const p1Btn = document.querySelector(`.preset-scroll .chip[onclick*="'p1'"]`);
-            this.loadPreset('p1', p1Btn);
         }
 
         setupUI() {
@@ -568,6 +701,9 @@
 
             document.getElementById('themeSelect').addEventListener('change', (e) => {
                 document.body.className = e.target.value; this.viz.updateThemeColors();
+            });
+            document.getElementById('soundSelect').addEventListener('change', (e) => {
+                if(this.isRunning) this.audio.play(e.target.value);
             });
             document.getElementById('uploadBtn').addEventListener('click', () => document.getElementById('audioFileInput').click());
             document.getElementById('audioFileInput').addEventListener('change', (e) => {
@@ -603,6 +739,15 @@
             const randomMode = modes[Math.floor(Math.random() * modes.length)];
             const modeBtn = document.querySelector(`.mode-row .chip[onclick*="'${randomMode}'"]`);
             this.setVisualMode(randomMode, modeBtn);
+            
+            const positions = ['pos-top', 'pos-center', 'pos-bottom'];
+            const randomPos = positions[Math.floor(Math.random() * positions.length)];
+            const vizArea = document.getElementById('visual-area');
+            vizArea.classList.remove('pos-top', 'pos-center', 'pos-bottom');
+            vizArea.classList.add(randomPos);
+
+            const p1Btn = document.querySelector(`.preset-scroll .chip[onclick*="'p1'"]`);
+            this.loadPreset('p1', p1Btn);
         }
 
         loadPreset(k, el) {
@@ -620,8 +765,10 @@
 
             const soundSelect = document.getElementById('soundSelect');
             if (k === 'p8') soundSelect.value = "audio/yrrpheus_coherence.mp3";
-            else if (k === 'p1') soundSelect.value = "audio/altus_session3.mp3";
-            else soundSelect.value = "none";
+            else if (k === 'p1') soundSelect.value = "bowl";
+            else soundSelect.value = "bowl";
+            
+            if (this.isRunning) this.audio.play(soundSelect.value);
 
             document.querySelectorAll('.preset-scroll .chip').forEach(c=>c.classList.remove('active'));
             if(el) el.classList.add('active');
@@ -642,16 +789,11 @@
         toggleMute() {
             const slider = document.getElementById('vol-slider');
             if (this.audio.volume > 0) {
-                localStorage.setItem('atem-last-volume', this.audio.volume);
                 this.audio.setVolume(0);
                 slider.value = 0;
                 this.updateVolumeIcon(0);
             } else {
-                let last = parseFloat(localStorage.getItem('atem-last-volume'));
-                if (isNaN(last) || last <= 0) last = 0.5;
-                this.audio.setVolume(last);
-                slider.value = last;
-                this.updateVolumeIcon(last);
+                this.updateVolumeIcon(1); // Visual feedback only, user slides manually
             }
         }
 
@@ -679,13 +821,14 @@
             try {
                 // Audio init & WakeLock
                 await this.audio.init();
-                this.audio.play(document.getElementById('soundSelect').value);
+                await this.audio.play(document.getElementById('soundSelect').value);
                 if(navigator.wakeLock) try { this.wakelock = await navigator.wakeLock.request('screen'); } catch(e){}
 
                 this.isRunning = true;
                 this.startTime = Date.now();
                 
                 document.getElementById('ui-container').classList.add('hidden');
+                document.body.classList.add('ui-hidden');
                 document.getElementById('summary-modal').classList.remove('visible');
                 btn.innerText = "Beenden";
                 btn.classList.add('stop-mode');
@@ -722,6 +865,7 @@
             if(this.wakelock) this.wakelock.release();
             
             document.getElementById('ui-container').classList.remove('hidden');
+            document.body.classList.remove('ui-hidden');
             document.getElementById('startBtn').innerText = "Beginnen";
             document.getElementById('startBtn').classList.remove('stop-mode');
             document.getElementById('stop-float').style.display = 'none';
@@ -782,6 +926,13 @@
             else if (startV > endV) pType = 'out';
             else if (startV === 1) pType = 'hold-full';
             
+            if (this.audio.currentType === 'bowl') {
+                if (pType === 'in') this.audio.triggerBowl(0);
+                else if (pType === 'out') this.audio.triggerBowl(-5);
+            } else if (this.audio.currentType === 'gentle' || this.audio.currentType === 'ambient') {
+                if (pType === 'in' || pType === 'out') this.audio.triggerImpulse(pType);
+            }
+            
             const start = Date.now();
             return new Promise(resolve => {
                 const tick = () => {
@@ -793,6 +944,7 @@
                     const currentBreath = startV + (endV - startV) * eased;
                     
                     this.viz.setBreathState(currentBreath, pType);
+                    this.audio.updateGenerator(currentBreath);
                     
                     const timeVal = countUp ? (dur * prog) : (dur - (dur * prog));
                     const timer = document.getElementById('breath-timer');
