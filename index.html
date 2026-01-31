@@ -42,14 +42,14 @@
         .viz-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; touch-action: none; }
         
         .instruction-text {
-            position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 12px);
+            position: absolute; left: 50%; transform: translateX(-50%);
             font-size: 1.5rem; font-weight: 300; letter-spacing: 0.1em; padding: 6px 12px; border-radius: 12px;
             pointer-events: none; opacity: 0.95; color: var(--text-color); 
             background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(255,255,255,0.02));
             z-index: 100; will-change: transform, opacity; transition: opacity 0.5s ease, color 0.8s ease;
         }
         #breath-timer {
-            position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 56px);
+            position: absolute; left: 50%; transform: translateX(-50%);
             font-size: 1.8rem; font-weight: 300; letter-spacing: 0.1em; color: var(--accent-secondary); background: rgba(0,0,0,0.18);
             padding: 6px 12px; border-radius: 14px; pointer-events: none; z-index: 110;
             font-variant-numeric: tabular-nums; transition: opacity 0.5s ease;
@@ -65,7 +65,7 @@
         }
         #ui-container.hidden { transform: translateY(110%); }
 
-        .handle { width: 35px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 10px; margin: 10px auto 20px; cursor: pointer; }
+        .handle { width: 35px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 10px; margin: 10px auto 20px; cursor: pointer; touch-action: none; }
         .preset-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 12px; scrollbar-width: none; mask-image: linear-gradient(to right, black 90%, transparent 100%); -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%); }
         .preset-scroll::-webkit-scrollbar { display: none; }
 
@@ -96,7 +96,7 @@
         #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s ease; z-index: 250; width: auto; }
         #volume-control:hover { background: rgba(0,0,0,0.4); }
         #vol-icon { width: 28px; height: 28px; fill: var(--text-color); opacity: 0.6; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
-        #vol-slider { width: 100px; height: 4px; -webkit-appearance: none; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; opacity: 1; cursor: pointer; }
+        #vol-slider { width: 100px; height: 4px; -webkit-appearance: none; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; opacity: 1; cursor: pointer; touch-action: none; }
         #vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-primary); cursor: pointer; transition: transform 0.1s; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
         #vol-slider::-webkit-slider-thumb:active { transform: scale(1.3); }
 
@@ -180,14 +180,14 @@
         #preset-display.visible { opacity: 1; }
 
         /* TEXT POSITIONS */
-        .pos-top .instruction-text { top: calc(var(--safe-top) + 30px); bottom: auto; transform: translateX(-50%); }
-        .pos-top #breath-timer { top: calc(var(--safe-top) + 75px); bottom: auto; transform: translateX(-50%); }
+        .pos-top .instruction-text { top: 15%; bottom: auto; }
+        .pos-top #breath-timer { top: 25%; bottom: auto; }
 
-        .pos-center .instruction-text { top: 47%; bottom: auto; transform: translate(-50%, -50%); }
-        .pos-center #breath-timer { top: 53%; bottom: auto; transform: translate(-50%, -50%); }
+        .pos-center .instruction-text { top: 45%; transform: translate(-50%, -50%); }
+        .pos-center #breath-timer { top: 55%; transform: translate(-50%, -50%); }
 
-        .pos-bottom .instruction-text { top: auto; bottom: 165px; transform: translateX(-50%); }
-        .pos-bottom #breath-timer { top: auto; bottom: 120px; transform: translateX(-50%); }
+        .pos-bottom .instruction-text { top: auto; bottom: 25%; }
+        .pos-bottom #breath-timer { top: auto; bottom: 15%; }
 
         /* Hide text when UI is visible */
         body:not(.ui-hidden) .instruction-text, body:not(.ui-hidden) #breath-timer {
@@ -216,6 +216,15 @@
             input, select, .btn { padding: 12px; font-size: 1rem; }
             
             .preset-scroll { flex-wrap: wrap; justify-content: center; overflow: visible; }
+        }
+
+        /* IPAD LANDSCAPE OPTIMIZATION */
+        @media (orientation: landscape) {
+            .controls-grid { grid-template-columns: repeat(4, 1fr); }
+            #ui-container { padding-bottom: calc(10px + var(--safe-bottom)); }
+            .pos-top .instruction-text { top: 12%; }
+            .pos-top #breath-timer { top: 22%; }
+            .pos-bottom .instruction-text { bottom: 20%; }
         }
 
         /* MOBILE PLAYER LAYOUT (Symmetrical around Stop button) */
@@ -274,7 +283,7 @@
             <div id="session-timer"></div>
         </div>
         <div id="volume-control">
-            <svg id="vol-icon" viewBox="0 0 24 24" onclick="app.toggleMute()"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+            <svg id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             <input type="range" id="vol-slider" min="0" max="1" step="0.01">
         </div>
     </div>
@@ -288,7 +297,7 @@
     </div>
 
     <div id="ui-container">
-        <div class="handle" onclick="app.toggleUI()"></div>
+        <div class="handle"></div>
         <div id="menu-shuffle-btn" onclick="app.shuffleSession()" role="button" aria-label="Zufällig">
             <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zM14.83 13.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04L14.83 13.41z"/></svg>
         </div>
@@ -419,6 +428,7 @@
             this.dpr = Math.min(window.devicePixelRatio || 1, 2);
             this.width = 0; this.height = 0; this.centerX = 0; this.centerY = 0;
             this.weights = { mist: 1, circle: 0, ripple: 0, luma: 0 }; this.breathValue = 0.5; this.colors = { r:138, g:138, b:138 };
+            this.bgR = 10; this.bgG = 10; this.bgB = 10;
             
             // Optimization: Structure of Arrays (SoA) for zero-GC particles
             this.pCount = 500;
@@ -445,6 +455,12 @@
             const hex = (style.getPropertyValue('--accent-primary') || '#8a8a8a').trim().replace('#', '');
             if (hex.length === 6) {
                 const bi = parseInt(hex, 16); this.colors = { r: (bi >> 16) & 255, g: (bi >> 8) & 255, b: bi & 255 };
+            }
+            const bgStr = style.getPropertyValue('--bg-color').trim();
+            if(bgStr.startsWith('#') && bgStr.length === 7) {
+                this.bgR = parseInt(bgStr.slice(1,3),16);
+                this.bgG = parseInt(bgStr.slice(3,5),16);
+                this.bgB = parseInt(bgStr.slice(5,7),16);
             }
             this.generateSprite();
         }
@@ -488,9 +504,7 @@
 
             this.ctx.globalCompositeOperation = 'source-over';
             // Cache BG Color would be better, but css variable might change
-            const bgStr = getComputedStyle(document.body).getPropertyValue('--bg-color').trim();
-            const r = parseInt(bgStr.slice(1,3),16), g = parseInt(bgStr.slice(3,5),16), b = parseInt(bgStr.slice(5,7),16);
-            this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${fade})`;
+            this.ctx.fillStyle = `rgba(${this.bgR}, ${this.bgG}, ${this.bgB}, ${fade})`;
             this.ctx.fillRect(0, 0, this.width, this.height);
             this.ctx.globalCompositeOperation = 'lighter';
 
@@ -1057,7 +1071,7 @@
             }
         }
         stop() { 
-            // Cleanup oscillators
+            // Cleanup oscillators and nodes
             this.nodes.forEach(n => { try{if(n.stop)n.stop();n.disconnect();}catch(e){} }); 
             this.nodes = []; 
             // Cleanup HTML Audio
@@ -1167,6 +1181,17 @@
                 this.audio.setVolume(v);
                 this.updateVolumeIcon(v);
             }, { passive: true });
+
+            // Pointer Events Migration (Handle & Volume)
+            document.querySelector('.handle').addEventListener('pointerup', (e) => {
+                e.preventDefault();
+                this.toggleUI();
+            });
+            
+            document.getElementById('vol-icon').addEventListener('pointerup', (e) => {
+                e.preventDefault();
+                this.toggleMute();
+            });
             
             // XY Pad Logic
             const pad = document.getElementById('xy-pad');
