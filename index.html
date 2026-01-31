@@ -22,7 +22,7 @@
             background-color: var(--bg-color); color: var(--text-color);
             font-family: var(--font-stack); margin: 0; height: 100dvh;
             display: flex; flex-direction: column; overflow: hidden;
-            transition: background-color 2s ease;
+            transition: background-color 2s ease; overscroll-behavior: none;
         }
         /* THEMES */
         body.theme-himmelblau { --bg-color: #0b1026; --accent-primary: #5c8a99; --glass-bg: rgba(11, 16, 38, 0.65); }
@@ -169,6 +169,19 @@
             </div>
         </div>
 
+        <label>Sitzungsdauer (Minuten)</label>
+        <div class="preset-scroll" id="duration-scroll">
+            <button class="chip active" onclick="app.setDuration(0, this)">∞ (Endlos)</button>
+            <button class="chip" onclick="app.setDuration(3, this)">3</button>
+            <button class="chip" onclick="app.setDuration(5, this)">5</button>
+            <button class="chip" onclick="app.setDuration(10, this)">10</button>
+            <button class="chip" onclick="app.setDuration(15, this)">15</button>
+            <button class="chip" onclick="app.setDuration(20, this)">20</button>
+            <button class="chip" onclick="app.setDuration(25, this)">25</button>
+            <button class="chip" onclick="app.setDuration(30, this)">30</button>
+            <input type="number" placeholder="Min" style="width: 60px; padding: 7px; height: 32px;" onchange="app.setDuration(this.value, null)">
+        </div>
+
         <button class="btn" id="startBtn">Beginnen</button>
     </div>
 
@@ -180,10 +193,11 @@
     class BreathVisuals {
         constructor(canvas) {
             this.canvas = canvas; this.ctx = this.canvas.getContext('2d', { alpha: false });
-            this.noise = new SimplexNoise(); this.dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+            this.noise = new SimplexNoise(); this.dpr = Math.min(window.devicePixelRatio || 1, 2);
             this.width = 0; this.height = 0; this.centerX = 0; this.centerY = 0;
             this.mode = 'mist'; this.breathValue = 0.5; this.colors = { r:138, g:138, b:138 };
             this.mistParticles = null;
+            this.particleSprite = null;
             window.addEventListener('resize', () => this.resize()); this.resize(); this.animate();
         }
         updateThemeColors() {
@@ -192,6 +206,16 @@
             if (hex.length === 6) {
                 const bi = parseInt(hex, 16); this.colors = { r: (bi >> 16) & 255, g: (bi >> 8) & 255, b: bi & 255 };
             }
+            this.generateSprite();
+        }
+        generateSprite() {
+            this.particleSprite = document.createElement('canvas');
+            const s = 64; this.particleSprite.width = s; this.particleSprite.height = s;
+            const ctx = this.particleSprite.getContext('2d');
+            const g = ctx.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+            g.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},1)`);
+            g.addColorStop(1, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},0)`);
+            ctx.fillStyle = g; ctx.fillRect(0, 0, s, s);
         }
         resize() {
             const rect = this.canvas.parentElement.getBoundingClientRect();
@@ -206,7 +230,7 @@
         
         animate() {
             requestAnimationFrame(() => this.animate());
-            const fade = this.mode === 'mist' ? 0.02 : 0.025;
+            const fade = this.mode === 'mist' ? 0.12 : 0.025;
             this.ctx.globalCompositeOperation = 'source-over';
             this.ctx.fillStyle = `rgba(${this.hexToRgb(getComputedStyle(document.body).getPropertyValue('--bg-color'))}, ${fade})`;
             this.ctx.fillRect(0, 0, this.width, this.height);
@@ -217,38 +241,53 @@
         }
 
         renderMist() {
-            const time = Date.now() * 0.0005;
-            if (!this.mistParticles) {
+            const time = Date.now() * 0.0002;
+            const count = 500;
+            if (!this.mistParticles || this.mistParticles.length !== count) {
                 this.mistParticles = [];
-                for (let i = 0; i < 200; i++) {
-                    const angle = Math.random() * 6.28;
-                    // FIX: Zufällige Startposition statt Punkt 0,0
-                    const startRadius = Math.random() * 20; 
-                    const startX = this.centerX + Math.cos(angle) * startRadius;
-                    const startY = this.centerY + Math.sin(angle) * startRadius;
-                    
-                    this.mistParticles.push({ 
-                        x: startX, y: startY, 
-                        vx: (Math.random()-0.5)*0.2, vy: (Math.random()-0.5)*0.2, // FIX: Zufälliger Impuls
-                        seed: Math.random()*1000, 
-                        rOff: Math.random() 
-                    });
-                }
+                for (let i = 0; i < count; i++) this.mistParticles.push(this.resetParticle({}));
             }
-            const targetRad = Math.min(this.width, this.height) * 0.4 * (0.2 + 0.8 * this.breathValue);
+            
             for (let p of this.mistParticles) {
-                const n = this.noise.noise2D((p.x)*0.002, (p.y+time)*0.002);
-                const dx = p.x - this.centerX, dy = p.y - this.centerY;
-                const dist = Math.sqrt(dx*dx + dy*dy) + 0.1;
-                const target = targetRad * (0.5 + p.rOff);
-                const force = (target - dist) * 0.005;
-                p.vx += (dx/dist * force) + n * 0.03; p.vy += (dy/dist * force) + n * 0.03;
-                p.vx *= 0.92; p.vy *= 0.92;
+                p.life++;
+                if (p.life > p.maxLife) this.resetParticle(p);
+
+                const n = this.noise.noise2D(p.x * 0.0015, p.y * 0.0015 + time);
+                const angle = n * Math.PI * 4;
+                
+                p.vx += Math.cos(angle) * 0.03;
+                p.vy += Math.sin(angle) * 0.03;
+
+                const dx = this.centerX - p.x;
+                const dy = this.centerY - p.y;
+                
+                if (this.breathValue > 0.5) {
+                    const strength = (this.breathValue - 0.5) * 0.005;
+                    p.vx += dx * strength; p.vy += dy * strength;
+                } else {
+                    const strength = (0.5 - this.breathValue) * 0.002;
+                    p.vx -= dx * strength; p.vy -= dy * strength;
+                }
+
+                p.vx *= 0.95; p.vy *= 0.95;
                 p.x += p.vx; p.y += p.vy;
-                const alpha = 0.05 + this.breathValue * 0.1;
-                this.ctx.fillStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${alpha})`;
-                this.ctx.beginPath(); this.ctx.arc(p.x, p.y, 2 + this.breathValue * 8, 0, 6.28); this.ctx.fill();
+
+                const lifeProg = p.life / p.maxLife;
+                const alpha = Math.sin(lifeProg * Math.PI) * p.baseAlpha * (0.5 + this.breathValue * 0.5);
+                const size = p.size * (0.8 + this.breathValue * 0.6);
+
+                this.ctx.globalAlpha = alpha;
+                if(this.particleSprite) this.ctx.drawImage(this.particleSprite, p.x - size/2, p.y - size/2, size, size);
             }
+            this.ctx.globalAlpha = 1.0;
+        }
+        resetParticle(p) {
+            p.x = Math.random() * this.width; p.y = Math.random() * this.height;
+            p.vx = 0; p.vy = 0;
+            p.life = 0; p.maxLife = 150 + Math.random() * 250;
+            p.size = (4 + Math.random() * 24) * (this.dpr * 0.6);
+            p.baseAlpha = 0.05 + Math.random() * 0.25;
+            return p;
         }
         renderCircle() {
             const rBase = Math.min(this.width, this.height) * 0.3 * (0.4 + this.breathValue * 0.6);
@@ -288,6 +327,10 @@
             this.masterGain = null;
             this.volume = parseFloat(localStorage.getItem('atem-volume')) || 0.5;
             this.isMuted = false;
+            this.audioEl = new Audio();
+            this.audioEl.crossOrigin = "anonymous";
+            this.audioEl.loop = true;
+            this.mediaSource = null;
         }
         async init() {
             if (!this.ctx) { 
@@ -296,6 +339,10 @@
                 this.masterGain = this.ctx.createGain();
                 this.masterGain.gain.value = this.volume;
                 this.masterGain.connect(this.ctx.destination);
+                
+                // HTML5 Audio Source Setup
+                this.mediaSource = this.ctx.createMediaElementSource(this.audioEl);
+                this.mediaSource.connect(this.masterGain);
             }
             if (this.ctx && this.ctx.state === 'suspended') await this.ctx.resume();
         }
@@ -312,47 +359,33 @@
             this.stop();
             if (!this.ctx || type === 'none') return;
             
-            const gain = this.ctx.createGain();
-            if(!this.masterGain) { // Fallback
-                this.masterGain = this.ctx.createGain(); 
-                this.masterGain.gain.value = this.isMuted ? 0 : this.volume; 
-                this.masterGain.connect(this.ctx.destination); 
-            }
-            gain.connect(this.masterGain);
-            
-            // FIX: Kein Fade-In mehr, sondern sofortiger Start (nur 0.05s gegen Knacken)
-            gain.gain.setValueAtTime(0, this.ctx.currentTime);
-            gain.gain.linearRampToValueAtTime(1.0, this.ctx.currentTime + 0.05);
-            
-            this.nodes.push(gain);
-
             if (type === 'gentle' || type === 'ambient') {
+                // Oszillator-Logik
+                const gain = this.ctx.createGain();
+                gain.connect(this.masterGain);
+                gain.gain.setValueAtTime(0, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(1.0, this.ctx.currentTime + 0.05);
+
                 const osc = this.ctx.createOscillator();
                 osc.type = type === 'gentle' ? 'sine' : 'triangle';
                 osc.frequency.value = type === 'gentle' ? 55 : 110;
                 osc.connect(gain); osc.start(); this.nodes.push(osc);
+                this.nodes.push(gain);
             } else {
-                // FIX: Warten, bis Datei wirklich geladen ist
+                // HTML5 Audio Streaming
                 try {
-                    const response = await fetch(type);
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const ab = await response.arrayBuffer();
-                    const audioBuffer = await this.ctx.decodeAudioData(ab);
-                    
-                    const source = this.ctx.createBufferSource();
-                    source.buffer = audioBuffer; 
-                    source.loop = true;
-                    source.connect(gain);
-                    source.start(0); // Sofort abspielen
-                    this.nodes.push(source);
+                    this.audioEl.src = type;
+                    await this.audioEl.play();
                 } catch (e) {
                     console.error("Audio Load Error:", e);
-                    alert("Konnte Audio nicht laden: " + type);
-                    throw e; // Fehler werfen, damit App nicht startet
                 }
             }
         }
-        stop() { this.nodes.forEach(n => { try{if(n.stop)n.stop();n.disconnect();}catch(e){} }); this.nodes = []; }
+        stop() { 
+            this.nodes.forEach(n => { try{if(n.stop)n.stop();n.disconnect();}catch(e){} }); this.nodes = []; 
+            this.audioEl.pause();
+            this.audioEl.currentTime = 0;
+        }
     }
 
     const quotes = [
@@ -367,6 +400,8 @@
             this.viz = new BreathVisuals(document.getElementById('viz-canvas'));
             this.audio = new GentleAudio();
             this.isRunning = false; this.abortCtrl = null;
+            this.sessionDuration = 0; // 0 = unendlich
+            this.startTime = 0;
             this.setupUI();
             this.randomizeInit();
         }
@@ -452,6 +487,14 @@
             if(el) el.classList.add('active');
         }
 
+        setDuration(min, el) {
+            this.sessionDuration = parseInt(min);
+            if(el) {
+                document.querySelectorAll('#duration-scroll .chip').forEach(c=>c.classList.remove('active'));
+                el.classList.add('active');
+            }
+        }
+
         toggleMute() {
             const isMuted = this.audio.toggleMute();
             const path = document.querySelector('#vol-icon path');
@@ -483,6 +526,7 @@
             if(navigator.wakeLock) try { this.wakelock = await navigator.wakeLock.request('screen'); } catch(e){}
 
             this.isRunning = true;
+            this.startTime = Date.now();
             document.getElementById('ui-container').classList.add('hidden');
             btn.innerText = "Beenden";
             btn.classList.add('stop-mode');
@@ -517,6 +561,11 @@
             document.getElementById('breath-timer').innerText = "";
             this.viz.setBreathValue(0.5);
             
+            const elapsedSec = Math.floor((Date.now() - this.startTime) / 1000);
+            const m = Math.floor(elapsedSec / 60);
+            const s = elapsedSec % 60;
+            document.getElementById('summary-time').innerText = `${m} Min ${s} Sek`;
+
             const q = quotes[Math.floor(Math.random()*quotes.length)];
             document.getElementById('quote-text').innerText = q.t;
             document.getElementById('quote-author').innerText = q.a;
@@ -526,6 +575,10 @@
         async loop(signal) {
             const val = id => parseFloat(document.getElementById(id).value) || 0;
             while(!signal.aborted) {
+                if (this.sessionDuration > 0) {
+                    const elapsedMin = (Date.now() - this.startTime) / 60000;
+                    if (elapsedMin >= this.sessionDuration) { this.stop(); break; }
+                }
                 await this.phase("Einatmen ↑", val('inTime'), 0, 1, '#64B5F6', signal, true);
                 await this.phase("Halten", val('holdFullTime'), 1, 1, '#fff', signal, false);
                 await this.phase("Ausatmen ↓", val('outTime'), 1, 0, '#E57373', signal, false);
@@ -550,7 +603,7 @@
                     
                     const timeVal = countUp ? (dur * prog) : (dur - (dur * prog));
                     const timer = document.getElementById('breath-timer');
-                    timer.innerText = timeVal.toFixed(1); timer.style.color = col;
+                    timer.innerText = timeVal.toFixed(0); timer.style.color = col;
                     
                     if(prog < 1) requestAnimationFrame(tick); else resolve();
                 };
