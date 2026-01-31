@@ -90,7 +90,7 @@
         #summary-modal.visible { opacity: 1; pointer-events: all; }
         .summary-stat { font-size: 3.8rem; font-weight: 100; color: var(--accent-primary); margin: 15px 0; font-variant-numeric: tabular-nums; }
         .summary-quote { font-size: 1.4rem; opacity: 0.85; line-height: 1.4; margin: 20px auto 10px; max-width: 500px; }
-        .summary-author { font-size: 1.05rem; opacity: 0.65; margin: 5px auto 0; }
+        .summary-author { font-size: 1.05rem; opacity: 0.65; margin: 5px auto 0; font-family: sans-serif; font-weight: 300; }
 
         /* VOLUME CONTROL */
         #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 20px; display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s ease; z-index: 250; width: auto; }
@@ -732,10 +732,46 @@
     }
 
     const quotes = [
-        { t: "Atmen ist die Brücke zwischen Körper und Geist.", a: "Thich Nhat Hanh" },
-        { t: "Im Atem liegt die Ruhe des Universums.", a: "Yogische Weisheit" },
-        { t: "Lasse los und atme ein.", a: "Unbekannt" },
-        { t: "Gefühle kommen und gehen wie Wolken. Der Atem ist mein Anker.", a: "Thich Nhat Hanh" }
+        { id: 1, quote: "Stellt euch euren Atem als den Weg vor, der die Energie um euch herum aufnimmt und sie mit eurer eigenen Energie verbindet. Atmet aus und macht euch leer, atmet ein und füllt euer Wesen mit der Vitalität des Lebens. Visualisiert dabei, wie eure Lebenskraft zirkuliert und eure inneren Organe nährt.", source: "Nancy N. Chen", book: "Breathing Spaces [1, 2]" },
+        { id: 2, quote: "In der Tonglen-Praxis atmet man zuerst ein und nimmt das Leid anderer Wesen in sich auf. Während man inhaliert, nimmt man deren Schwierigkeiten und die Ursachen ihres Kummers an. Man befreit sie dadurch symbolisch von ihrem Schmerz und den Wurzeln ihres Leidens.", source: "Shamar Rinpoche", book: "The Path to Awakening [3, 4]" },
+        { id: 3, quote: "Wenn du ausatmest, stelle dir vor, dass du all dein Glück und deine positiven Umstände an andere abgibst. Dein Mitgefühl strahlt wie helles Licht aus. Dein Atem verbreitet sich überall, ähnlich wie das Spiegelbild der Sonne auf einer weiten Wasserfläche.", source: "Shamar Rinpoche", book: "The Path to Awakening [3, 4]" },
+        { id: 4, quote: "Das Wesentliche im Qi Gong ist, das Herz nicht allzu sehr in den Atem zu legen, da der Atem direkt vom Bewusstsein kommt. Sobald sich das Herz regt, entsteht Atemkraft, denn die Atemtätigkeit ist ursprünglich verwandelte Herztätigkeit. Man vereinigt die innere Ruhe mit dem Rhythmus des Atems.", source: "Meister Lü Dsu (via Olvedi)", book: "Das Stille Qi Gong [5, 6]" },
+        { id: 5, quote: "Der Mensch fungiert als Leiter und Transformator der universellen Lebensenergie. Zwischen Himmel und Erde entsteht ein natürlicher Fluss, in dem wir uns als Nutznießer dieses Stromes befinden. Durch die richtige Ausrichtung wird dieser Fluss intensiviert.", source: "Günther Dogan", book: "Professionelles Qi Gong [7, 8]" },
+        { id: 6, quote: "Die beste Atmung im Qi Gong ist die sanfteste, am weitesten reduzierte Atmung. Dies ist nicht das Ergebnis eines Zwangs, sondern ein natürlicher Prozess der inneren Stille. Je mehr der Atem auf natürliche Weise zur Ruhe kommt, desto wirkungsvoller wird die Arbeit mit der Energie.", source: "Ulli Olvedi", book: "Das Stille Qi Gong [9]" },
+        { id: 7, quote: "Höre nicht nur  mit deinen Ohren, sondern mit dem Atem. Dieser Prozess beinhaltet eine tiefe Verbindung zum eigenen Inneren, um den Körper zu erneuern. Der Atem ist das zentrale Prinzip, das Körper, Selbst und Umwelt miteinander verbindet.", source: "Nancy N. Chen", book: "Breathing Spaces [10, 11]" },
+        { id: 8, quote: "In der Einfachheit der natürlichen Dinge liegen die größten Wirkkräfte. Das Atmen und die Nahrungsaufnahme sind Vorgänge, die jedes Kind beherrscht, und die in Wirklichkeit doch komplexer sind. Wir suchen im Qi Gong die grundlegende Einfachheit der Schöpfung.", source: "Günther Dogan", book: "Professionelles Qi Gong [12, 13]" },
+        { id: 9, quote: "Wenn du atmest, ist es die Natur, die dich atmet. In der tiefen Praxis können Geist und Körper leer werden, bis das Innere und Äußere zu einem einheitlichen Feld verschmelzen. In diesem Zustand gibt es keinen getrennten Teil mehr – kein isoliertes Ich.", source: "Ken Cohen", book: "The Essential Qigong Training Guide [14]" },
+        { id: 10, quote: "Der Atemrhythmus ist eine Funktion unseres Bewusstseins, in der Welt zu sein. Atemmuster sind anpassungsfähig und bilden eine körperliche Umgebung, die durch unsere Emotionen strukturiert wird. Heilende Atemzüge betonen das tiefe Atmen aus der Mitte des Körpers.", source: "Nancy N. Chen", book: "Breathing Spaces [15]" },
+        { id: 11, quote: "Das Geheimnis des Atmens liegt in der Aufnahme von Lebenskraft aus der Luft. Die Luft ist eine der primären Quellen für unseren Organismus. Wir nutzen diesen Umstand bewusst, um unseren energetischen Zustand zu steigern und die Vitalität zu fördern.", source: "Günther Dogan", book: "Professionelles Qi Gong [16]" },
+        { id: 12, quote: "Wenn du die Gelenke lockerst und die Muskeln entspannst, verbesserst du deine energetische Leitfähigkeit. Die Energie möchte immer frei fließen wie ein ungestörter Fluss. Blockaden im Geist erzeugen unweigerlich Blockaden im physischen Körper.", source: "Günther Dogan", book: "Professionelles Tai Chi Chuan [17, 18]" },
+        { id: 13, quote: "Stimmen Sie Ihren Körper, Ihren Atem und Ihren Geist aufeinander ab. Sobald dieses Instrument gestimmt ist, können Sie die Feinheiten des Lebens lernen und schöne Musik machen. Ohne ein starkes Fundament im Körper kann der Geist nicht stabil bleiben.", source: "Ken Cohen", book: "The Essential Qigong Training Guide [19]" },
+        { id: 14, quote: "Wenn die Stille ihren Höhepunkt erreicht hat, erzeugt sie ganz von selbst die Bewegung der Energie. Der Atem sollte dabei sehr sanft sein und niemals angestrengt wirken. In der fortgeschrittenen Übung wird die äußere Atmung immer feiner.", source: "Meister Zhi-Chang Li (via Olvedi)", book: "Das Stille Qi Gong [20, 21]" },
+        { id: 15, quote: "In der buddhistischen Praxis wird der Atem als Fahrzeug für das Bewusstsein betrachtet. Wenn die Energien im Zentralkanal zusammenströmen, lösen sich grobe Geisteszustände auf. An ihre Stelle tritt das ursprüngliche Gewahrsein des klaren Lichts.", source: "Lama Thubten Yeshe (via Olvedi)", book: "Das Stille Qi Gong [22, 23]" },
+        { id: 16, quote: "Ein langer Atem ist wie ein Gebirgsbach, der ohne künstliche Dämme fließt. Er sollte glatt wie feine Seide sein und nicht grob wie Sandpapier. Durch ruhiges Atmen kultivieren wir Weisheit und Vitalität im Zentrum unseres Seins.", source: "Ken Cohen", book: "The Essential Qigong Training Guide [24, 25]" },
+        { id: 17, quote: "Lebenskraft stellt den Beginn jeder organischen Kausalitätskette dar und beeinflusst direkt den Fluss in unserem Körper. Die Energie folgt dabei immer der Aufmerksamkeit deines Geistes. Wo du deine Achtsamkeit hinlenkst, dort entfaltet sich die Wirkung.", source: "Günther Dogan", book: "Professionelles Qi Gong [26, 27]" },
+        { id: 18, quote: "Tonglen ist die Praxis des Gebens und Nehmens auf dem Atemzug. Das Einatmen ist wie das Lindern einer Wunde, während das Ausatmen dem Verabreichen von heilender Medizin gleicht. Es ist eine Übung, die unser Herz für die Welt öffnet.", source: "Shamar Rinpoche", book: "The Path to Awakening [3, 4]" },
+        { id: 19, quote: "Der Atem ist die Verbindung, der Leim zwischen Körper, Geist und Seele. Er ist das Bindeglied zwischen unserer Wahrnehmung der inneren und der äußeren Welt. Jede Sekunde unseres Lebens hängt an diesem seidenen Faden aus Luft.", source: "Mantak Chia", book: "Tao Yoga der Liebe [10, 28]" },
+        { id: 20, quote: "Ein untrainierter Geist ist wie ein Sack voll kranker Medizin, der keine Heilung bringt. Nur durch Sammlung und Ruhe in der Meditation kann Klarheit erreicht werden. Die Kraft des Geistes bestimmt, wie wir die Welt erfahren.", source: "Tsong-kha-pa", book: "Lamrim Chenmo [26, 29]" },
+        { id: 21, quote: "Der Atem ist die Brücke zwischen dem Sichtbaren und dem Unsichtbaren. Durch achtsames Atmen verbinden wir uns mit der primordialen Kraft der Erde und des Himmels. Diese Harmonie ist die Grundlage für jede Form der inneren Heilung.", source: "Günther Dogan", book: "Professionelles Tai Chi Chuan [30, 31]" },
+        { id: 22, quote: "Wenn Atem und Gewahrsein entspannt sind, wird wahre Weisheit erlangt. Der Atem wird hauchdünn, bis das Kommen und Gehen schließlich ganz zur Ruhe kommt. In diesem Zustand löst sich die dualistische Fixierung des Geistes auf.", source: "Jigme Lingpa", book: "Yeshe Lama [32, 33]" },
+        { id: 23, quote: "Die Energie eines jeden Gedankens wird im Körper gespeichert. Wer Liebe in sich trägt, wird überall auf die transformierende Kraft der Liebe stoßen. Veredle deine Absichten, damit sie deinen Pfad durch das Leben erhellen.", source: "Mantak Chia", book: "Tao Yoga der Liebe [34, 35]" },
+        { id: 24, quote: "Die Lebensenergie ist für Informationen hochempfänglich und lässt sich durch bloße Intention laden. Du kannst Qualitäten in die Energie hineinlegen, allein durch deinen Wunsch und deine Vorstellungskraft. Deine Konzentration bestimmt die Wirkung der Energie.", source: "Günther Dogan", book: "Professionelles Qi Gong [36, 37]" },
+        { id: 25, quote: "In der Stille des Geistes wird die ursprüngliche Natur des Herzens offenbar. Leere das Gefäß deines Geistes von allen störenden Gedanken. Das so entstehende Vakuum wird von einer kraftvollen, klaren Energie aufgefüllt werden.", source: "Mantak Chia", book: "Tao Yoga der Liebe [38, 39]" },
+        { id: 26, quote: "Durch Mitgefühl und Demut öffnen wir das Tor zu unserem wahren Potenzial. Jeder Atemzug kann eine Tat der inneren Befreiung sein. Sorge zuerst dafür, dass die Kanäle deiner Lebensenergie offen und rein sind.", source: "Tsong-kha-pa", book: "Lamrim Chenmo [40]" },
+        { id: 27, quote: "Körperliche Gesundheit ist kein Endzweck, sondern die Stütze für den spirituellen Pfad. Wenn das Schiff deines Körpers beschädigt ist, wird die Seele nicht weit kommen. Pflege deinen Körper mit der gleichen Sorgfalt wie einen kostbaren Diamanten.", source: "Mantak Chia", book: "Tao Yoga der Liebe [41, 42]" },
+        { id: 28, quote: "Lasse dein Gewahrsein wie einen weiten Ozean sein, in dem die Wellen der Gedanken von selbst zur Ruhe kommen. Beobachte deinen Atem, ohne ihn zu verändern, und erkenne die Stille hinter der Bewegung. Dies ist der Pfad zur Gelassenheit.", source: "Namkhai Norbu", book: "The Cycle of Day and Night [43, 44]" },
+        { id: 29, quote: "Jeder Atemzug erinnert uns an unsere Verbindung zum großen Ganzen. Wir sind Transformatoren der universalen Energie und Boten des Friedens. Atme ein für dich selbst und atme aus für die ganze Welt.", source: "Shamar Rinpoche", book: "The Path to Awakening [4, 45]" },
+        { id: 30, quote: "Lasse den Atem einfach so sein, wie er ist, ohne Korrekturen oder Modifikationen. In diesem unkorrigierten Zustand bleibt das momentane Gewahrsein präsent und unverändert. Alles manifestiert sich als natürliche Offenheit.", source: "Namkhai Norbu", book: "The Cycle of Day and Night [44, 46]" },
+        { id: 31, quote: "Das Kultivieren der Stille lässt den Geist klar werden wie einen gereinigten Spiegel. Wenn kein störender Gedanke im Geist ist, ist der Geist in seiner reinen Natur. Diese Ruhe führt in ungeahnte Höhen der inneren Erfahrung.", source: "Ulli Olvedi", book: "Das Stille Qi Gong [47, 48]" },
+        { id: 32, quote: "Atme ein: Nimm das Elend der Welt in dich auf. Während du einatmest, transformiere dieses Leiden durch dein Herz. Atme aus: Denke, dass du all dein gutes Karma und Glück an Wesen überall abgibst.", source: "Shamar Rinpoche", book: "The Path to Awakening [3, 4]" },
+        { id: 33, quote: "Wenn der Körper angespannt ist, kann der Atem nicht langsam oder tief sein. Der einfachste Weg, den Geist zu ändern, besteht darin, zuerst den Körper zu entspannen. Dies ist das perfekte Gegenmittel gegen den Stress des Alltags.", source: "Ken Cohen", book: "The Essential Qigong Training Guide [49]" },
+        { id: 34, quote: "Stehe fest verwurzelt wie ein Baum. Wie bei einem Baum geschieht das eigentliche Wachstum anfangs unmerklich. Geduld und Ausdauer werden sich lohnen, denn in dieser Einfachheit liegen die größten Wirkkräfte.", source: "Günther Dogan", book: "Professionelles Qi Gong [7, 24]" },
+        { id: 35, quote: "In unserer Zeit wird die Spanne des Lebens oft durch Sorgen und Agitation verkürzt. Viele Krankheiten verbrauchen unsere Zeit und Energie. Nur die Praxis der Achtsamkeit kann uns helfen, die kostbare Zeit sinnvoll zu nutzen.", source: "Tsong-kha-pa", book: "Lamrim Chenmo [50]" },
+        { id: 36, quote: "Bodhicitta ist der Wunsch, Erleuchtung zum Wohl aller Wesen zu erlangen. Diese altruistische Absicht ist die höchste Form der geistigen Schulung. Sie verwandelt jedes Handeln und jeden Atemzug in eine Quelle des Nutzens für andere.", source: "Shamar Rinpoche", book: "The Path to Awakening [51]" },
+        { id: 37, quote: "Konzentriere dich auf die weite Offenheit des äußeren Raums. Tue dies, bis es scheint, als ob sich dein Bewusstsein völlig darin auflöst. Dann wird eine Präsenz von reinem und strahlendem Licht in deinem Herzen erscheinen.", source: "Jigme Lingpa", book: "Yeshe Lama [52, 53]" },
+        { id: 38, quote: "Die Qualität deiner Empfindung bestimmt die Qualität der Energie, die du erzeugst. Wenn deine Motivation gütig ist, wird die Energie emporsteigen und den höheren Genius deines Herzens und deines Geistes aufschließen.", source: "Mantak Chia", book: "Tao Yoga der Liebe [54]" },
+        { id: 39, quote: "Reine, positive und gütige Gedanken fördern die Qualität der Lebenskraft sehr stark. Das ist es, was wir während des Trainings in unserem Geist halten sollten: Dass die Kraft, die uns durchfließt, eine intelligente Heilkraft ist.", source: "Günther Dogan", book: "Professionelles Qi Gong [55, 56]" },
+        { id: 40, quote: "Qi Gong bietet dem Einzelnen die Möglichkeit, Geist und Körper zu kultivieren. Durch Atemübungen und Visualisierung entstehen neue Freiräume, die den Alltag transformieren. Öffne deine Sinne für das Universum, in dem du lebst.", source: "Nancy N. Chen", book: "Breathing Spaces [1, 2]" }
     ];
 
     class BreathApp {
@@ -939,6 +975,21 @@
             }
         }
 
+        getUniqueQuote() {
+            let history = [];
+            try { history = JSON.parse(localStorage.getItem('atem-quote-history')) || []; } catch(e){}
+            
+            let candidates = quotes.filter(q => !history.includes(q.id));
+            if (candidates.length === 0) { candidates = quotes; history = []; }
+            
+            const q = candidates[Math.floor(Math.random() * candidates.length)];
+            
+            history.push(q.id);
+            if (history.length > 30) history.shift();
+            localStorage.setItem('atem-quote-history', JSON.stringify(history));
+            return q;
+        }
+
         stop() {
             this.isRunning = false;
             if(this.abortCtrl) { this.abortCtrl.abort(); this.abortCtrl = null; }
@@ -968,9 +1019,9 @@
                 const s = elapsedSec % 60;
                 document.getElementById('summary-time').innerText = `${m} Minuten und ${s} Sekunden`;
 
-                const q = quotes[Math.floor(Math.random()*quotes.length)];
-                document.getElementById('quote-text').innerText = q.t;
-                document.getElementById('quote-author').innerText = q.a;
+                const q = this.getUniqueQuote();
+                document.getElementById('quote-text').innerText = q.quote;
+                document.getElementById('quote-author').innerText = q.source;
                 document.getElementById('summary-modal').classList.add('visible');
             }
         }
