@@ -8,13 +8,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Atem & Stille</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Tenor+Sans&display=swap" rel="stylesheet">
     <style>
         /* --- CSS STYLES --- */
         :root {
             --bg-color: #0a0a0a; --text-color: #efece6;
-            --accent-primary: #2b4f8c; --accent-secondary: #e6c65a;
+            --accent-primary: #4a638c; --accent-secondary: #e6c65a;
             --glass-bg: rgba(10, 10, 10, 0.65);
-            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
+            --font-stack: 'Tenor Sans', 'Forum', 'Optima', 'Segoe UI Light', sans-serif;
             --safe-top: env(safe-area-inset-top, 20px);
             --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
@@ -27,12 +30,12 @@
             overscroll-behavior: none; touch-action: none; /* iOS Scroll Fix */
         }
         /* THEMES */
-        body.theme-himmelblau { --bg-color: #0b1026; --accent-primary: #5c8a99; --glass-bg: rgba(11, 16, 38, 0.65); }
-        body.theme-goldene-ruhe { --bg-color: #120c08; --accent-primary: #c58f28; --glass-bg: rgba(18, 12, 8, 0.65); }
-        body.theme-lotusabend { --bg-color: #0e0b0c; --accent-primary: #b33a3a; --glass-bg: rgba(10,8,9,0.55); }
-        body.theme-dantian-gruen { --bg-color: #071012; --accent-primary: #4a7a5a; --glass-bg: rgba(8,12,10,0.56); }
-        body.theme-reines-licht { --bg-color: #121212; --accent-primary: #b0bec5; --glass-bg: rgba(18, 18, 18, 0.65); }
-        body.theme-mani-glanz { --bg-color: #070709; --accent-primary: #2b4f8c; --glass-bg: rgba(6,6,6,0.58); }
+        body.theme-himmelblau { --bg-color: #0b1026; --accent-primary: #6b8c96; --glass-bg: rgba(11, 16, 38, 0.65); }
+        body.theme-goldene-ruhe { --bg-color: #120c08; --accent-primary: #ba9655; --glass-bg: rgba(18, 12, 8, 0.65); }
+        body.theme-lotusabend { --bg-color: #0e0b0c; --accent-primary: #a65959; --glass-bg: rgba(10,8,9,0.55); }
+        body.theme-dantian-gruen { --bg-color: #071012; --accent-primary: #5d7a66; --glass-bg: rgba(8,12,10,0.56); }
+        body.theme-reines-licht { --bg-color: #121212; --accent-primary: #cfd8dc; --glass-bg: rgba(18, 18, 18, 0.65); }
+        body.theme-mani-glanz { --bg-color: #070709; --accent-primary: #5e7291; --glass-bg: rgba(6,6,6,0.58); }
         
         /* LAYOUT */
         #visual-area { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%; touch-action: none; }
@@ -40,14 +43,14 @@
         
         .instruction-text {
             position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 12px);
-            font-size: 1.35rem; font-weight: 500; padding: 6px 12px; border-radius: 12px;
+            font-size: 1.35rem; font-weight: 300; letter-spacing: 0.1em; padding: 6px 12px; border-radius: 12px;
             pointer-events: none; opacity: 0.95; color: var(--text-color); 
             background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(255,255,255,0.02));
             z-index: 220; will-change: transform, opacity;
         }
         #breath-timer {
             position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 56px);
-            font-size: 1.6rem; color: var(--accent-secondary); background: rgba(0,0,0,0.18);
+            font-size: 1.6rem; font-weight: 300; letter-spacing: 0.1em; color: var(--accent-secondary); background: rgba(0,0,0,0.18);
             padding: 6px 12px; border-radius: 14px; pointer-events: none; z-index: 230;
             font-variant-numeric: tabular-nums;
         }
@@ -97,13 +100,32 @@
         #vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-primary); cursor: pointer; transition: transform 0.1s; }
         #vol-slider::-webkit-slider-thumb:active { transform: scale(1.3); }
 
-        /* SESSION TIMER */
-        #session-timer { 
-            position: fixed; bottom: calc(var(--safe-bottom) + 20px); right: 20px; 
-            font-size: 1rem; font-weight: 400; color: var(--text-color); font-variant-numeric: tabular-nums;
-            opacity: 0; transition: opacity 0.5s; z-index: 240; pointer-events: none; 
+        /* BOTTOM CONTROLS (Refresh & Timer) */
+        #bottom-controls {
+            position: fixed; bottom: calc(var(--safe-bottom) + 20px); right: 20px;
+            display: flex; align-items: center; gap: 12px; z-index: 240;
+            pointer-events: none; /* Allow clicks to pass through empty areas */
         }
-        #session-timer.visible { opacity: 0.6; pointer-events: auto; }
+        #refresh-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(0,0,0,0.18); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-color); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; pointer-events: auto; transition: all 0.4s ease;
+            opacity: 0.6;
+        }
+        #refresh-btn:hover { opacity: 1; background: rgba(0,0,0,0.3); transform: rotate(180deg); }
+        #refresh-btn svg { width: 18px; height: 18px; fill: currentColor; opacity: 0.9; }
+
+        #session-timer { 
+            position: static; /* Flex item */
+            font-size: 1rem; font-weight: 400; color: var(--text-color); font-variant-numeric: tabular-nums;
+            opacity: 0; max-width: 0; padding: 0; overflow: hidden; white-space: nowrap;
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; 
+            background: rgba(0,0,0,0.18); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-radius: 14px;
+        }
+        #session-timer.visible { opacity: 0.8; max-width: 100px; padding: 6px 12px; pointer-events: auto; }
         #session-timer:hover { opacity: 1; }
     </style>
 </head>
@@ -113,7 +135,12 @@
         <canvas id="viz-canvas" class="viz-canvas"></canvas>
         <div class="instruction-text" id="instruction">Atmen</div>
         <div id="breath-timer"></div>
-        <div id="session-timer"></div>
+        <div id="bottom-controls">
+            <div id="refresh-btn" onclick="app.randomizeInit()" role="button" aria-label="Refresh Theme">
+                <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            </div>
+            <div id="session-timer"></div>
+        </div>
         <div id="volume-control">
             <svg id="vol-icon" viewBox="0 0 24 24" onclick="app.toggleMute()"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             <input type="range" id="vol-slider" min="0" max="1" step="0.01">
@@ -716,10 +743,10 @@
             const val = id => parseFloat(document.getElementById(id).value) || 0;
             // The isRunning check here ensures we don't start a new loop if stop() was called during a phase transition
             while(!signal.aborted && this.isRunning) {
-                await this.phase("Einatmen ↑", val('inTime'), 0, 1, '#64B5F6', signal, true);
-                await this.phase("Halten", val('holdFullTime'), 1, 1, '#fff', signal, false);
-                await this.phase("Ausatmen ↓", val('outTime'), 1, 0, '#E57373', signal, false);
-                await this.phase("Pause", val('holdEmptyTime'), 0, 0, '#fff', signal, false);
+                await this.phase("Einatmen", val('inTime'), 0, 1, '#82B1FF', signal, true);
+                await this.phase("Halten", val('holdFullTime'), 1, 1, '#D1D1D1', signal, false);
+                await this.phase("Ausatmen", val('outTime'), 1, 0, '#EF9A9A', signal, false);
+                await this.phase("Pause", val('holdEmptyTime'), 0, 0, '#D1D1D1', signal, false);
             }
         }
         
