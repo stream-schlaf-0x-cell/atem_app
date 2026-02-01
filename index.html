@@ -1731,8 +1731,15 @@
         }
 
         toggleUI() { 
-            document.getElementById('ui-container').classList.toggle('hidden'); 
+            const ui = document.getElementById('ui-container');
+            const isOpening = ui.classList.contains('hidden');
+            ui.classList.toggle('hidden'); 
             document.body.classList.toggle('ui-hidden');
+
+            if (isOpening && !this.isRunning) {
+                document.getElementById('xy-pad-container').style.display = 'none';
+                document.getElementById('mixer-toggle').classList.remove('active');
+            }
         }
         closeSummary() { document.getElementById('summary-modal').classList.remove('visible'); }
         
