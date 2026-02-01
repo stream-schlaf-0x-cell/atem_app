@@ -217,6 +217,17 @@
             
             /* Ensure Volume Icon stays clickable */
             #vol-icon { margin: 0; }
+
+            /* Volume Control: Icon stays right, slider expands left */
+            #volume-control { flex-direction: row-reverse; }
+        }
+
+        /* Timing Toggle for Mobile */
+        #timing-toggle-btn { display: none; }
+        @media (max-width: 768px) {
+            #timing-toggle-btn { display: block; margin: 0 auto 15px auto; width: auto; font-size: 0.8rem; padding: 8px 16px; opacity: 0.8; }
+            #timing-grid { display: none; }
+            #timing-grid.visible { display: grid; }
         }
 
         /* VOLUME CONTROL */
@@ -576,7 +587,8 @@
             <button class="chip" onclick="app.loadPreset('p7', this)">8 : 8</button>
         </div>
 
-        <div class="controls-grid">
+        <button id="timing-toggle-btn" class="chip" onclick="app.toggleTiming()">Zeit-Details anzeigen</button>
+        <div class="controls-grid" id="timing-grid">
             <div><label>Einatmen</label><input type="number" id="inTime" value="5.5" min="2" step="0.5"></div>
             <div><label>Ausatmen</label><input type="number" id="outTime" value="5.5" min="2" step="0.5"></div>
             <div><label>Halten (voll)</label><input type="number" id="holdFullTime" value="0" min="0" step="1"></div>
@@ -1800,6 +1812,21 @@
             btn.classList.toggle('active', isHidden);
             if(isHidden) {
                 setTimeout(() => document.getElementById('ui-container').scrollBy({ top: 100, behavior: 'smooth' }), 50);
+            }
+        }
+
+        toggleTiming() {
+            const el = document.getElementById('timing-grid');
+            const btn = document.getElementById('timing-toggle-btn');
+            const isHidden = !el.classList.contains('visible');
+            if(isHidden) {
+                el.classList.add('visible');
+                btn.innerText = "Zeit-Details verbergen";
+                btn.classList.add('active');
+            } else {
+                el.classList.remove('visible');
+                btn.innerText = "Zeit-Details anzeigen";
+                btn.classList.remove('active');
             }
         }
 
