@@ -43,10 +43,18 @@
         .instruction-text {
             position: absolute; left: 50%; transform: translateX(-50%);
             font-size: 1.5rem; font-weight: 300; letter-spacing: 0.1em; padding: 6px 12px; border-radius: 12px;
-            pointer-events: none; opacity: 0.95; color: var(--text-color); 
+            pointer-events: auto; cursor: pointer; opacity: 0.95; color: var(--text-color); 
             background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(255,255,255,0.02));
-            z-index: 100; will-change: transform, opacity; transition: opacity 0.5s ease, color 0.8s ease;
+            z-index: 100; will-change: transform, opacity; transition: transform 0.3s ease, opacity 0.3s ease, color 0.8s ease;
         }
+        .instruction-text:hover {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.1);
+            text-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+        /* Disable interaction while running (to prevent accidental restarts) */
+        body.ui-hidden .instruction-text { pointer-events: none; cursor: default; }
+
         #breath-timer {
             position: absolute; left: 50%; transform: translateX(-50%);
             font-size: 1.8rem; font-weight: 300; letter-spacing: 0.1em; color: var(--accent-secondary); background: rgba(0,0,0,0.18);
@@ -297,7 +305,7 @@
         .pos-bottom #breath-timer { top: auto; bottom: 15%; }
 
         /* Hide text when UI is visible */
-        body:not(.ui-hidden) .instruction-text, body:not(.ui-hidden) #breath-timer {
+        body:not(.ui-hidden) #breath-timer {
             opacity: 0 !important;
             pointer-events: none;
         }
@@ -1359,6 +1367,17 @@
             document.getElementById('startBtn').addEventListener('click', () => this.toggle());
             document.getElementById('stop-float').addEventListener('click', () => this.stop());
             
+            document.getElementById('instruction').addEventListener('click', () => {
+                if (!this.isRunning) {
+                    // Quick Start: Coherence 5.5s
+                    document.getElementById('inTime').value = 5.5;
+                    document.getElementById('outTime').value = 5.5;
+                    document.getElementById('holdFullTime').value = 0;
+                    document.getElementById('holdEmptyTime').value = 0;
+                    this.start();
+                }
+            });
+
             document.addEventListener('keydown', (e) => {
                 if (e.code === 'Space' || e.key === ' ') {
                     e.preventDefault();
