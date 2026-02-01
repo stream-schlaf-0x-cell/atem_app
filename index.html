@@ -203,13 +203,29 @@
         #vol-slider::-webkit-slider-thumb { background: var(--accent-primary); }
         #vol-slider::-moz-range-thumb { background: var(--accent-primary); }
 
+        /* TOP CONTROLS (Mobile Collapse Logic) */
+        .top-ctrl {
+            transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s;
+            overflow: hidden;
+        }
+        @media (max-width: 768px) {
+            .top-ctrl { min-width: 44px !important; width: 44px !important; padding: 0 !important; justify-content: center; }
+            .top-ctrl input { display: none; width: 100px; }
+            
+            .top-ctrl.expanded { width: 180px !important; padding: 0 15px !important; justify-content: space-between; }
+            .top-ctrl.expanded input { display: block; }
+            
+            /* Ensure Volume Icon stays clickable */
+            #vol-icon { margin: 0; }
+        }
+
         /* VOLUME CONTROL */
-        #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 80px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s ease; z-index: 250; min-width: 160px; }
+        #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 80px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); z-index: 250; min-width: 160px; }
         #volume-control:hover { background: rgba(0,0,0,0.4); }
         #vol-icon { width: 28px; height: 28px; fill: var(--text-color); opacity: 0.6; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
 
         /* COLOR CONTROL (Top Left) */
-        #color-control { position: fixed; top: calc(var(--safe-top) + 20px); left: 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s ease; z-index: 250; min-width: 160px; }
+        #color-control { position: fixed; top: calc(var(--safe-top) + 20px); left: 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); z-index: 250; min-width: 160px; }
         #color-control:hover { background: rgba(0,0,0,0.4); }
         #color-icon { width: 24px; height: 24px; fill: var(--text-color); opacity: 0.6; flex-shrink: 0; }
 
@@ -473,11 +489,11 @@
         <div id="bottom-controls">
             <div id="session-timer"></div>
         </div>
-        <div id="volume-control">
+        <div id="volume-control" class="top-ctrl">
             <svg id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             <input type="range" id="vol-slider" min="0" max="1" step="0.01">
         </div>
-        <div id="color-control">
+        <div id="color-control" class="top-ctrl">
             <svg id="color-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5S18.33 12 17.5 12z"/></svg>
             <input type="range" id="color-slider" min="0" max="100" step="0.1" value="0">
         </div>
@@ -1415,6 +1431,25 @@
                         this.toggle();
                     }
                 }
+            });
+
+            // Mobile Top Controls Toggle Logic
+            const toggleTopCtrl = (id) => {
+                if (window.innerWidth > 768) return;
+                const el = document.getElementById(id);
+                const isExpanded = el.classList.contains('expanded');
+                // Collapse others to prevent overlap
+                document.querySelectorAll('.top-ctrl').forEach(c => c.classList.remove('expanded'));
+                if (!isExpanded) el.classList.add('expanded');
+            };
+
+            document.getElementById('volume-control').addEventListener('click', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                toggleTopCtrl('volume-control');
+            });
+            document.getElementById('color-control').addEventListener('click', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                toggleTopCtrl('color-control');
             });
 
             // Color Slider (Floating)
