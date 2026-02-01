@@ -420,7 +420,7 @@
         }
 
         /* THE LOGIC: Only show when body has 'ui-hidden' class */
-        body.ui-hidden #restore-ui-btn {
+        body.ui-hidden:not(.app-running) #restore-ui-btn {
             opacity: 1;
             pointer-events: auto;
             animation: gentlePulse 3s infinite ease-in-out;
@@ -1698,6 +1698,7 @@
                 
                 document.getElementById('ui-container').classList.add('hidden');
                 document.body.classList.add('ui-hidden');
+                document.body.classList.add('app-running');
                 document.getElementById('summary-modal').classList.remove('visible');
                 btn.innerText = "Beenden";
                 btn.classList.add('stop-mode');
@@ -1752,6 +1753,7 @@
             
             document.getElementById('ui-container').classList.remove('hidden');
             document.body.classList.remove('ui-hidden');
+            document.body.classList.remove('app-running');
             document.getElementById('startBtn').innerText = "Beginnen";
             document.getElementById('startBtn').classList.remove('stop-mode');
             document.getElementById('stop-float').style.display = 'none';
