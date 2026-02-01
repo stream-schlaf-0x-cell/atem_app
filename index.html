@@ -102,7 +102,7 @@
         .preset-scroll::-webkit-scrollbar { display: none; }
 
         .chip { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); padding: 7px 14px; border-radius: 18px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; transition: all 0.4s; -webkit-tap-highlight-color: transparent; }
-        .chip.active { background: rgba(255,255,255,0.2); color: #fff; border-color: var(--accent-primary); font-weight: 500; box-shadow: 0 0 12px rgba(0,0,0,0.2); }
+        .chip.active { background: rgba(255,255,255,0.08); color: var(--accent-primary); border-color: rgba(200, 200, 200, 0.1); }
         
         #duration-scroll input { width: 60px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 7px; border-radius: 18px; font-size: 0.85rem; text-align: center; transition: all 0.4s; }
         #duration-scroll input:focus { border-color: var(--accent-primary); background: rgba(255,255,255,0.08); }
@@ -241,23 +241,6 @@
         #color-control:hover { background: rgba(0,0,0,0.4); }
         #color-icon { width: 28px; height: 28px; fill: var(--text-color); opacity: 0.6; flex-shrink: 0; }
 
-        /* DESKTOP VIZ TOGGLE */
-        #desktop-viz-toggle {
-            position: fixed; top: calc(var(--safe-top) + 20px); right: 380px; /* Left of volume */
-            width: 50px; height: 50px; border-radius: 50%;
-            background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.05); z-index: 250;
-            display: none; align-items: center; justify-content: center; cursor: pointer;
-            color: var(--text-color); opacity: 0.6; transition: all 0.3s ease;
-        }
-        #desktop-viz-toggle:hover { background: rgba(0,0,0,0.4); opacity: 1; transform: scale(1.05); }
-        #desktop-viz-toggle svg { width: 24px; height: 24px; fill: currentColor; }
-        #desktop-viz-toggle.active { background: var(--accent-primary); opacity: 1; color: #fff; }
-        
-        @media (min-width: 769px) {
-            #desktop-viz-toggle { display: flex; }
-        }
-
         /* TOP RANDOM BTN */
         #top-random-btn {
             position: fixed; top: calc(var(--safe-top) + 20px); right: 20px;
@@ -272,29 +255,7 @@
         #top-random-btn svg { width: 28px; height: 28px; fill: currentColor; }
 
         /* XY PAD MIXER */
-        #xy-pad-container { 
-            display: none; flex-direction: column; align-items: center; 
-            position: fixed; z-index: 1200;
-            background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1); padding: 20px;
-            transition: opacity 0.3s, transform 0.3s;
-        }
-        /* Mobile: Bottom Sheet Overlay */
-        @media (max-width: 768px) {
-            #xy-pad-container {
-                bottom: 0; left: 0; width: 100%; border-radius: 24px 24px 0 0;
-                max-height: 85vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-            }
-        }
-        /* Desktop: Floating Sidebar */
-        @media (min-width: 769px) {
-            #xy-pad-container {
-                top: 50%; right: 30px; transform: translateY(-50%);
-                width: 320px; border-radius: 24px; max-height: 90vh; overflow-y: auto;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            }
-        }
-
+        #xy-pad-container { width: 100%; display: none; flex-direction: column; align-items: center; margin-bottom: 20px; }
         #xy-pad {
             width: 100%; max-width: 280px; height: 200px;
             background: rgba(255,255,255,0.03);
@@ -381,10 +342,9 @@
         
         #preset-display {
             position: fixed; bottom: 26px; left: calc(50% + 120px); transform: none;
-            font-size: 0.85rem; letter-spacing: 0.1em; color: #fff;
-            background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            padding: 0 20px; border-radius: 14px; 
-            border: 1px solid var(--accent-primary); box-shadow: 0 0 12px rgba(0,0,0,0.2);
+            font-size: 0.85rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.9);
+            background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 0 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
             pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 190;
             text-transform: uppercase; font-weight: 500; font-family: sans-serif;
             display: flex; align-items: center; gap: 10px; height: 54px; /* Match #stop-float height */
@@ -577,9 +537,6 @@
         <div id="top-random-btn" onclick="app.randomizeVisuals()">
             <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zM14.83 13.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04L14.83 13.41z"/></svg>
         </div>
-        <div id="desktop-viz-toggle" onclick="app.toggleMixer()" title="Visuals bearbeiten">
-            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-        </div>
     </div>
 
     <div id="summary-modal">
@@ -605,6 +562,54 @@
 
         <div style="display: flex; justify-content: center; margin-bottom: 20px;">
             <button class="chip" id="mixer-toggle" onclick="app.toggleMixer()">Visuals anpassen</button>
+        </div>
+
+        <div id="xy-pad-container">
+            <div id="xy-pad">
+                <div class="xy-label xy-tl">Nebel</div>
+                <div class="xy-label xy-tr">Kreis</div>
+                <div class="xy-label xy-bl">Welle</div>
+                <div class="xy-label xy-br">Licht</div>
+                <div class="xy-zone xy-zone-dark">DUNKLER</div>
+                <div class="xy-zone xy-zone-light">HELLER</div>
+                <div id="xy-cursor" style="left: 0%; top: 0%;"></div>
+            </div>
+            
+            <button id="slider-toggle-btn" class="chip" style="margin-top: 15px; width: auto; font-size: 0.8rem; padding: 8px 16px; opacity: 0.8;" onclick="app.toggleSliders()">Einstellungen anzeigen</button>
+
+            <div class="slider-group" id="viz-sliders" style="display: none;">
+                <label>
+                    <span>Chaos / Varianz</span>
+                    <span id="chaos-val">0%</span>
+                </label>
+                <input type="range" id="randomness-slider" class="range-slider" min="0" max="1" step="0.01" value="0">
+                
+                <label>
+                    <span>Intensität / Menge</span>
+                    <span id="intensity-val">75%</span>
+                </label>
+                <input type="range" id="intensity-slider" class="range-slider" min="0.1" max="1" step="0.01" value="0.75">
+                
+                <label>
+                    <span>Licht: Ecken</span>
+                    <span id="points-val">5</span>
+                </label>
+                <input type="range" id="points-slider" class="range-slider" min="3" max="12" step="1" value="5">
+                <div style="text-align: center; margin-top: 15px; opacity: 0.4; font-size: 0.75rem; letter-spacing: 0.1em;">
+                    ↓ SCROLLEN FÜR START
+                </div>
+
+                <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                    <button id="drift-btn" class="chip" style="width:100%; justify-content: space-between; display: flex;" onclick="app.toggleDrift()">
+                        <span>Auto-Drift</span>
+                        <span id="drift-status" style="opacity:0.5">Aus</span>
+                    </button>
+                    <div id="drift-controls" style="display:none; margin-top:12px;">
+                        <label><span>Dauer: <span id="drift-val">4</span> Atemzüge / Phase</span></label>
+                        <input type="range" id="drift-slider" class="range-slider" min="1" max="12" step="1" value="4">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <label style="margin-left: 5px;">Presets</label>
@@ -672,53 +677,6 @@
         <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
     </button>
 
-    <!-- MOVED XY PAD CONTAINER (Outside UI Container) -->
-    <div id="xy-pad-container">
-        <div id="xy-pad">
-            <div class="xy-label xy-tl">Nebel</div>
-            <div class="xy-label xy-tr">Kreis</div>
-            <div class="xy-label xy-bl">Welle</div>
-            <div class="xy-label xy-br">Licht</div>
-            <div class="xy-zone xy-zone-dark">DUNKLER</div>
-            <div class="xy-zone xy-zone-light">HELLER</div>
-            <div id="xy-cursor" style="left: 0%; top: 0%;"></div>
-        </div>
-        
-        <button id="slider-toggle-btn" class="chip" style="margin-top: 15px; width: auto; font-size: 0.8rem; padding: 8px 16px; opacity: 0.8;" onclick="app.toggleSliders()">Einstellungen anzeigen</button>
-
-        <div class="slider-group" id="viz-sliders" style="display: none;">
-            <label>
-                <span>Chaos / Varianz</span>
-                <span id="chaos-val">0%</span>
-            </label>
-            <input type="range" id="randomness-slider" class="range-slider" min="0" max="1" step="0.01" value="0">
-            
-            <label>
-                <span>Intensität / Menge</span>
-                <span id="intensity-val">30%</span>
-            </label>
-            <input type="range" id="intensity-slider" class="range-slider" min="0.1" max="1" step="0.01" value="0.3">
-            
-            <label>
-                <span>Licht: Ecken</span>
-                <span id="points-val">5</span>
-            </label>
-            <input type="range" id="points-slider" class="range-slider" min="3" max="12" step="1" value="5">
-
-            <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                <button id="drift-btn" class="chip" style="width:100%; justify-content: space-between; display: flex;" onclick="app.toggleDrift()">
-                    <span>Auto-Drift</span>
-                    <span id="drift-status" style="opacity:0.5">Aus</span>
-                </button>
-                <div id="drift-controls" style="display:none; margin-top:12px;">
-                    <label><span>Dauer: <span id="drift-val">4</span> Atemzüge / Phase</span></label>
-                    <input type="range" id="drift-slider" class="range-slider" min="1" max="12" step="1" value="4">
-                </div>
-            </div>
-        </div>
-        <button class="btn" style="margin-top: 20px; padding: 12px;" onclick="app.toggleMixer()">Schließen</button>
-    </div>
-
     <script>
     // Optimized Simplex Noise with Zero Allocation per Call
     const GRAD3 = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[1,0],[-1,0],[0,1],[0,-1],[0,1],[0,-1]];
@@ -769,7 +727,7 @@
             
             // DEFAULTS
             this.randomness = 0;
-            this.intensity = 0.3; // Default 30%
+            this.intensity = 0.75; // Default 75%
             this.lumaPoints = 5;  // Default 5 corners
             
             // TAP PULSE (Flash Effect)
@@ -1531,6 +1489,8 @@
             this.randomizeVisuals();
             const p1Btn = document.querySelector(`.preset-scroll .chip[onclick*="'p1'"]`);
             this.loadPreset('p1', p1Btn);
+            const durBtn = document.querySelector('#duration-scroll .chip:first-child');
+            this.setDuration(0, durBtn);
         }
 
         setupUI() {
@@ -1605,15 +1565,13 @@
                     if(this.isRunning) document.getElementById('preset-display').innerHTML = this.generatePresetHTML();
                     
                     // INSTANT SYNC: RESTART LOOP IMMEDIATELY
-                    // We restart the loop exactly NOW, treating this tap as the "1" (Start of Inhale)
                     if (this.isRunning) {
                         // Kill current loop
                         if(this.abortCtrl) this.abortCtrl.abort();
                         this.abortCtrl = new AbortController();
                         
                         // Start new loop immediately (This aligns phase to finger tap)
-                        // Use setTimeout to break the call stack and ensure clean restart
-                        setTimeout(() => this.loop(this.abortCtrl.signal), 0);
+                        this.loop(this.abortCtrl.signal);
                     }
                     
                     // Keep array short
@@ -1946,16 +1904,18 @@
         
         toggleMixer() {
             const el = document.getElementById('xy-pad-container');
-            const btns = [document.getElementById('mixer-toggle'), document.getElementById('desktop-viz-toggle')];
-            const isVisible = el.style.display === 'flex';
-            el.style.display = isVisible ? 'none' : 'flex';
-            
-            btns.forEach(b => {
-                if(b) {
-                    if(!isVisible) b.classList.add('active');
-                    else b.classList.remove('active');
-                }
-            });
+            const btn = document.getElementById('mixer-toggle');
+            const isHidden = el.style.display === 'none';
+            el.style.display = isHidden ? 'flex' : 'none';
+            if(isHidden) {
+                btn.classList.add('active');
+                setTimeout(() => {
+                    const ui = document.getElementById('ui-container');
+                    ui.scrollBy({ top: 150, behavior: 'smooth' });
+                }, 50);
+            } else {
+                btn.classList.remove('active');
+            }
         }
 
         toggleSliders() {
