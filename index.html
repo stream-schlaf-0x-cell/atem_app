@@ -362,6 +362,19 @@
             #preset-display { gap: 6px; padding: 0 14px; }
         }
 
+        #tap-float {
+            position: fixed; bottom: 26px; right: calc(50% + 120px); transform: none;
+            font-size: 0.85rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.9);
+            background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 0 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
+            opacity: 0; transition: opacity 0.5s, background 0.2s; z-index: 190;
+            text-transform: uppercase; font-weight: 500; font-family: sans-serif;
+            display: flex; align-items: center; justify-content: center; gap: 10px; height: 54px;
+            cursor: pointer; pointer-events: none;
+        }
+        #tap-float.visible { opacity: 1; pointer-events: auto; }
+        #tap-float:active { background: rgba(255,255,255,0.1); }
+
         /* TEXT POSITIONS */
         .pos-top .instruction-text { top: 15%; bottom: auto; }
         .pos-top #breath-timer { top: 25%; bottom: auto; }
@@ -424,6 +437,9 @@
             }
             #preset-display {
                 bottom: 95px !important; left: 50% !important; transform: translateX(-50%) !important;
+            }
+            #tap-float {
+                bottom: 155px !important; right: 50% !important; transform: translateX(50%) !important;
             }
 
             /* Center Instruction Readability & Position */
@@ -653,6 +669,9 @@
     </div>
 
     <button id="stop-float" class="btn stop-mode" style="display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:26px; z-index:200; width:220px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">Beenden</button>
+    <button id="tap-float">
+        ♫ Takt tippen
+    </button>
 
     <button id="restore-ui-btn" onclick="app.toggleUI()" aria-label="Menü öffnen">
         <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
@@ -711,6 +730,9 @@
             this.intensity = 0.7; // Default 70%
             this.lumaPoints = 5;  // Default 5 corners
             
+            // TAP PULSE (Flash Effect)
+            this.tapPulse = 0;
+
             // Optimization: Structure of Arrays (SoA) for zero-GC particles
             this.pCount = 500;
             this.p_x = new Float32Array(this.pCount);
@@ -760,6 +782,10 @@
             this.generateSprite();
         }
 
+        triggerPulse() {
+            this.tapPulse = 1.0;
+        }
+
         setRandomness(v) { this.randomness = v; }
         setIntensity(v) { this.intensity = v; }
         setLumaPoints(v) { this.lumaPoints = v; }
@@ -799,6 +825,10 @@
             
             this.turnSignal *= 0.92;
             if (this.turnSignal < 0.01) this.turnSignal = 0;
+
+            // Decay Tap Pulse
+            this.tapPulse *= 0.85; 
+            if(this.tapPulse < 0.01) this.tapPulse = 0;
             
             let totalW = 0, weightedFade = 0;
             for(let k in this.weights) {
@@ -831,6 +861,17 @@
                 this.ctx.save(); this.ctx.globalAlpha = this.weights.luma;
                 this.renderLuma(); this.ctx.restore();
             }
+            
+            // Optimized Tap Flash (Radial Gradient Overlay)
+            if (this.tapPulse > 0.01) {
+                this.ctx.globalCompositeOperation = 'lighter';
+                const maxDim = Math.max(this.width, this.height);
+                const g = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, maxDim * 0.15);
+                g.addColorStop(0, `rgba(255, 255, 255, ${this.tapPulse * 0.08})`);
+                g.addColorStop(1, "rgba(255, 255, 255, 0)");
+                this.ctx.fillStyle = g;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+            }
         }
 
         resetParticle(i) {
@@ -859,13 +900,10 @@
             if (this.phase === 'hold-full') turbulence = 0.05;
             else if (this.phase === 'hold-empty') turbulence = 0.01;
 
-            // NEW: More impact from Randomness on movement
             turbulence += this.randomness * 0.25; 
             turbulence += this.turnSignal * 0.15;
             const noiseScale = 0.0015 + (this.randomness * 0.02);
 
-            // NEW: Intensity affects Count more drastically (0.1 to 1.0 of total particles)
-            // But also clamp it so low intensity is very sparse
             const activeCount = Math.floor(this.pCount * (0.1 + this.intensity * 0.9));
 
             for (let i = 0; i < activeCount; i++) {
@@ -911,11 +949,13 @@
                 let alphaMult = 0.5 + this.breathValue * 0.5;
                 if (this.phase === 'out') alphaMult *= 0.8;
                 
-                // NEW: Intensity affects Alpha
-                const alpha = Math.sin(lifeProg * Math.PI) * this.p_baseAlpha[i] * alphaMult * layerOpacity * (0.5 + this.intensity * 0.5);
-                const size = this.p_size[i] * (0.8 + this.breathValue * 0.8);
+                // PULSE EFFECT: Increase alpha significantly
+                const pulseBoost = this.tapPulse * 0.15;
 
-                this.ctx.globalAlpha = alpha;
+                const alpha = Math.sin(lifeProg * Math.PI) * this.p_baseAlpha[i] * alphaMult * layerOpacity * (0.5 + this.intensity * 0.5);
+                const size = this.p_size[i] * (0.8 + this.breathValue * 0.8) * (1 + this.tapPulse * 0.5);
+
+                this.ctx.globalAlpha = Math.min(1, alpha + pulseBoost);
                 if(this.particleSprite) {
                     this.ctx.drawImage(this.particleSprite, this.p_x[i] - size/2, this.p_y[i] - size/2, size, size);
                 }
@@ -924,123 +964,94 @@
         }
 
         renderCircle() {
-            // 1. Calculate Base Radius (Responsive to breath, but removed the hard turnSignal jump)
             const baseScale = Math.min(this.width, this.height) * 0.3;
-            const rBase = baseScale * (0.4 + this.breathValue * 0.6);
+            // PULSE EFFECT: Radius expands slightly
+            const rBase = (baseScale * (0.4 + this.breathValue * 0.6)) * (1 + this.tapPulse * 0.05);
 
-            // 2. Draw the main noisy circle outline
             this.ctx.beginPath();
-            // Slightly faster noise movement for the circle border
             const time = Date.now() * (0.0003 + this.randomness * 0.0002);
-            // Distortion increases with inhalation
             const distortionAmount = (20 * this.breathValue + (this.randomness * 5)) * this.intensity;
             
             for(let i=0; i<=100; i++) {
                 const a = (i/100)*6.28;
-                // Use noise to offset the radius
                 const n = this.noise.noise2D(Math.cos(a)+time, Math.sin(a));
                 const r = rBase + n * distortionAmount;
                 const x = this.centerX + Math.cos(a)*r, y = this.centerY + Math.sin(a)*r;
                 if(i===0) this.ctx.moveTo(x,y); else this.ctx.lineTo(x,y);
             }
             this.ctx.closePath();
-            // Stroke outline
-            this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${0.3 * this.intensity})`;
-            this.ctx.lineWidth = 1.5;
+            
+            // PULSE EFFECT: Stroke width increases
+            this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${(0.3 + this.tapPulse) * this.intensity})`;
+            this.ctx.lineWidth = 1.5 + (this.tapPulse * 2);
             this.ctx.stroke();
 
-            // 3. Main inner gradient fill (The stable core)
             const g = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, rBase*1.2);
-            // Core brightness varies with breath
             const coreAlpha = (0.3 + this.breathValue * 0.2) * this.intensity;
             g.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${coreAlpha})`);
             g.addColorStop(1, "rgba(0,0,0,0)");
             this.ctx.fillStyle = g;
             this.ctx.fill();
 
-            // 4. NEW: Subtle "Gaseous" Exhale Impulse layer
-            // Only draws when the turn signal is active
             if (this.turnSignal > 0.01) {
-                // The gas puff extends much further than the main circle
                 const gasOuterR = rBase * (1.5 + this.turnSignal * 0.5);
                 const gGas = this.ctx.createRadialGradient(this.centerX, this.centerY, rBase * 0.8, this.centerX, this.centerY, gasOuterR);
-                
-                // It starts transparent near the existing circle edge
                 gGas.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},0)`);
-                
-                // A very soft, low opacity puff in the mid-ground
-                // Alpha depends on turnSignal strength and overall intensity, kept low for subtlety.
                 const gasAlpha = 0.15 * this.turnSignal * this.intensity;
                 gGas.addColorStop(0.4, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${gasAlpha})`);
-                
-                // Fades out completely
                 gGas.addColorStop(1, "rgba(0,0,0,0)");
-
-                // Apply this subtle glow over the whole canvas area (it's masked by the gradient anyway)
                 this.ctx.fillStyle = gGas;
                 this.ctx.fillRect(0,0, this.width, this.height);
             }
         }
 
         renderRipple() {
-            // Calmer speed, as requested
             const t = Date.now() * (0.0002 + this.randomness * 0.0001);
-            
             const count = Math.max(3, Math.floor(8 * this.intensity));
             const maxDimension = Math.min(this.width, this.height);
-            
-            // Quadratic scaling for randomness: 0-30% is very slight
             const rSq = this.randomness * this.randomness;
 
             for(let i=0; i<count; i++) {
                 const baseR = (maxDimension * 0.4) * ((i+1)/8);
-                
-                // 1. Breathing Signal:
-                // Reduced range expansion so pacer is always dominant
                 const breathRange = 0.2 + (rSq * 0.15); 
                 const minScale = 1.0 - breathRange;
                 const breathExpansion = baseR * (minScale + this.breathValue * breathRange);
-                
-                // 2. Ripple/Chaos Strength: 
-                // Significantly capped. Quadratic curve keeps low values clean.
                 const wobbleAmount = rSq * (10 + baseR * 0.2);
 
                 this.ctx.beginPath();
                 const segments = 60 + Math.floor(this.randomness * 40); 
                 for(let s=0; s<=segments; s++) {
                     const angle = (s / segments) * Math.PI * 2;
-                    
-                    // Noise affects the radius
                     const n = this.noise.noise2D(Math.cos(angle) + i * 0.5, Math.sin(angle) + t);
-                    
-                    // Modulation: Distortion is stronger when breathing in (breathValue high)
                     const distortion = n * wobbleAmount * (0.3 + this.breathValue * 0.7);
                     
-                    // The Final Radius is Pacer + Distortion. 
-                    const rFinal = Math.max(0, breathExpansion + distortion);
+                    // PULSE EFFECT: Radius bump
+                    const rFinal = Math.max(0, breathExpansion + distortion) * (1 + this.tapPulse * 0.02);
                     
                     const x = this.centerX + Math.cos(angle) * rFinal;
                     const y = this.centerY + Math.sin(angle) * rFinal;
-                    
                     if (s===0) this.ctx.moveTo(x, y); else this.ctx.lineTo(x, y);
                 }
                 
                 this.ctx.closePath();
-                this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${(0.1 + this.breathValue * 0.1) * this.intensity})`;
+                // PULSE EFFECT: Brighter lines
+                const alpha = Math.min(1, ((0.1 + this.breathValue * 0.1) * this.intensity) + this.tapPulse * 0.25);
+                this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${alpha})`;
                 this.ctx.stroke();
             }
         }
 
         renderLuma() {
-            // 1. Licht/Glow
             const t = Date.now() * (0.0004 + this.randomness * 0.001);
             const baseR = Math.min(this.width, this.height) * 0.20; 
             const pulse = 1 + Math.sin(t) * 0.05; 
             
-            const innerR = baseR * (0.5 + this.breathValue * 0.8) * pulse; 
+            // PULSE EFFECT: Core expansion
+            const pMod = 1 + this.tapPulse * 0.1;
+
+            const innerR = baseR * (0.5 + this.breathValue * 0.8) * pulse * pMod; 
             const outerR = baseR * (1.0 + this.breathValue * 1.0) + (this.turnSignal * (baseR * 0.4));
 
-            // Äußerer Glow
             const g2 = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, outerR);
             g2.addColorStop(0, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, ${0.02 * this.breathValue * this.intensity})`);
             g2.addColorStop(1, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, 0)`);
@@ -1048,7 +1059,6 @@
             this.ctx.fillStyle = g2;
             this.ctx.fillRect(0, 0, this.width, this.height);
 
-            // Innerer Kern
             const g1 = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, innerR);
             const alpha = (0.05 + (this.breathValue * 0.1)) * this.intensity;
             g1.addColorStop(0, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, ${alpha})`);
@@ -1060,7 +1070,6 @@
             this.ctx.fillStyle = g1;
             this.ctx.fill();
             
-            // 2. Mandala Overlay
             const t2 = Date.now() * (0.0008 + this.randomness * 0.001);
             const petals = this.lumaPoints;
             const mInnerR = Math.min(this.width, this.height) * 0.1;
@@ -1069,7 +1078,6 @@
             this.ctx.save();
             this.ctx.translate(this.centerX, this.centerY);
             
-            // Layer 1: Clockwise Mandala
             this.ctx.save();
             this.ctx.rotate(t2 * 0.15); 
             
@@ -1081,7 +1089,8 @@
                 this.ctx.rotate((Math.PI * 2) / petals);
                 
                 for (let a = 0; a < Math.PI * 2; a += 0.1) {
-                    const r = (mInnerR + expansion) + Math.sin(a * 5 + t2 * 2) * (10 * this.breathValue + this.randomness * 30);
+                    // PULSE EFFECT: Mandala spikes jump
+                    const r = (mInnerR + expansion) + Math.sin(a * 5 + t2 * 2) * (10 * this.breathValue + this.randomness * 30 + (this.tapPulse * 10));
                     const x = Math.cos(a) * r;
                     const y = Math.sin(a) * (r * 0.4);
                     
@@ -1090,7 +1099,9 @@
                 }
                 
                 const hueShift = noiseVal * (30 + this.randomness * 80); 
-                this.ctx.strokeStyle = `rgba(${this.colors.r + hueShift}, ${this.colors.g}, ${this.colors.b + hueShift}, ${(0.1 + this.breathValue * 0.2) * this.intensity})`;
+                // PULSE EFFECT: Bright white lines on tap
+                const lumaAlpha = Math.min(1, ((0.1 + this.breathValue * 0.2) * this.intensity) + this.tapPulse * 0.25);
+                this.ctx.strokeStyle = `rgba(${this.colors.r + hueShift}, ${this.colors.g}, ${this.colors.b + hueShift}, ${lumaAlpha})`;
                 this.ctx.lineWidth = 1.5;
                 this.ctx.stroke();
             }
@@ -1118,7 +1129,6 @@
                 }
             }
             this.ctx.restore();
-
             this.ctx.restore();
 
             // 3. Final Layer
@@ -1479,16 +1489,100 @@
             this.randomizeVisuals();
             const p1Btn = document.querySelector(`.preset-scroll .chip[onclick*="'p1'"]`);
             this.loadPreset('p1', p1Btn);
+            const durBtn = document.querySelector('#duration-scroll .chip:first-child');
+            this.setDuration(0, durBtn);
         }
 
         setupUI() {
             document.getElementById('startBtn').addEventListener('click', () => this.toggle());
             document.getElementById('stop-float').addEventListener('click', () => this.stop());
             
+            // --- TAP TEMPO SYNC LOGIC ---
+            const tapFloat = document.getElementById('tap-float');
+            let tapTimes = [];
+            
+            const handleTap = (e, btn) => {
+                e.preventDefault();
+                const now = Date.now();
+                
+                // VISUAL FLASH ON TAP (Glow Effect)
+                this.viz.triggerPulse();
+
+                // Reset if it's been more than 2 seconds since last tap
+                if (tapTimes.length > 0 && now - tapTimes[tapTimes.length - 1] > 2000) {
+                    tapTimes = [];
+                    tapFloat.innerText = "♫ Takt tippen";
+                }
+            
+                tapTimes.push(now);
+            
+                // Button Visual Feedback
+                btn.style.background = 'var(--accent-primary)';
+                btn.style.color = '#fff';
+                setTimeout(() => {
+                    btn.style.background = '';
+                    btn.style.color = '';
+                }, 100);
+            
+                // We need at least 3 taps to calculate a valid average
+                if (tapTimes.length >= 3) {
+                    // Calculate average interval between taps
+                    let intervals = [];
+                    for (let i = 1; i < tapTimes.length; i++) {
+                        intervals.push(tapTimes[i] - tapTimes[i - 1]);
+                    }
+                    
+                    const avgMs = intervals.reduce((a, b) => a + b) / intervals.length;
+                    
+                    // Convert to Seconds per Beat
+                    const secondsPerBeat = avgMs / 1000;
+                    
+                    // Start with 4 beats (Standard musical phrasing)
+                    let beats = 4;
+                    let duration = secondsPerBeat * beats;
+
+                    // Cap: Ensure breath phase is at least 3.5 seconds
+                    // If too fast, double the musical duration (4 -> 8 -> 16 beats)
+                    while (duration < 3.5) {
+                        beats *= 2;
+                        duration = secondsPerBeat * beats;
+                    }
+            
+                    const breathPhaseDuration = parseFloat(duration.toFixed(2));
+            
+                    // Update the UI Inputs
+                    document.getElementById('inTime').value = breathPhaseDuration;
+                    document.getElementById('outTime').value = breathPhaseDuration;
+                    document.getElementById('holdFullTime').value = 0;
+                    document.getElementById('holdEmptyTime').value = 0;
+            
+                    // Update Label
+                    const label = `♫ ${breathPhaseDuration}s`;
+                    tapFloat.innerText = label;
+                    
+                    document.querySelectorAll('.preset-scroll .chip').forEach(c => c.classList.remove('active'));
+                    this.currentPreset = label;
+                    if(this.isRunning) document.getElementById('preset-display').innerHTML = this.generatePresetHTML();
+                    
+                    // INSTANT SYNC: RESTART LOOP IMMEDIATELY
+                    if (this.isRunning) {
+                        // Kill current loop
+                        if(this.abortCtrl) this.abortCtrl.abort();
+                        this.abortCtrl = new AbortController();
+                        
+                        // Start new loop immediately (This aligns phase to finger tap)
+                        this.loop(this.abortCtrl.signal);
+                    }
+                    
+                    // Keep array short
+                    if (tapTimes.length > 5) tapTimes.shift();
+                }
+            };
+            tapFloat.addEventListener('pointerdown', (e) => handleTap(e, tapFloat));
+            
             document.getElementById('instruction').addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (!this.isRunning) {
-                    // Quick Start: Coherence 5.5s
                     document.getElementById('inTime').value = 5.5;
                     document.getElementById('outTime').value = 5.5;
                     document.getElementById('holdFullTime').value = 0;
@@ -1514,7 +1608,6 @@
                 if (window.innerWidth > 768) return;
                 const el = document.getElementById(id);
                 const isExpanded = el.classList.contains('expanded');
-                // Collapse others to prevent overlap
                 document.querySelectorAll('.top-ctrl').forEach(c => c.classList.remove('expanded'));
                 if (!isExpanded) el.classList.add('expanded');
             };
@@ -1535,12 +1628,9 @@
             
             document.getElementById('soundSelect').addEventListener('change', (e) => {
                 const val = e.target.value;
-                
-                // Enforce Yrrpheus Rule: Only 5:5 allowed.
                 if(val.includes('yrrpheus')) {
                     this.loadPreset('p8', document.querySelector("button[onclick*='p8']"));
                 }
-
                 if(this.isRunning) this.audio.play(val);
             });
             
@@ -1588,14 +1678,12 @@
                 x = Math.max(0, Math.min(1, x));
                 y = Math.max(0, Math.min(1, y));
                 
-                // Disable drift if user interacts manually
                 if (this.evolveActive) {
                     this.toggleDrift(false);
                 }
                 
                 this.updateXY(x, y);
 
-                // Rule: If editing visuals via matrix, move text out of center (to top)
                 const vizArea = document.getElementById('visual-area');
                 if (vizArea.classList.contains('pos-center')) {
                     vizArea.classList.remove('pos-center');
@@ -1609,49 +1697,41 @@
                 handleXY(e);
             });
 
-            // Randomness Slider
             document.getElementById('randomness-slider').addEventListener('input', (e) => {
                 const v = parseFloat(e.target.value);
                 this.viz.setRandomness(v);
                 document.getElementById('chaos-val').innerText = Math.round(v * 100) + '%';
             });
 
-            // Intensity Slider
             document.getElementById('intensity-slider').addEventListener('input', (e) => {
                 const v = parseFloat(e.target.value);
                 this.viz.setIntensity(v);
                 document.getElementById('intensity-val').innerText = Math.round(v * 100) + '%';
             });
 
-            // Points Slider
             document.getElementById('points-slider').addEventListener('input', (e) => {
                 const v = parseInt(e.target.value);
                 this.viz.setLumaPoints(v);
                 document.getElementById('points-val').innerText = v;
             });
 
-            // Drift Slider
             document.getElementById('drift-slider').addEventListener('input', (e) => {
                 const v = parseInt(e.target.value);
                 this.evolveCycles = v;
                 document.getElementById('drift-val').innerText = v;
             });
             
-            // Watch for manual time changes to enforce Yrrpheus rule
             const timeInputs = document.querySelectorAll('.controls-grid input');
             timeInputs.forEach(input => {
                 input.addEventListener('change', () => {
                     const snd = document.getElementById('soundSelect').value;
                     if(snd.includes('yrrpheus')) {
-                        // User trying to change time while Yrrpheus is active.
-                        // Switch audio back to Bowl to respect the "never play with other preset" rule.
                         document.getElementById('soundSelect').value = 'bowl';
                         if(this.isRunning) this.audio.play('bowl');
                     }
                 });
             });
 
-            // Ensure sliders match internal defaults (fixes browser caching)
             document.getElementById('randomness-slider').value = this.viz.randomness;
             document.getElementById('chaos-val').innerText = Math.round(this.viz.randomness * 100) + '%';
             
@@ -1661,7 +1741,6 @@
             document.getElementById('points-slider').value = this.viz.lumaPoints;
             document.getElementById('points-val').innerText = this.viz.lumaPoints;
 
-            // Init Theme at 0
             this.updateThemeColor(0);
         }
 
@@ -1687,7 +1766,7 @@
             const nextIndex = index + 1;
             const segmentSize = 1 / segmentCount;
             const segmentStart = index * segmentSize;
-            const t = (pct - segmentStart) / segmentSize; // 0.0 to 1.0 within segment
+            const t = (pct - segmentStart) / segmentSize; 
 
             const c1 = THEME_PALETTE[index];
             const c2 = THEME_PALETTE[nextIndex];
@@ -1705,7 +1784,6 @@
             document.body.style.setProperty('--bg-color', `rgb(${r},${g},${b})`);
             document.body.style.setProperty('--accent-primary', `rgb(${rA},${gA},${bA})`);
             
-            // Update Viz directly
             this.viz.bgR = r; this.viz.bgG = g; this.viz.bgB = b;
             this.viz.colors = { r: rA, g: gA, b: bA };
             this.viz.generateSprite();
@@ -1740,7 +1818,6 @@
             
             document.getElementById('soundSelect').value = rndSound;
             
-            // Check Yrrpheus Constraint
             if(rndSound.includes('yrrpheus')) {
                 this.loadPreset('p8', document.querySelector("button[onclick*='p8']"));
             } else {
@@ -1758,8 +1835,6 @@
             const v = presets[k];
             if(!v) return;
 
-            // Strict Check: If current sound is Yrrpheus, only allow p8 (5:5)
-            // If user clicks another preset, switch sound back to default (Bowl)
             const currentSound = document.getElementById('soundSelect').value;
             if (currentSound.includes('yrrpheus') && k !== 'p8') {
                  document.getElementById('soundSelect').value = 'bowl';
@@ -1775,9 +1850,6 @@
 
             const soundSelect = document.getElementById('soundSelect');
             if (k === 'p8') {
-                // p8 is compatible with Yrrpheus, but we don't force it unless already selected or user wants it
-                // Logic remains: Preset changes numbers. Sound changes sound.
-                // But specific p8 logic requested previously:
                 if(!soundSelect.value.includes('yrrpheus')) soundSelect.value = "audio/yrrpheus_coherence.mp3";
             } else if (k === 'p1') {
                 soundSelect.value = "bowl";
@@ -1870,9 +1942,6 @@
                 btn.classList.add('active');
                 status.innerText = "Ein";
                 ctrls.style.display = 'block';
-                // Snap evolveProgress to nearest corner to start smoothly? 
-                // For now, we continue from where we are or 0. 
-                // To sync with "start of cycle", we could reset this.evolveProgress = Math.floor(this.evolveProgress);
             } else {
                 btn.classList.remove('active');
                 status.innerText = "Aus";
@@ -1952,6 +2021,7 @@
                 
                 document.getElementById('preset-display').innerHTML = this.generatePresetHTML();
                 document.getElementById('preset-display').classList.add('visible');
+                document.getElementById('tap-float').classList.add('visible');
                 
                 if(this.abortCtrl) this.abortCtrl.abort();
                 this.abortCtrl = new AbortController();
@@ -1993,6 +2063,7 @@
             if(this.sessionTimerInterval) clearInterval(this.sessionTimerInterval);
             document.getElementById('session-timer').classList.remove('visible');
             document.getElementById('preset-display').classList.remove('visible');
+            document.getElementById('tap-float').classList.remove('visible');
 
             if(this.wakelock) this.wakelock.release();
             
@@ -2042,6 +2113,10 @@
         async loop(signal) {
             const val = id => parseFloat(document.getElementById(id).value) || 0;
             while(!signal.aborted && this.isRunning) {
+                if (this.currentPreset && this.currentPreset.startsWith('♫')) {
+                    this.viz.triggerPulse();
+                }
+
                 await this.phase("Einatmen", val('inTime'), 0, 1, '#82B1FF', signal, true);
                 await this.phase("Halten", val('holdFullTime'), 1, 1, '#D1D1D1', signal, false);
                 await this.phase("Ausatmen", val('outTime'), 1, 0, '#EF9A9A', signal, false);
@@ -2090,18 +2165,15 @@
                     timer.innerText = timeVal.toFixed(0); 
                     timer.style.color = col;
 
-                    // Auto-Drift Logic
                     if (this.evolveActive) {
                         const dt = (now - lastTick) / 1000;
                         const cycleDur = val('inTime') + val('holdFullTime') + val('outTime') + val('holdEmptyTime');
                         if (cycleDur > 0) {
-                            // Move 1.0 unit (one corner to next) over (cycleDur * evolveCycles) seconds
                             const step = dt / (cycleDur * this.evolveCycles);
                             this.evolveProgress = (this.evolveProgress + step) % 4;
                             
                             let dx=0, dy=0;
                             const p = this.evolveProgress;
-                            // Path: TL(0,0) -> TR(1,0) -> BR(1,1) -> BL(0,1) -> TL(0,0)
                             if (p < 1) { dx = p; dy = 0; }
                             else if (p < 2) { dx = 1; dy = p - 1; }
                             else if (p < 3) { dx = 1 - (p - 2); dy = 1; }
