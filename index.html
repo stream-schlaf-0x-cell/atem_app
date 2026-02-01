@@ -521,7 +521,10 @@
                 <div class="xy-zone xy-zone-light">HELLER</div>
                 <div id="xy-cursor" style="left: 0%; top: 0%;"></div>
             </div>
-            <div class="slider-group">
+            
+            <button id="slider-toggle-btn" class="chip" style="margin-top: 15px; width: auto; font-size: 0.8rem; padding: 8px 16px; opacity: 0.8;" onclick="app.toggleSliders()">Einstellungen anzeigen</button>
+
+            <div class="slider-group" id="viz-sliders" style="display: none;">
                 <label>
                     <span>Chaos / Varianz</span>
                     <span id="chaos-val">0%</span>
@@ -1712,6 +1715,18 @@
                 }, 50);
             } else {
                 btn.classList.remove('active');
+            }
+        }
+
+        toggleSliders() {
+            const el = document.getElementById('viz-sliders');
+            const btn = document.getElementById('slider-toggle-btn');
+            const isHidden = el.style.display === 'none';
+            el.style.display = isHidden ? 'block' : 'none';
+            btn.innerText = isHidden ? "Einstellungen verbergen" : "Einstellungen anzeigen";
+            btn.classList.toggle('active', isHidden);
+            if(isHidden) {
+                setTimeout(() => document.getElementById('ui-container').scrollBy({ top: 100, behavior: 'smooth' }), 50);
             }
         }
 
