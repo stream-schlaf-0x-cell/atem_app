@@ -45,12 +45,17 @@
             font-size: 1.5rem; font-weight: 300; letter-spacing: 0.1em; padding: 6px 12px; border-radius: 12px;
             pointer-events: auto; cursor: pointer; opacity: 0.95; color: var(--text-color); 
             background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(255,255,255,0.02));
-            z-index: 100; will-change: transform, opacity; transition: transform 0.3s ease, opacity 0.3s ease, color 0.8s ease;
+            z-index: 1000; will-change: transform, opacity; transition: transform 0.3s ease, opacity 0.3s ease, color 0.8s ease;
+            touch-action: manipulation; user-select: none;
         }
         .instruction-text:hover {
             opacity: 1;
             transform: translateX(-50%) scale(1.1);
             text-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+        .instruction-text:active {
+            transform: translateX(-50%) scale(0.95);
+            opacity: 0.8;
         }
         /* Disable interaction while running (to prevent accidental restarts) */
         body.ui-hidden .instruction-text { pointer-events: none; cursor: default; }
@@ -86,6 +91,7 @@
         #duration-scroll input:focus { border-color: var(--accent-primary); background: rgba(255,255,255,0.08); }
 
         .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .full-width-col { grid-column: 1 / -1; }
         label { font-size: 0.7rem; text-transform: uppercase; font-weight: 500; color: rgba(255,255,255,0.25); margin-bottom: 5px; display: block; }
         input, select { width: 100%; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 10px; border-radius: 10px; font-size: 1.05rem; outline: none; appearance: none; }
 
@@ -542,7 +548,7 @@
         </div>
 
         <div class="controls-grid">
-            <div>
+            <div class="full-width-col">
                 <label>Audio / Musik</label>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <select id="soundSelect" style="flex:1;">
@@ -1367,7 +1373,8 @@
             document.getElementById('startBtn').addEventListener('click', () => this.toggle());
             document.getElementById('stop-float').addEventListener('click', () => this.stop());
             
-            document.getElementById('instruction').addEventListener('click', () => {
+            document.getElementById('instruction').addEventListener('click', (e) => {
+                e.stopPropagation();
                 if (!this.isRunning) {
                     // Quick Start: Coherence 5.5s
                     document.getElementById('inTime').value = 5.5;
