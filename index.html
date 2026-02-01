@@ -476,10 +476,15 @@
                 bottom: 32px !important; margin-left: 120px !important;
             }
             #preset-display {
-                bottom: 95px !important; left: 50% !important; transform: translateX(-50%) !important;
+                bottom: 95px !important; left: 20px !important; right: auto !important; transform: none !important;
             }
             #tap-float {
-                bottom: 155px !important; right: 50% !important; transform: translateX(50%) !important;
+                bottom: 95px !important; 
+                right: 20px !important; 
+                left: auto !important; 
+                transform: none !important;
+                width: auto !important;
+                padding: 0 15px !important;
             }
 
             /* Center Instruction Readability & Position */
@@ -711,8 +716,19 @@
                     <span id="drift-status" style="opacity:0.5">Aus</span>
                 </button>
                 <div id="drift-controls" style="display:none; margin-top:12px;">
-                    <label><span>Dauer: <span id="drift-val">4</span> Atemzüge / Phase</span></label>
+                    <label><span>Dauer: <span id="drift-val">4</span> <span id="drift-unit">Atemzüge</span> / Phase</span></label>
                     <input type="range" id="drift-slider" class="range-slider" min="1" max="12" step="1" value="4">
+                </div>
+                
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button id="color-drift-btn" class="chip" style="width:100%; justify-content: space-between; display: flex;" onclick="app.toggleColorDrift()">
+                        <span>Farb-Drift</span>
+                        <span id="color-drift-status" style="opacity:0.5">Aus</span>
+                    </button>
+                    <div id="color-drift-controls" style="display:none; margin-top:12px;">
+                        <label><span>Dauer: <span id="color-drift-val">4</span> <span id="color-drift-unit">Atemzüge</span> / Farbe</span></label>
+                        <input type="range" id="color-drift-slider" class="range-slider" min="1" max="12" step="1" value="4">
+                    </div>
                 </div>
             </div>
         </div>
@@ -1296,6 +1312,14 @@
             if (this.ctx && this.ctx.state === 'suspended') {
                 await this.ctx.resume();
             }
+            // iOS Unlock: Play silent buffer
+            if (this.ctx) {
+                const b = this.ctx.createBuffer(1, 1, 22050);
+                const s = this.ctx.createBufferSource();
+                s.buffer = b;
+                s.connect(this.ctx.destination);
+                if(s.start) s.start(0);
+            }
         }
         setVolume(v) {
             this.volume = parseFloat(v); localStorage.setItem('atem-volume', this.volume);
@@ -1321,9 +1345,13 @@
                     ab = await resp.arrayBuffer();
                 } catch(e) {
                     const resp = await fetch('audio/' + file);
+                    if(!resp.ok) throw new Error('404');
                     ab = await resp.arrayBuffer();
                 }
-                this.bowlBuffer = await this.ctx.decodeAudioData(ab);
+                this.bowlBuffer = await new Promise((resolve, reject) => {
+                    const res = this.ctx.decodeAudioData(ab, resolve, reject);
+                    if(res && typeof res.then === 'function') res.then(resolve).catch(reject);
+                });
             } catch(e) { console.warn("Bowl load failed", e); }
         }
         async loadWater() {
@@ -1337,9 +1365,13 @@
                     ab = await resp.arrayBuffer();
                 } catch(e) {
                     const resp = await fetch('audio/' + file);
+                    if(!resp.ok) throw new Error('404');
                     ab = await resp.arrayBuffer();
                 }
-                this.waterBuffer = await this.ctx.decodeAudioData(ab);
+                this.waterBuffer = await new Promise((resolve, reject) => {
+                    const res = this.ctx.decodeAudioData(ab, resolve, reject);
+                    if(res && typeof res.then === 'function') res.then(resolve).catch(reject);
+                });
             } catch(e) { console.warn("Water load failed", e); }
         }
         updateGenerator(breathVal) {
@@ -1526,6 +1558,12 @@
             this.evolveActive = false;
             this.evolveCycles = 4;
             this.evolveProgress = 0;
+            this.xyDriftBounds = {x1:0, x2:1, y1:0, y2:1};
+            this.currentX = 0; this.currentY = 0;
+            this.colorDriftActive = false;
+            this.colorDriftDirection = 1;
+            this.colorDriftCycles = 4;
+            this.currentColorValue = 0;
             this.currentPreset = "";
             this.setupUI();
             this.randomizeVisuals();
@@ -1665,7 +1703,9 @@
 
             // Color Slider (Floating)
             document.getElementById('color-slider').addEventListener('input', (e) => {
-                this.updateThemeColor(parseFloat(e.target.value));
+                const v = parseFloat(e.target.value);
+                this.currentColorValue = v;
+                this.updateThemeColor(v);
             });
             
             document.getElementById('soundSelect').addEventListener('change', (e) => {
@@ -1761,6 +1801,14 @@
                 const v = parseInt(e.target.value);
                 this.evolveCycles = v;
                 document.getElementById('drift-val').innerText = v;
+                document.getElementById('drift-unit').innerText = v === 1 ? "Atemzug" : "Atemzüge";
+            });
+            
+            document.getElementById('color-drift-slider').addEventListener('input', (e) => {
+                const v = parseInt(e.target.value);
+                this.colorDriftCycles = v;
+                document.getElementById('color-drift-val').innerText = v;
+                document.getElementById('color-drift-unit').innerText = v === 1 ? "Atemzug" : "Atemzüge";
             });
             
             const timeInputs = document.querySelectorAll('.controls-grid input');
@@ -1787,6 +1835,8 @@
         }
 
         updateXY(x, y) {
+            this.currentX = x;
+            this.currentY = y;
             const cursor = document.getElementById('xy-cursor');
             cursor.style.left = (x * 100) + '%';
             cursor.style.top = (y * 100) + '%';
@@ -1833,6 +1883,7 @@
 
         randomizeVisuals() {
             const rndVal = Math.random() * 100;
+            this.currentColorValue = rndVal;
             const slider = document.getElementById('color-slider');
             if(slider) {
                 slider.value = rndVal;
@@ -1970,6 +2021,22 @@
             }
         }
 
+        toggleColorDrift() {
+            this.colorDriftActive = !this.colorDriftActive;
+            const btn = document.getElementById('color-drift-btn');
+            const status = document.getElementById('color-drift-status');
+            const ctrls = document.getElementById('color-drift-controls');
+            if (this.colorDriftActive) {
+                btn.classList.add('active');
+                status.innerText = "Ein";
+                ctrls.style.display = 'block';
+            } else {
+                btn.classList.remove('active');
+                status.innerText = "Aus";
+                ctrls.style.display = 'none';
+            }
+        }
+
         toggleDrift(forceState) {
             const newState = forceState !== undefined ? forceState : !this.evolveActive;
             this.evolveActive = newState;
@@ -1982,6 +2049,31 @@
                 btn.classList.add('active');
                 status.innerText = "Ein";
                 ctrls.style.display = 'block';
+                
+                // Initialize bounds based on current position (inset from edges)
+                const cx = this.currentX;
+                const cy = this.currentY;
+                const dx = Math.min(cx, 1-cx);
+                const dy = Math.min(cy, 1-cy);
+                
+                this.xyDriftBounds = { x1: dx, x2: 1-dx, y1: dy, y2: 1-dy };
+                
+                // Set progress to nearest edge to prevent jumping
+                const b = this.xyDriftBounds;
+                const dTop = Math.abs(cy - b.y1);
+                const dBottom = Math.abs(cy - b.y2);
+                const dLeft = Math.abs(cx - b.x1);
+                const dRight = Math.abs(cx - b.x2);
+                const minD = Math.min(dTop, dBottom, dLeft, dRight);
+                
+                const w = b.x2 - b.x1;
+                const h = b.y2 - b.y1;
+                
+                if (minD === dTop) this.evolveProgress = w > 0.01 ? (cx - b.x1) / w : 0;
+                else if (minD === dRight) this.evolveProgress = 1 + (h > 0.01 ? (cy - b.y1) / h : 0);
+                else if (minD === dBottom) this.evolveProgress = 2 + (w > 0.01 ? (1 - (cx - b.x1) / w) : 0);
+                else this.evolveProgress = 3 + (h > 0.01 ? (1 - (cy - b.y1) / h) : 0);
+                
             } else {
                 btn.classList.remove('active');
                 status.innerText = "Aus";
@@ -2205,22 +2297,50 @@
                     timer.innerText = timeVal.toFixed(0); 
                     timer.style.color = col;
 
+                    const dt = (now - lastTick) / 1000;
+
                     if (this.evolveActive) {
-                        const dt = (now - lastTick) / 1000;
                         const cycleDur = val('inTime') + val('holdFullTime') + val('outTime') + val('holdEmptyTime');
                         if (cycleDur > 0) {
                             const step = dt / (cycleDur * this.evolveCycles);
                             this.evolveProgress = (this.evolveProgress + step) % 4;
                             
-                            let dx=0, dy=0;
                             const p = this.evolveProgress;
-                            if (p < 1) { dx = p; dy = 0; }
-                            else if (p < 2) { dx = 1; dy = p - 1; }
-                            else if (p < 3) { dx = 1 - (p - 2); dy = 1; }
-                            else { dx = 0; dy = 1 - (p - 3); }
+                            const b = this.xyDriftBounds;
+                            let dx=0, dy=0;
+                            
+                            if (p < 1) { // Top
+                                dx = b.x1 + p * (b.x2 - b.x1);
+                                dy = b.y1;
+                            } else if (p < 2) { // Right
+                                dx = b.x2;
+                                dy = b.y1 + (p - 1) * (b.y2 - b.y1);
+                            } else if (p < 3) { // Bottom
+                                dx = b.x2 - (p - 2) * (b.x2 - b.x1);
+                                dy = b.y2;
+                            } else { // Left
+                                dx = b.x1;
+                                dy = b.y2 - (p - 3) * (b.y2 - b.y1);
+                            }
                             this.updateXY(dx, dy);
                         }
                     }
+                    
+                    if (this.colorDriftActive) {
+                        const cycleDur = val('inTime') + val('holdFullTime') + val('outTime') + val('holdEmptyTime');
+                        if (cycleDur > 0) {
+                            // 20 units is approx distance between theme presets (0, 20, 40...)
+                            // Speed = 20 units / (cycles * duration)
+                            const speed = 20 / (this.colorDriftCycles * cycleDur);
+                            
+                            this.currentColorValue += speed * dt * this.colorDriftDirection;
+                            if (this.currentColorValue >= 100) { this.currentColorValue = 100; this.colorDriftDirection = -1; }
+                            if (this.currentColorValue <= 0) { this.currentColorValue = 0; this.colorDriftDirection = 1; }
+                            document.getElementById('color-slider').value = this.currentColorValue;
+                            this.updateThemeColor(this.currentColorValue);
+                        }
+                    }
+                    
                     lastTick = now;
                     
                     if(prog < 1) requestAnimationFrame(tick); else resolve();
