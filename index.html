@@ -891,24 +891,62 @@
         }
 
         renderCircle() {
-            const rBase = Math.min(this.width, this.height) * 0.3 * (0.4 + this.breathValue * 0.6) + (this.turnSignal * (this.width * 0.04));
+            // 1. Calculate Base Radius (Responsive to breath, but removed the hard turnSignal jump)
+            const baseScale = Math.min(this.width, this.height) * 0.3;
+            const rBase = baseScale * (0.4 + this.breathValue * 0.6);
+
+            // 2. Draw the main noisy circle outline
             this.ctx.beginPath();
-            const time = Date.now() * (0.0003 + this.randomness * 0.0001);
-            const distortion = 20 * this.breathValue + (this.randomness * 4);
+            // Slightly faster noise movement for the circle border
+            const time = Date.now() * (0.0003 + this.randomness * 0.0002);
+            // Distortion increases with inhalation
+            const distortionAmount = (20 * this.breathValue + (this.randomness * 5)) * this.intensity;
+            
             for(let i=0; i<=100; i++) {
                 const a = (i/100)*6.28;
+                // Use noise to offset the radius
                 const n = this.noise.noise2D(Math.cos(a)+time, Math.sin(a));
-                const r = rBase + n * distortion;
+                const r = rBase + n * distortionAmount;
                 const x = this.centerX + Math.cos(a)*r, y = this.centerY + Math.sin(a)*r;
                 if(i===0) this.ctx.moveTo(x,y); else this.ctx.lineTo(x,y);
             }
             this.ctx.closePath();
+            // Stroke outline
             this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${0.3 * this.intensity})`;
+            this.ctx.lineWidth = 1.5;
             this.ctx.stroke();
+
+            // 3. Main inner gradient fill (The stable core)
             const g = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, rBase*1.2);
-            g.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${(0.3+this.breathValue*0.3) * this.intensity})`);
+            // Core brightness varies with breath
+            const coreAlpha = (0.3 + this.breathValue * 0.2) * this.intensity;
+            g.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${coreAlpha})`);
             g.addColorStop(1, "rgba(0,0,0,0)");
-            this.ctx.fillStyle = g; this.ctx.fill();
+            this.ctx.fillStyle = g;
+            this.ctx.fill();
+
+            // 4. NEW: Subtle "Gaseous" Exhale Impulse layer
+            // Only draws when the turn signal is active
+            if (this.turnSignal > 0.01) {
+                // The gas puff extends much further than the main circle
+                const gasOuterR = rBase * (1.5 + this.turnSignal * 0.5);
+                const gGas = this.ctx.createRadialGradient(this.centerX, this.centerY, rBase * 0.8, this.centerX, this.centerY, gasOuterR);
+                
+                // It starts transparent near the existing circle edge
+                gGas.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},0)`);
+                
+                // A very soft, low opacity puff in the mid-ground
+                // Alpha depends on turnSignal strength and overall intensity, kept low for subtlety.
+                const gasAlpha = 0.15 * this.turnSignal * this.intensity;
+                gGas.addColorStop(0.4, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${gasAlpha})`);
+                
+                // Fades out completely
+                gGas.addColorStop(1, "rgba(0,0,0,0)");
+
+                // Apply this subtle glow over the whole canvas area (it's masked by the gradient anyway)
+                this.ctx.fillStyle = gGas;
+                this.ctx.fillRect(0,0, this.width, this.height);
+            }
         }
 
         renderRipple() {
