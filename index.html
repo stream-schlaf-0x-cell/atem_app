@@ -94,13 +94,106 @@
         .summary-quote { font-size: 1.4rem; opacity: 0.85; line-height: 1.4; margin: 20px auto 10px; max-width: 500px; }
         .summary-author { font-size: 1.05rem; opacity: 0.65; margin: 5px auto 0; font-family: sans-serif; font-weight: 300; }
 
+        /* --- MODERN SLIDERS (Global) --- */
+        /* Base Slider Reset */
+        input[type=range] {
+            -webkit-appearance: none; /* Remove default styling */
+            width: 100%; 
+            background: transparent;
+            cursor: pointer;
+            margin: 0;
+            padding: 0; /* Important for alignment */
+        }
+
+        input[type=range]:focus { outline: none; }
+
+        /* --- WEBKIT (Chrome, Safari, iOS) --- */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px; /* Thinner modern track */
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            border: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px; /* Larger hit area */
+            width: 18px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            margin-top: -6px; /* Pulls thumb up to center it on the 6px track */
+            transition: transform 0.1s ease, background 0.2s;
+        }
+
+        /* --- FIREFOX --- */
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            border: none;
+        }
+
+        input[type=range]::-moz-range-thumb {
+            height: 18px;
+            width: 18px;
+            border: none;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.1s ease, background 0.2s;
+        }
+
+        /* Hover & Active States */
+        input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
+        input[type=range]:active::-moz-range-thumb { transform: scale(1.2); }
+
+        /* --- SPECIFIC STYLES --- */
+
+        /* 1. Color Slider Track: Gradient Background */
+        #color-slider::-webkit-slider-runnable-track {
+            background: linear-gradient(to right, 
+                rgb(166,89,89), rgb(93,122,102), rgb(94,114,145), 
+                rgb(107,140,150), rgb(186,150,85), rgb(207,216,220));
+        }
+        #color-slider::-moz-range-track {
+            background: linear-gradient(to right, 
+                rgb(166,89,89), rgb(93,122,102), rgb(94,114,145), 
+                rgb(107,140,150), rgb(186,150,85), rgb(207,216,220));
+        }
+
+        /* 2. Volume Slider: Make thumb accent-colored */
+        #vol-slider::-webkit-slider-thumb { background: var(--accent-primary); }
+        #vol-slider::-moz-range-thumb { background: var(--accent-primary); }
+
         /* VOLUME CONTROL */
-        #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s ease; z-index: 250; width: auto; }
+        #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 80px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s ease; z-index: 250; min-width: 160px; }
         #volume-control:hover { background: rgba(0,0,0,0.4); }
         #vol-icon { width: 28px; height: 28px; fill: var(--text-color); opacity: 0.6; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
-        #vol-slider { width: 100px; height: 4px; -webkit-appearance: none; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; opacity: 1; cursor: pointer; touch-action: none; }
-        #vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-primary); cursor: pointer; transition: transform 0.1s; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
-        #vol-slider::-webkit-slider-thumb:active { transform: scale(1.3); }
+
+        /* COLOR CONTROL (Top Left) */
+        #color-control { position: fixed; top: calc(var(--safe-top) + 20px); left: 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s ease; z-index: 250; min-width: 160px; }
+        #color-control:hover { background: rgba(0,0,0,0.4); }
+        #color-icon { width: 24px; height: 24px; fill: var(--text-color); opacity: 0.6; flex-shrink: 0; }
+
+        /* TOP RANDOM BTN */
+        #top-random-btn {
+            position: fixed; top: calc(var(--safe-top) + 20px); right: 20px;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.3s ease; z-index: 250;
+            color: var(--text-color); opacity: 0.6;
+        }
+        #top-random-btn:hover { background: rgba(0,0,0,0.4); opacity: 1; transform: scale(1.05); }
+        #top-random-btn svg { width: 24px; height: 24px; fill: currentColor; }
 
         /* XY PAD MIXER */
         #xy-pad-container { width: 100%; display: none; flex-direction: column; align-items: center; margin-bottom: 20px; }
@@ -142,17 +235,17 @@
         .xy-bl { bottom: 12px; left: 12px; }
         .xy-br { bottom: 12px; right: 12px; }
 
+        .xy-zone {
+            position: absolute; top: 50%; transform: translate(-50%, -50%);
+            font-size: 0.55rem; letter-spacing: 0.15em; 
+            pointer-events: none; user-select: none;
+        }
+        .xy-zone-dark { left: 25%; color: rgba(255,255,255,0.12); }
+        .xy-zone-light { left: 75%; color: rgba(255,255,255,0.5); text-shadow: 0 0 4px rgba(255,255,255,0.2); }
+
         /* Chaos Slider & New Sliders */
         .slider-group { width: 100%; max-width: 280px; margin-top: 15px; }
         .slider-group label { display: flex; justify-content: space-between; font-size: 0.75rem; opacity: 0.7; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 12px; }
-        input[type=range].range-slider {
-            width: 100%; height: 4px; -webkit-appearance: none; 
-            background: rgba(255,255,255,0.15); border-radius: 2px; 
-            outline: none; padding: 0; border: none; margin: 0;
-        }
-        input[type=range].range-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--text-color); cursor: pointer; border: 2px solid var(--bg-color); box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
 
         /* BOTTOM CONTROLS (Refresh & Timer) */
         #bottom-controls {
@@ -284,6 +377,59 @@
             .pos-top .instruction-text { top: calc(var(--safe-top) + 60px); }
             .pos-top #breath-timer { top: calc(var(--safe-top) + 105px); }
         }
+
+        /* RESTORE UI BUTTON */
+        #restore-ui-btn {
+            position: fixed;
+            bottom: calc(var(--safe-bottom) + 20px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 900;
+            
+            /* Visibility Transition */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease, transform 0.2s ease, background 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Hover State */
+        #restore-ui-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-50%) scale(1.1);
+        }
+
+        /* SVG Icon */
+        #restore-ui-btn svg {
+            width: 32px;
+            height: 32px;
+            fill: currentColor;
+            opacity: 0.8;
+        }
+
+        /* THE LOGIC: Only show when body has 'ui-hidden' class */
+        body.ui-hidden #restore-ui-btn {
+            opacity: 1;
+            pointer-events: auto;
+            animation: gentlePulse 3s infinite ease-in-out;
+        }
+
+        @keyframes gentlePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.05); }
+        }
     </style>
 </head>
 <body class="theme-lotusabend">
@@ -299,6 +445,13 @@
         <div id="volume-control">
             <svg id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             <input type="range" id="vol-slider" min="0" max="1" step="0.01">
+        </div>
+        <div id="color-control">
+            <svg id="color-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5S18.33 12 17.5 12z"/></svg>
+            <input type="range" id="color-slider" min="0" max="100" step="0.1" value="0">
+        </div>
+        <div id="top-random-btn" onclick="app.randomizeVisuals()">
+            <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zM14.83 13.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04L14.83 13.41z"/></svg>
         </div>
     </div>
 
@@ -333,6 +486,8 @@
                 <div class="xy-label xy-tr">Kreis</div>
                 <div class="xy-label xy-bl">Welle</div>
                 <div class="xy-label xy-br">Licht</div>
+                <div class="xy-zone xy-zone-dark">DUNKLER</div>
+                <div class="xy-zone xy-zone-light">HELLER</div>
                 <div id="xy-cursor" style="left: 0%; top: 0%;"></div>
             </div>
             <div class="slider-group">
@@ -353,6 +508,9 @@
                     <span id="points-val">5</span>
                 </label>
                 <input type="range" id="points-slider" class="range-slider" min="3" max="12" step="1" value="5">
+                <div style="text-align: center; margin-top: 15px; opacity: 0.4; font-size: 0.75rem; letter-spacing: 0.1em;">
+                    ↓ SCROLLEN FÜR START
+                </div>
             </div>
         </div>
 
@@ -376,17 +534,6 @@
         </div>
 
         <div class="controls-grid">
-            <div>
-                <label>Atmosphäre</label>
-                <select id="themeSelect">
-                    <option value="theme-lotusabend">Lotusabend</option>
-                    <option value="theme-dantian-gruen">Dantian‑Grün</option>
-                    <option value="theme-mani-glanz">Mani‑Glanz</option>
-                    <option value="theme-himmelblau">Himmelblau</option>
-                    <option value="theme-goldene-ruhe">Goldene Ruhe</option>
-                    <option value="theme-reines-licht">Reines Licht</option>
-                </select>
-            </div>
             <div>
                 <label>Audio / Musik</label>
                 <div style="display:flex; gap:8px; align-items:center;">
@@ -424,6 +571,10 @@
 
     <button id="stop-float" class="btn stop-mode" style="display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:26px; z-index:200; width:220px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">Beenden</button>
 
+    <button id="restore-ui-btn" onclick="app.toggleUI()" aria-label="Menü öffnen">
+        <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+    </button>
+
     <script>
     // Optimized Simplex Noise with Zero Allocation per Call
     const GRAD3 = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[1,0],[-1,0],[0,1],[0,-1],[0,1],[0,-1]];
@@ -453,6 +604,15 @@
             return 70.0 * (n0 + n1 + n2);
         }
     }
+
+    const THEME_PALETTE = [
+        { r:14, g:11, b:12,  ar:166, ag:89, ab:89  }, // Lotus
+        { r:7,  g:16, b:18,  ar:93,  ag:122, ab:102 }, // Dantian
+        { r:7,  g:7,  b:9,   ar:94,  ag:114, ab:145 }, // Mani
+        { r:11, g:16, b:38,  ar:107, ag:140, ab:150 }, // Himmel
+        { r:18, g:12, b:8,   ar:186, ag:150, ab:85  }, // Gold
+        { r:18, g:18, b:18,  ar:207, ag:216, ab:220 }  // Licht
+    ];
 
     class BreathVisuals {
         constructor(canvas) {
@@ -618,7 +778,7 @@
 
             // NEW: More impact from Randomness on movement
             turbulence += this.randomness * 0.25; 
-            turbulence += this.turnSignal * 0.05;
+            turbulence += this.turnSignal * 0.15;
             const noiseScale = 0.0015 + (this.randomness * 0.02);
 
             // NEW: Intensity affects Count more drastically (0.1 to 1.0 of total particles)
@@ -681,7 +841,7 @@
         }
 
         renderCircle() {
-            const rBase = Math.min(this.width, this.height) * 0.3 * (0.4 + this.breathValue * 0.6);
+            const rBase = Math.min(this.width, this.height) * 0.3 * (0.4 + this.breathValue * 0.6) + (this.turnSignal * (this.width * 0.04));
             this.ctx.beginPath();
             const time = Date.now() * (0.0003 + this.randomness * 0.0001);
             const distortion = 20 * this.breathValue + (this.randomness * 4);
@@ -757,7 +917,7 @@
             const pulse = 1 + Math.sin(t) * 0.05; 
             
             const innerR = baseR * (0.5 + this.breathValue * 0.8) * pulse; 
-            const outerR = baseR * (1.0 + this.breathValue * 1.0) + (this.turnSignal * baseR * 0.1);
+            const outerR = baseR * (1.0 + this.breathValue * 1.0) + (this.turnSignal * (baseR * 0.4));
 
             // Äußerer Glow
             const g2 = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, outerR);
@@ -1211,8 +1371,9 @@
                 }
             });
 
-            document.getElementById('themeSelect').addEventListener('change', (e) => {
-                document.body.className = e.target.value; this.viz.updateThemeColors();
+            // Color Slider (Floating)
+            document.getElementById('color-slider').addEventListener('input', (e) => {
+                this.updateThemeColor(parseFloat(e.target.value));
             });
             
             document.getElementById('soundSelect').addEventListener('change', (e) => {
@@ -1329,6 +1490,9 @@
             
             document.getElementById('points-slider').value = this.viz.lumaPoints;
             document.getElementById('points-val').innerText = this.viz.lumaPoints;
+
+            // Init Theme at 0
+            this.updateThemeColor(0);
         }
 
         updateXY(x, y) {
@@ -1346,12 +1510,44 @@
             if (x%1!==0 || y%1!==0) document.querySelectorAll('.mode-row .chip').forEach(c => c.classList.remove('active'));
         }
 
+        updateThemeColor(val) {
+            const pct = val / 100;
+            const segmentCount = THEME_PALETTE.length - 1;
+            const index = Math.min(Math.floor(pct * segmentCount), segmentCount - 1);
+            const nextIndex = index + 1;
+            const segmentSize = 1 / segmentCount;
+            const segmentStart = index * segmentSize;
+            const t = (pct - segmentStart) / segmentSize; // 0.0 to 1.0 within segment
+
+            const c1 = THEME_PALETTE[index];
+            const c2 = THEME_PALETTE[nextIndex];
+
+            const lerp = (a, b, f) => a + (b - a) * f;
+            
+            const r = Math.round(lerp(c1.r, c2.r, t));
+            const g = Math.round(lerp(c1.g, c2.g, t));
+            const b = Math.round(lerp(c1.b, c2.b, t));
+            
+            const rA = Math.round(lerp(c1.ar, c2.ar, t));
+            const gA = Math.round(lerp(c1.ag, c2.ag, t));
+            const bA = Math.round(lerp(c1.ab, c2.ab, t));
+
+            document.body.style.setProperty('--bg-color', `rgb(${r},${g},${b})`);
+            document.body.style.setProperty('--accent-primary', `rgb(${rA},${gA},${bA})`);
+            
+            // Update Viz directly
+            this.viz.bgR = r; this.viz.bgG = g; this.viz.bgB = b;
+            this.viz.colors = { r: rA, g: gA, b: bA };
+            this.viz.generateSprite();
+        }
+
         randomizeVisuals() {
-            const themes = ['theme-lotusabend', 'theme-dantian-gruen', 'theme-mani-glanz', 'theme-himmelblau', 'theme-goldene-ruhe', 'theme-reines-licht'];
-            const randomTheme = themes[Math.floor(Math.random() * themes.length)];
-            document.body.className = randomTheme;
-            document.getElementById('themeSelect').value = randomTheme;
-            this.viz.updateThemeColors();
+            const rndVal = Math.random() * 100;
+            const slider = document.getElementById('color-slider');
+            if(slider) {
+                slider.value = rndVal;
+                this.updateThemeColor(rndVal);
+            }
 
             const modes = ['mist', 'circle', 'ripple', 'luma'];
             const randomMode = modes[Math.floor(Math.random() * modes.length)];
@@ -1465,10 +1661,21 @@
             const btn = document.getElementById('mixer-toggle');
             const isHidden = el.style.display === 'none';
             el.style.display = isHidden ? 'flex' : 'none';
-            if(isHidden) btn.classList.add('active'); else btn.classList.remove('active');
+            if(isHidden) {
+                btn.classList.add('active');
+                setTimeout(() => {
+                    const ui = document.getElementById('ui-container');
+                    ui.scrollBy({ top: 150, behavior: 'smooth' });
+                }, 50);
+            } else {
+                btn.classList.remove('active');
+            }
         }
 
-        toggleUI() { document.getElementById('ui-container').classList.toggle('hidden'); }
+        toggleUI() { 
+            document.getElementById('ui-container').classList.toggle('hidden'); 
+            document.body.classList.toggle('ui-hidden');
+        }
         closeSummary() { document.getElementById('summary-modal').classList.remove('visible'); }
         
         async toggle() { this.isRunning ? this.stop() : this.start(); }
