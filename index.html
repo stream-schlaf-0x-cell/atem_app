@@ -209,7 +209,7 @@
             transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s;
             overflow: hidden;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
             .top-ctrl { min-width: 50px !important; width: 50px !important; padding: 0 !important; justify-content: center; }
             .top-ctrl input { display: none; width: 100px; }
             
@@ -225,7 +225,7 @@
 
         /* Timing Toggle for Mobile */
         #timing-toggle-btn { display: none; }
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
             #timing-toggle-btn { display: block; margin: 0 auto 15px auto; width: auto; font-size: 0.8rem; padding: 8px 16px; opacity: 0.8; }
             #timing-grid { display: none; }
             #timing-grid.visible { display: grid; }
@@ -254,7 +254,7 @@
         #desktop-viz-toggle svg { width: 24px; height: 24px; fill: currentColor; }
         #desktop-viz-toggle.active { background: var(--accent-primary); opacity: 1; color: #fff; }
         
-        @media (min-width: 769px) {
+        @media (min-width: 768px) {
             #desktop-viz-toggle { display: flex; }
         }
 
@@ -280,14 +280,14 @@
             transition: opacity 0.3s, transform 0.3s;
         }
         /* Mobile: Bottom Sheet Overlay */
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
             #xy-pad-container {
                 bottom: 0; left: 0; width: 100%; border-radius: 24px 24px 0 0;
                 max-height: 85vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
             }
         }
         /* Desktop: Floating Sidebar */
-        @media (min-width: 769px) {
+        @media (min-width: 768px) {
             #xy-pad-container {
                 top: 50%; right: 30px; transform: translateY(-50%);
                 width: 320px; border-radius: 24px; max-height: 90vh; overflow-y: auto;
@@ -381,9 +381,10 @@
         
         #preset-display {
             position: fixed; bottom: 26px; left: calc(50% + 120px); transform: none;
-            font-size: 0.85rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.9);
-            background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            padding: 0 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.85rem; letter-spacing: 0.1em; color: #fff;
+            background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 0 20px; border-radius: 14px; 
+            border: 1px solid var(--accent-primary); box-shadow: 0 0 12px rgba(0,0,0,0.2);
             pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 190;
             text-transform: uppercase; font-weight: 500; font-family: sans-serif;
             display: flex; align-items: center; gap: 10px; height: 54px; /* Match #stop-float height */
@@ -396,7 +397,7 @@
         .pd-sep { font-size: 0.9rem; opacity: 0.4; margin-top: 0; font-weight: 300; }
 
         /* Mobile Optimization for Preset Display */
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
             #preset-display .pd-meta { display: none; } /* Hide labels on phone */
             #preset-display { gap: 6px; padding: 0 14px; }
         }
@@ -490,7 +491,7 @@
         }
 
         /* Mobile Summary Screen Fix */
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
             #summary-modal { overflow-y: auto; justify-content: flex-start; padding-top: 60px; touch-action: pan-y; }
             .summary-stat { font-size: 2.8rem; margin: 10px 0; }
             .summary-quote { font-size: 1.1rem; line-height: 1.4; }
@@ -694,9 +695,9 @@
             
             <label>
                 <span>Intensität / Menge</span>
-                <span id="intensity-val">30%</span>
+                <span id="intensity-val">75%</span>
             </label>
-            <input type="range" id="intensity-slider" class="range-slider" min="0.1" max="1" step="0.01" value="0.3">
+            <input type="range" id="intensity-slider" class="range-slider" min="0.1" max="1" step="0.01" value="0.75">
             
             <label>
                 <span>Licht: Ecken</span>
@@ -768,7 +769,7 @@
             
             // DEFAULTS
             this.randomness = 0;
-            this.intensity = 0.3; // Default 30%
+            this.intensity = 0.75; // Default 75%
             this.lumaPoints = 5;  // Default 5 corners
             
             // TAP PULSE (Flash Effect)
@@ -1646,7 +1647,7 @@
 
             // Mobile Top Controls Toggle Logic
             const toggleTopCtrl = (id) => {
-                if (window.innerWidth > 768) return;
+                if (window.innerWidth >= 768) return;
                 const el = document.getElementById(id);
                 const isExpanded = el.classList.contains('expanded');
                 document.querySelectorAll('.top-ctrl').forEach(c => c.classList.remove('expanded'));
