@@ -582,6 +582,17 @@
                 <div style="text-align: center; margin-top: 15px; opacity: 0.4; font-size: 0.75rem; letter-spacing: 0.1em;">
                     ↓ SCROLLEN FÜR START
                 </div>
+
+                <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                    <button id="drift-btn" class="chip" style="width:100%; justify-content: space-between; display: flex;" onclick="app.toggleDrift()">
+                        <span>Auto-Drift</span>
+                        <span id="drift-status" style="opacity:0.5">Aus</span>
+                    </button>
+                    <div id="drift-controls" style="display:none; margin-top:12px;">
+                        <label><span>Dauer: <span id="drift-val">4</span> Atemzüge / Phase</span></label>
+                        <input type="range" id="drift-slider" class="range-slider" min="1" max="12" step="1" value="4">
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1459,6 +1470,10 @@
             this.startTime = 0;
             this.sessionTimerInterval = null;
             this.lastVolume = 0.5;
+            
+            this.evolveActive = false;
+            this.evolveCycles = 4;
+            this.evolveProgress = 0;
             this.currentPreset = "";
             this.setupUI();
             this.randomizeVisuals();
@@ -1572,6 +1587,12 @@
                 let y = (clientY - rect.top) / rect.height;
                 x = Math.max(0, Math.min(1, x));
                 y = Math.max(0, Math.min(1, y));
+                
+                // Disable drift if user interacts manually
+                if (this.evolveActive) {
+                    this.toggleDrift(false);
+                }
+                
                 this.updateXY(x, y);
 
                 // Rule: If editing visuals via matrix, move text out of center (to top)
@@ -1607,6 +1628,13 @@
                 const v = parseInt(e.target.value);
                 this.viz.setLumaPoints(v);
                 document.getElementById('points-val').innerText = v;
+            });
+
+            // Drift Slider
+            document.getElementById('drift-slider').addEventListener('input', (e) => {
+                const v = parseInt(e.target.value);
+                this.evolveCycles = v;
+                document.getElementById('drift-val').innerText = v;
             });
             
             // Watch for manual time changes to enforce Yrrpheus rule
@@ -1830,6 +1858,28 @@
             }
         }
 
+        toggleDrift(forceState) {
+            const newState = forceState !== undefined ? forceState : !this.evolveActive;
+            this.evolveActive = newState;
+            
+            const btn = document.getElementById('drift-btn');
+            const status = document.getElementById('drift-status');
+            const ctrls = document.getElementById('drift-controls');
+            
+            if (this.evolveActive) {
+                btn.classList.add('active');
+                status.innerText = "Ein";
+                ctrls.style.display = 'block';
+                // Snap evolveProgress to nearest corner to start smoothly? 
+                // For now, we continue from where we are or 0. 
+                // To sync with "start of cycle", we could reset this.evolveProgress = Math.floor(this.evolveProgress);
+            } else {
+                btn.classList.remove('active');
+                status.innerText = "Aus";
+                ctrls.style.display = 'none';
+            }
+        }
+
         toggleTiming() {
             const el = document.getElementById('timing-grid');
             const btn = document.getElementById('timing-toggle-btn');
@@ -2001,6 +2051,7 @@
         
         async phase(text, dur, startV, endV, col, signal, countUp) {
             if(signal.aborted || !this.isRunning || dur <= 0) return;
+            const val = id => parseFloat(document.getElementById(id).value) || 0;
             
             const instr = document.getElementById('instruction');
             instr.innerText = text;
@@ -2022,6 +2073,7 @@
             
             const start = Date.now();
             return new Promise(resolve => {
+                let lastTick = Date.now();
                 const tick = () => {
                     if(signal.aborted || !this.isRunning) return resolve();
                     
@@ -2037,6 +2089,27 @@
                     const timer = document.getElementById('breath-timer');
                     timer.innerText = timeVal.toFixed(0); 
                     timer.style.color = col;
+
+                    // Auto-Drift Logic
+                    if (this.evolveActive) {
+                        const dt = (now - lastTick) / 1000;
+                        const cycleDur = val('inTime') + val('holdFullTime') + val('outTime') + val('holdEmptyTime');
+                        if (cycleDur > 0) {
+                            // Move 1.0 unit (one corner to next) over (cycleDur * evolveCycles) seconds
+                            const step = dt / (cycleDur * this.evolveCycles);
+                            this.evolveProgress = (this.evolveProgress + step) % 4;
+                            
+                            let dx=0, dy=0;
+                            const p = this.evolveProgress;
+                            // Path: TL(0,0) -> TR(1,0) -> BR(1,1) -> BL(0,1) -> TL(0,0)
+                            if (p < 1) { dx = p; dy = 0; }
+                            else if (p < 2) { dx = 1; dy = p - 1; }
+                            else if (p < 3) { dx = 1 - (p - 2); dy = 1; }
+                            else { dx = 0; dy = 1 - (p - 3); }
+                            this.updateXY(dx, dy);
+                        }
+                    }
+                    lastTick = now;
                     
                     if(prog < 1) requestAnimationFrame(tick); else resolve();
                 };
