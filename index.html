@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#0a0a0a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Atem & Stille - Eine meditative Atem-App mit generativen Visuals.">
     <title>Atem & Stille</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,550 +16,237 @@
         :root {
             --bg-color: #0a0a0a; --text-color: #efece6;
             --accent-primary: #4a638c; --accent-secondary: #e6c65a;
-            --glass-bg: rgba(10, 10, 10, 0.65);
+            --glass-bg: rgba(10, 10, 10, 0.75);
             --font-stack: 'Tenor Sans', 'Forum', 'Optima', 'Segoe UI Light', sans-serif;
             --safe-top: env(safe-area-inset-top, 20px);
             --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         body {
             background-color: var(--bg-color); color: var(--text-color);
             font-family: var(--font-stack); margin: 0; height: 100dvh;
             display: flex; flex-direction: column; overflow: hidden;
-            transition: background-color 2s ease; 
-            overscroll-behavior: none; /* iOS Scroll Fix */
+            transition: background-color 2.5s ease; 
+            overscroll-behavior: none;
+            touch-action: none; /* Disable native browser gestures */
         }
+
         /* THEMES */
-        body.theme-himmelblau { --bg-color: #0b1026; --accent-primary: #6b8c96; --glass-bg: rgba(11, 16, 38, 0.65); }
-        body.theme-goldene-ruhe { --bg-color: #120c08; --accent-primary: #ba9655; --glass-bg: rgba(18, 12, 8, 0.65); }
-        body.theme-lotusabend { --bg-color: #0e0b0c; --accent-primary: #a65959; --glass-bg: rgba(10,8,9,0.55); }
-        body.theme-dantian-gruen { --bg-color: #071012; --accent-primary: #5d7a66; --glass-bg: rgba(8,12,10,0.56); }
-        body.theme-reines-licht { --bg-color: #121212; --accent-primary: #cfd8dc; --glass-bg: rgba(18, 18, 18, 0.65); }
-        body.theme-mani-glanz { --bg-color: #070709; --accent-primary: #5e7291; --glass-bg: rgba(6,6,6,0.58); }
+        body.theme-himmelblau { --bg-color: #0b1026; --accent-primary: #6b8c96; }
+        body.theme-goldene-ruhe { --bg-color: #120c08; --accent-primary: #ba9655; }
+        body.theme-lotusabend { --bg-color: #0e0b0c; --accent-primary: #a65959; }
+        body.theme-dantian-gruen { --bg-color: #071012; --accent-primary: #5d7a66; }
+        body.theme-reines-licht { --bg-color: #121212; --accent-primary: #cfd8dc; }
+        body.theme-mani-glanz { --bg-color: #070709; --accent-primary: #5e7291; }
         
         /* LAYOUT */
-        #visual-area { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%; touch-action: none; }
-        .viz-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+        #visual-area { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%; }
+        .viz-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; z-index: 0; }
         
+        /* TYPOGRAPHY & TEXT */
         .instruction-text {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.5rem;
-            font-weight: 300;
-            letter-spacing: 0.1em;
-            padding: 20px 40px; /* Much larger hit area */
-            border-radius: 12px;
-            
-            /* INTERACTION SETTINGS */
-            pointer-events: auto !important; /* Force clickable */
-            cursor: pointer;
-            touch-action: manipulation; /* Improves touch response */
-            z-index: 1000;
-            user-select: none;
-            
-            opacity: 0.95;
-            color: var(--text-color);
-            background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(255,255,255,0.02));
-            transition: transform 0.2s ease, opacity 0.3s ease, color 0.8s ease;
+            position: absolute; left: 50%; transform: translateX(-50%);
+            font-size: 1.6rem; font-weight: 300; letter-spacing: 0.12em;
+            padding: 25px 45px; border-radius: 16px;
+            pointer-events: auto !important; cursor: pointer;
+            z-index: 1000; user-select: none;
+            opacity: 0.95; color: var(--text-color);
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+            transition: transform 0.2s ease, opacity 0.3s ease;
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
         }
-        .instruction-text:active {
-            transform: translateX(-50%) scale(0.95);
-            background: rgba(255,255,255,0.1);
-        }
-        .instruction-text:hover {
-            opacity: 1;
-            text-shadow: 0 0 15px rgba(255,255,255,0.3);
-        }
-        
-        /* CRITICAL FIX: Only disable clicks if the APP IS RUNNING, not just if UI is hidden */
-        body.app-running .instruction-text {
-            pointer-events: none !important;
-            cursor: default;
-        }
+        .instruction-text:active { transform: translateX(-50%) scale(0.96); background: rgba(255,255,255,0.08); }
+        body.app-running .instruction-text { pointer-events: none !important; cursor: default; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
 
         #breath-timer {
             position: absolute; left: 50%; transform: translateX(-50%);
-            font-size: 1.8rem; font-weight: 300; letter-spacing: 0.1em; color: var(--accent-secondary); background: rgba(0,0,0,0.18);
-            padding: 6px 12px; border-radius: 14px; pointer-events: none; z-index: 110;
+            font-size: 1.8rem; font-weight: 300; letter-spacing: 0.1em;
+            color: var(--accent-secondary); background: rgba(0,0,0,0.2);
+            padding: 6px 14px; border-radius: 14px; pointer-events: none; z-index: 110;
             font-variant-numeric: tabular-nums; transition: opacity 0.5s ease;
         }
 
+        /* UI CONTAINER (Glassmorphism) */
         #ui-container {
             position: absolute; bottom: 0; width: 100%; background: var(--glass-bg);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border-top: 1px solid rgba(255,255,255,0.03); border-radius: 20px 20px 0 0;
-            padding: 8px 20px calc(15px + var(--safe-bottom));
-            transform: translateY(0); transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-            z-index: 1000; will-change: transform;
-            max-height: 80dvh; overflow-y: auto; -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* Firefox */
+            backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-top: 1px solid rgba(255,255,255,0.08); border-radius: 24px 24px 0 0;
+            padding: 12px 20px calc(20px + var(--safe-bottom));
+            transform: translateY(0); transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: 1000; will-change: transform; pointer-events: auto;
+            max-height: 85dvh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
         }
         #ui-container.hidden { transform: translateY(110%); }
-        #ui-container::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+        #ui-container::-webkit-scrollbar { display: none; }
 
-        .handle { width: 35px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 10px; margin: 10px auto 20px; cursor: pointer; touch-action: none; }
-        .preset-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 12px; scrollbar-width: none; mask-image: linear-gradient(to right, black 90%, transparent 100%); -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%); }
-        .preset-scroll::-webkit-scrollbar { display: none; }
-
-        .chip { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); padding: 7px 14px; border-radius: 18px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; transition: all 0.4s; -webkit-tap-highlight-color: transparent; }
-        .chip.active { background: rgba(255,255,255,0.2); color: #fff; border-color: var(--accent-primary); font-weight: 500; box-shadow: 0 0 12px rgba(0,0,0,0.2); }
+        .handle { width: 40px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 10px; margin: 8px auto 24px; cursor: pointer; position: relative; z-index: 10; pointer-events: auto; }
         
-        #duration-scroll input { width: 60px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 7px; border-radius: 18px; font-size: 0.85rem; text-align: center; transition: all 0.4s; }
-        #duration-scroll input:focus { border-color: var(--accent-primary); background: rgba(255,255,255,0.08); }
+        /* CHIPS & SCROLLERS */
+        .preset-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; scrollbar-width: none; mask-image: linear-gradient(to right, black 90%, transparent 100%); -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%); }
+        .preset-scroll::-webkit-scrollbar { display: none; } 
 
-        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .chip { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; white-space: nowrap; cursor: pointer; transition: all 0.3s ease; -webkit-tap-highlight-color: transparent; }
+        .chip.active { background: rgba(255,255,255,0.25); color: #fff; border-color: var(--accent-primary); font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        
+        #duration-scroll input { width: 65px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); color: var(--text-color); padding: 8px; border-radius: 20px; font-size: 0.9rem; text-align: center; transition: all 0.3s; }
+        #duration-scroll input:focus { border-color: var(--accent-primary); background: rgba(255,255,255,0.1); }
+
+        /* CONTROLS GRID */
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
         .full-width-col { grid-column: 1 / -1; }
-        label { font-size: 0.7rem; text-transform: uppercase; font-weight: 500; color: rgba(255,255,255,0.25); margin-bottom: 5px; display: block; }
-        input, select { width: 100%; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); color: var(--text-color); padding: 10px; border-radius: 10px; font-size: 1.05rem; outline: none; appearance: none; }
+        label { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,0.35); margin-bottom: 6px; display: block; letter-spacing: 0.05em; }
+        input, select { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); color: var(--text-color); padding: 12px; border-radius: 12px; font-size: 1rem; outline: none; appearance: none; transition: border-color 0.2s; }
+        input:focus, select:focus { border-color: var(--accent-primary); }
 
-        .btn { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: #fff; border: none; padding: 16px; border-radius: 14px; font-size: 1.05rem; font-weight: 500; width: 100%; text-transform: uppercase; cursor: pointer; transition: transform 0.15s; user-select: none; }
-        .btn:active { transform: scale(0.985); }
-        .btn.stop-mode { background: var(--accent-primary); opacity: 0.9; }
-        #stop-float { height: 54px; padding: 0; display: flex; align-items: center; justify-content: center; }
+        /* MAIN BUTTONS */
+        .btn { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: #fff; border: none; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: 600; width: 100%; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; transition: transform 0.15s, opacity 0.2s; user-select: none; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .btn:active { transform: scale(0.98); }
+        .btn.stop-mode { background: var(--accent-primary); opacity: 0.95; }
+        #stop-float { height: 56px; padding: 0; display: flex; align-items: center; justify-content: center; }
 
-        .mode-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; }
+        .mode-row { display: flex; gap: 8px; margin-bottom: 24px; justify-content: center; flex-wrap: wrap; }
 
-        /* Summary Overlay */
-        #summary-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.92); backdrop-filter: blur(15px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1100; padding: 30px; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
-        #summary-modal.visible { opacity: 1; pointer-events: all; }
-        .summary-stat { font-size: 3.8rem; font-weight: 100; color: var(--accent-primary); margin: 15px 0; font-variant-numeric: tabular-nums; }
-        .summary-quote { font-size: 1.4rem; opacity: 0.85; line-height: 1.4; margin: 20px auto 10px; max-width: 500px; }
-        .summary-author { font-size: 1.05rem; opacity: 0.65; margin: 5px auto 0; font-family: sans-serif; font-weight: 300; }
-
-        /* --- MODERN SLIDERS (Global) --- */
-        /* Base Slider Reset */
-        input[type=range] {
-            -webkit-appearance: none; /* Remove default styling */
-            width: 100%; 
-            background: transparent;
-            cursor: pointer;
-            margin: 0;
-            padding: 0; /* Important for alignment */
-        }
-
+        /* SLIDERS */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; margin: 0; padding: 0; }
         input[type=range]:focus { outline: none; }
-
-        /* --- WEBKIT (Chrome, Safari, iOS) --- */
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 6px; /* Thinner modern track */
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
-            border: none;
-        }
-
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 18px; /* Larger hit area */
-            width: 18px;
-            border-radius: 50%;
-            background: #ffffff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            cursor: pointer;
-            margin-top: -6px; /* Pulls thumb up to center it on the 6px track */
-            transition: transform 0.1s ease, background 0.2s;
-        }
-
-        /* --- FIREFOX --- */
-        input[type=range]::-moz-range-track {
-            width: 100%;
-            height: 6px;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
-            border: none;
-        }
-
-        input[type=range]::-moz-range-thumb {
-            height: 18px;
-            width: 18px;
-            border: none;
-            border-radius: 50%;
-            background: #ffffff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: transform 0.1s ease, background 0.2s;
-        }
-
-        /* Hover & Active States */
-        input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
-        input[type=range]:active::-moz-range-thumb { transform: scale(1.2); }
-
-        /* --- SPECIFIC STYLES --- */
-
-        /* 1. Color Slider Track: Gradient Background */
-        #color-slider::-webkit-slider-runnable-track {
-            background: linear-gradient(to right, 
-                rgb(166,89,89), rgb(93,122,102), rgb(94,114,145), 
-                rgb(107,140,150), rgb(186,150,85), rgb(207,216,220));
-        }
-        #color-slider::-moz-range-track {
-            background: linear-gradient(to right, 
-                rgb(166,89,89), rgb(93,122,102), rgb(94,114,145), 
-                rgb(107,140,150), rgb(186,150,85), rgb(207,216,220));
-        }
-
-        /* 2. Volume Slider: Make thumb accent-colored */
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: rgba(255, 255, 255, 0.15); border-radius: 3px; border: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.4); cursor: pointer; margin-top: -7px; transition: transform 0.1s ease; }
+        input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
+        
+        #color-slider::-webkit-slider-runnable-track { background: var(--color-slider-gradient, rgba(255,255,255,0.15)); }
         #vol-slider::-webkit-slider-thumb { background: var(--accent-primary); }
-        #vol-slider::-moz-range-thumb { background: var(--accent-primary); }
 
-        /* TOP CONTROLS (Mobile Collapse Logic) */
-        .top-ctrl {
-            transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s;
-            overflow: hidden;
-        }
+        /* TOP FLOATING CONTROLS */
+        .top-ctrl { transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s; overflow: hidden; }
         @media (max-width: 767px) {
             .top-ctrl { min-width: 50px !important; width: 50px !important; padding: 0 !important; justify-content: center; }
             .top-ctrl input { display: none; width: 100px; }
-            
             .top-ctrl.expanded { width: 180px !important; padding: 0 15px !important; justify-content: space-between; }
             .top-ctrl.expanded input { display: block; }
-            
-            /* Ensure Volume Icon stays clickable */
-            #vol-icon { margin: 0; }
-
-            /* Volume Control: Icon stays right, slider expands left */
             #volume-control { flex-direction: row-reverse; }
         }
 
-        /* Timing Toggle for Mobile */
-        #timing-toggle-btn { display: none; }
+        #volume-control, #color-control { position: fixed; top: calc(var(--safe-top) + 20px); display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 0 18px; height: 50px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.08); z-index: 250; min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        #volume-control { right: 85px; }
+        #color-control { left: 20px; }
+        .ctrl-icon { width: 24px; height: 24px; fill: var(--text-color); opacity: 0.7; flex-shrink: 0; }
+
+        /* ADDITIONAL FLOATING BUTTONS */
+        .float-btn { position: fixed; top: calc(var(--safe-top) + 20px); width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; z-index: 250; color: var(--text-color); opacity: 0.7; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .float-btn:hover { background: rgba(0,0,0,0.5); opacity: 1; transform: scale(1.05); }
+        .float-btn svg { width: 24px; height: 24px; fill: currentColor; }
+        
+        #top-random-btn { right: 20px; }
+        #desktop-viz-toggle { right: 380px; display: none; }
+        @media (min-width: 768px) { #desktop-viz-toggle { display: flex; } }
+
+        /* XY PAD & MODALS */
+        #xy-pad-container { display: none; flex-direction: column; align-items: center; position: fixed; z-index: 2000; background: rgba(15, 15, 15, 0.9); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); padding: 25px; transition: opacity 0.3s, transform 0.3s; }
+        @media (max-width: 767px) { #xy-pad-container { bottom: 0; left: 0; width: 100%; border-radius: 24px 24px 0 0; max-height: 85vh; overflow-y: auto; box-shadow: 0 -10px 50px rgba(0,0,0,0.6); } }
+        @media (min-width: 768px) { #xy-pad-container { top: 50%; right: 40px; transform: translateY(-50%); width: 340px; border-radius: 24px; max-height: 90vh; box-shadow: 0 10px 50px rgba(0,0,0,0.4); } }
+
+        #xy-pad { width: 100%; max-width: 280px; height: 220px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; position: relative; touch-action: none; cursor: crosshair; box-shadow: inset 0 0 30px rgba(0,0,0,0.3); }
+        #xy-cursor { width: 20px; height: 20px; background: var(--accent-primary); border: 2px solid #fff; border-radius: 50%; position: absolute; transform: translate(-50%, -50%); pointer-events: none; box-shadow: 0 2px 10px rgba(0,0,0,0.5); will-change: top, left; }
+        
+        .xy-label { position: absolute; font-size: 0.65rem; color: #fff; opacity: 0.4; text-transform: lowercase; pointer-events: none; font-weight: 400; letter-spacing: 0.05em; }
+        .xy-tl { top: 10px; left: 10px; } .xy-tr { top: 10px; right: 10px; } .xy-bl { bottom: 10px; left: 10px; } .xy-br { bottom: 10px; right: 10px; }
+        .xy-ml { left: 10px; top: 50%; transform: translateY(-50%); } .xy-mr { right: 10px; top: 50%; transform: translateY(-50%); }
+
+        .slider-group { width: 100%; max-width: 280px; margin-top: 20px; }
+        .slider-group label { display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.8; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 16px; }
+
+        /* SUMMARY OVERLAY */
+        #summary-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(20px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1100; padding: 30px; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+        #summary-modal.visible { opacity: 1; pointer-events: all; }
+        .summary-stat { font-size: 4rem; font-weight: 100; color: var(--accent-primary); margin: 20px 0; font-variant-numeric: tabular-nums; }
+        .summary-quote { font-size: 1.3rem; opacity: 0.9; line-height: 1.5; margin: 20px auto 10px; max-width: 600px; font-family: 'Forum', serif; }
+        .summary-author { font-size: 0.95rem; opacity: 0.6; margin: 10px auto 0; font-weight: 300; letter-spacing: 0.05em; }
+
+        /* BOTTOM HUD ELEMENTS */
+        #bottom-controls { position: fixed; bottom: calc(var(--safe-bottom) + 20px); right: 20px; display: flex; align-items: center; gap: 12px; z-index: 240; pointer-events: none; }
+        #session-timer { 
+            font-size: 1.1rem; color: var(--text-color); font-variant-numeric: tabular-nums;
+            opacity: 0; padding: 6px 12px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px; display: flex; flex-direction: column; align-items: center; line-height: 1; justify-content: center;
+            transition: opacity 0.5s ease; pointer-events: none;
+        }
+        #session-timer.visible { opacity: 0.8; pointer-events: auto; }
+        #session-timer::after { content: 'ZEIT'; font-size: 0.5rem; opacity: 0.5; margin-top: 2px; letter-spacing: 0.1em; }
+        
+        #preset-display, #tap-float {
+            position: fixed; bottom: 26px; transform: none;
+            font-size: 0.9rem; letter-spacing: 0.1em; color: #fff;
+            background: rgba(20,20,20,0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            padding: 0 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
+            pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 190;
+            text-transform: uppercase; font-weight: 500; display: flex; align-items: center; gap: 10px; height: 54px;
+        }
+        #preset-display { left: calc(50% + 120px); border-color: var(--accent-primary); }
+        #tap-float { right: calc(50% + 120px); cursor: pointer; justify-content: center; }
+        #preset-display.visible, #tap-float.visible { opacity: 1; }
+        #tap-float.visible { pointer-events: auto; }
+        
+        #tap-float.active {
+            background: rgba(255,255,255,0.25);
+            color: #fff;
+            border-color: var(--accent-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .pd-col { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+        .pd-num { font-size: 1.1rem; font-weight: 600; margin-bottom: 2px; }
+        .pd-meta { font-size: 0.55rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.05em; }
+        .pd-sep { opacity: 0.4; font-weight: 300; margin: 0 2px; }
+
+        /* RESTORE UI BUTTON */
+        #restore-ui-btn {
+            position: fixed; bottom: calc(var(--safe-bottom) + 20px); left: 50%; transform: translateX(-50%);
+            width: 56px; height: 56px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text-color);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: all 0.4s ease;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3); will-change: opacity, transform;
+        }
+        #restore-ui-btn:hover { background: rgba(255, 255, 255, 0.25); transform: translateX(-50%) scale(1.1); }
+        #restore-ui-btn svg { width: 30px; height: 30px; fill: currentColor; opacity: 0.9; }
+        body.ui-hidden:not(.app-running) #restore-ui-btn { opacity: 1; pointer-events: auto; animation: gentlePulse 3s infinite ease-in-out; }
+        @keyframes gentlePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } 50% { box-shadow: 0 0 0 10px rgba(255,255,255,0.05); } }
+
+        /* RESPONSIVE TWEAKS */
+        .pos-top .instruction-text { top: 18%; } .pos-top #breath-timer { top: 28%; }
+        .pos-center .instruction-text { top: 45%; } .pos-center #breath-timer { top: 55%; }
+        .pos-bottom .instruction-text { bottom: 25%; } .pos-bottom #breath-timer { bottom: 15%; }
+        body:not(.ui-hidden) #breath-timer { opacity: 0 !important; pointer-events: none; }
+        
+        /* Pacer Arrows */
+        #breath-timer[data-phase="in"]::before { content: "↑"; margin-right: 6px; opacity: 0.7; }
+        #breath-timer[data-phase="out"]::before { content: "↓"; margin-right: 6px; opacity: 0.7; }
+        #breath-timer[data-phase*="hold"]::before { content: "="; margin-right: 6px; opacity: 0.7; }
+
+        @media (min-width: 1025px) {
+            #ui-container { max-width: 680px; left: 50%; bottom: 40px; transform: translateX(-50%); border-radius: 24px; padding: 25px 35px; }
+            #ui-container.hidden { transform: translate(-50%, 130%); }
+            .preset-scroll { flex-wrap: wrap; justify-content: center; overflow: visible; }
+        }
+        @media (max-width: 1024px) {
+            body.ui-hidden #breath-timer { top: auto !important; bottom: 35px !important; right: 50% !important; margin-right: 130px !important; transform: none !important; }
+            #bottom-controls { right: auto !important; left: 50% !important; bottom: 35px !important; margin-left: 130px !important; }
+            #preset-display { bottom: 100px !important; left: 20px !important; right: auto !important; transform: none !important; }
+            #tap-float { bottom: 100px !important; right: 20px !important; left: auto !important; transform: none !important; width: auto !important; padding: 0 18px !important; }
+            .pd-meta { display: none; } /* Hide granular labels on mobile */
+            .pos-center .instruction-text { top: 50% !important; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); }
+        }
         @media (max-width: 767px) {
+            #summary-modal { overflow-y: auto; justify-content: flex-start; padding-top: 80px; }
+            .summary-stat { font-size: 3rem; }
             #timing-toggle-btn { display: block; margin: 0 auto 15px auto; width: auto; font-size: 0.8rem; padding: 8px 16px; opacity: 0.8; }
             #timing-grid { display: none; }
             #timing-grid.visible { display: grid; }
         }
-
-        /* VOLUME CONTROL */
-        #volume-control { position: fixed; top: calc(var(--safe-top) + 20px); right: 85px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 0 18px; height: 50px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.05); z-index: 250; min-width: 160px; }
-        #volume-control:hover { background: rgba(0,0,0,0.4); }
-        #vol-icon { width: 28px; height: 28px; fill: var(--text-color); opacity: 0.6; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
-
-        /* COLOR CONTROL (Top Left) */
-        #color-control { position: fixed; top: calc(var(--safe-top) + 20px); left: 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 0 18px; height: 50px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.05); z-index: 250; min-width: 160px; }
-        #color-control:hover { background: rgba(0,0,0,0.4); }
-        #color-icon { width: 28px; height: 28px; fill: var(--text-color); opacity: 0.6; flex-shrink: 0; }
-
-        /* DESKTOP VIZ TOGGLE */
-        #desktop-viz-toggle {
-            position: fixed; top: calc(var(--safe-top) + 20px); right: 380px; /* Left of volume */
-            width: 50px; height: 50px; border-radius: 50%;
-            background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.05); z-index: 250;
-            display: none; align-items: center; justify-content: center; cursor: pointer;
-            color: var(--text-color); opacity: 0.6; transition: all 0.3s ease;
-        }
-        #desktop-viz-toggle:hover { background: rgba(0,0,0,0.4); opacity: 1; transform: scale(1.05); }
-        #desktop-viz-toggle svg { width: 24px; height: 24px; fill: currentColor; }
-        #desktop-viz-toggle.active { background: var(--accent-primary); opacity: 1; color: #fff; }
-        
-        @media (min-width: 768px) {
-            #desktop-viz-toggle { display: flex; }
-        }
-
-        /* TOP RANDOM BTN */
-        #top-random-btn {
-            position: fixed; top: calc(var(--safe-top) + 20px); right: 20px;
-            width: 50px; height: 50px; border-radius: 50%;
-            background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.05);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.3s ease; z-index: 250;
-            color: var(--text-color); opacity: 0.6;
-        }
-        #top-random-btn:hover { background: rgba(0,0,0,0.4); opacity: 1; transform: scale(1.05); }
-        #top-random-btn svg { width: 28px; height: 28px; fill: currentColor; }
-
-        /* XY PAD MIXER */
-        #xy-pad-container { 
-            display: none; flex-direction: column; align-items: center; 
-            position: fixed; z-index: 1200;
-            background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1); padding: 20px;
-            transition: opacity 0.3s, transform 0.3s;
-        }
-        /* Mobile: Bottom Sheet Overlay */
-        @media (max-width: 767px) {
-            #xy-pad-container {
-                bottom: 0; left: 0; width: 100%; border-radius: 24px 24px 0 0;
-                max-height: 85vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-            }
-        }
-        /* Desktop: Floating Sidebar */
-        @media (min-width: 768px) {
-            #xy-pad-container {
-                top: 50%; right: 30px; transform: translateY(-50%);
-                width: 320px; border-radius: 24px; max-height: 90vh; overflow-y: auto;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            }
-        }
-
-        #xy-pad {
-            width: 100%; max-width: 280px; height: 200px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            position: relative;
-            touch-action: none; /* Prevents scrolling on touch devices */
-            cursor: crosshair;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
-        }
-        #xy-cursor {
-            width: 24px; height: 24px;
-            background: var(--accent-primary);
-            border: 2px solid #fff;
-            border-radius: 50%;
-            position: absolute;
-            top: 0; left: 0;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-            transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        #xy-pad:active #xy-cursor { transform: translate(-50%, -50%) scale(1.2); transition: none; }
-        
-        .xy-label {
-            position: absolute;
-            font-size: 0.65rem;
-            color: rgba(255,255,255,0.3);
-            text-transform: uppercase;
-            pointer-events: none;
-            font-weight: 500;
-            letter-spacing: 0.05em;
-        }
-        .xy-tl { top: 12px; left: 12px; }
-        .xy-tr { top: 12px; right: 12px; }
-        .xy-bl { bottom: 12px; left: 12px; }
-        .xy-br { bottom: 12px; right: 12px; }
-
-        .xy-zone {
-            position: absolute; top: 50%; transform: translate(-50%, -50%);
-            font-size: 0.55rem; letter-spacing: 0.15em; 
-            pointer-events: none; user-select: none;
-        }
-        .xy-zone-dark { left: 25%; color: rgba(255,255,255,0.12); }
-        .xy-zone-light { left: 75%; color: rgba(255,255,255,0.5); text-shadow: 0 0 4px rgba(255,255,255,0.2); }
-
-        /* Chaos Slider & New Sliders */
-        .slider-group { width: 100%; max-width: 280px; margin-top: 15px; }
-        .slider-group label { display: flex; justify-content: space-between; font-size: 0.75rem; opacity: 0.7; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 12px; }
-
-        /* BOTTOM CONTROLS (Refresh & Timer) */
-        #bottom-controls {
-            position: fixed; bottom: calc(var(--safe-bottom) + 20px); right: 20px;
-            display: flex; align-items: center; gap: 12px; z-index: 240;
-            pointer-events: none; /* Allow clicks to pass through empty areas */
-        }
-        
-        #menu-shuffle-btn {
-            position: absolute; top: 15px; right: 20px;
-            width: 44px; height: 44px; border-radius: 50%;
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.3s ease; z-index: 20;
-            color: var(--text-color); opacity: 0.6;
-        }
-        #menu-shuffle-btn:hover { background: rgba(255,255,255,0.15); opacity: 1; transform: scale(1.05); }
-        #menu-shuffle-btn svg { width: 24px; height: 24px; fill: currentColor; }
-
-        #session-timer { 
-            position: static; /* Flex item */
-            font-size: 1.1rem; font-weight: 400; color: var(--text-color); font-variant-numeric: tabular-nums;
-            opacity: 0; max-width: 0; padding: 0; overflow: hidden; white-space: nowrap;
-            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; 
-            background: rgba(0,0,0,0.18); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border-radius: 14px;
-            /* Global "ZEIT" Label */
-            display: flex; flex-direction: column; align-items: center; line-height: 1; justify-content: center;
-        }
-        #session-timer.visible { opacity: 0.8; max-width: 100px; padding: 6px 12px; pointer-events: auto; }
-        #session-timer:hover { opacity: 1; }
-        #session-timer::after {
-            content: 'ZEIT'; font-size: 0.5rem; opacity: 0.5; margin-top: 2px; letter-spacing: 0.1em;
-        }
-        
-        #preset-display {
-            position: fixed; bottom: 26px; left: calc(50% + 120px); transform: none;
-            font-size: 0.85rem; letter-spacing: 0.1em; color: #fff;
-            background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            padding: 0 20px; border-radius: 14px; 
-            border: 1px solid var(--accent-primary); box-shadow: 0 0 12px rgba(0,0,0,0.2);
-            pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 190;
-            text-transform: uppercase; font-weight: 500; font-family: sans-serif;
-            display: flex; align-items: center; gap: 10px; height: 54px; /* Match #stop-float height */
-        }
-        #preset-display.visible { opacity: 1; }
-        
-        .pd-col { display: flex; flex-direction: column; align-items: center; line-height: 1; }
-        .pd-num { font-size: 1.0rem; font-weight: 500; margin-bottom: 2px; }
-        .pd-meta { font-size: 0.5rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.05em; text-align: center; line-height: 1.2; }
-        .pd-sep { font-size: 0.9rem; opacity: 0.4; margin-top: 0; font-weight: 300; }
-
-        /* Mobile Optimization for Preset Display */
-        @media (max-width: 767px) {
-            #preset-display .pd-meta { display: none; } /* Hide labels on phone */
-            #preset-display { gap: 6px; padding: 0 14px; }
-        }
-
-        #tap-float {
-            position: fixed; bottom: 26px; right: calc(50% + 120px); transform: none;
-            font-size: 0.85rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.9);
-            background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            padding: 0 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
-            opacity: 0; transition: opacity 0.5s, background 0.2s; z-index: 190;
-            text-transform: uppercase; font-weight: 500; font-family: sans-serif;
-            display: flex; align-items: center; justify-content: center; gap: 10px; height: 54px;
-            cursor: pointer; pointer-events: none;
-        }
-        #tap-float.visible { opacity: 1; pointer-events: auto; }
-        #tap-float:active { background: rgba(255,255,255,0.1); }
-
-        /* TEXT POSITIONS */
-        .pos-top .instruction-text { top: 15%; bottom: auto; }
-        .pos-top #breath-timer { top: 25%; bottom: auto; }
-
-        .pos-center .instruction-text { top: 45%; transform: translate(-50%, -50%); }
-        .pos-center #breath-timer { top: 55%; transform: translate(-50%, -50%); }
-
-        .pos-bottom .instruction-text { top: auto; bottom: 25%; }
-        .pos-bottom #breath-timer { top: auto; bottom: 15%; }
-
-        /* Hide text when UI is visible */
-        body:not(.ui-hidden) #breath-timer {
-            opacity: 0 !important;
-            pointer-events: none;
-        }
-
-        /* Pacer Indicators (Global) */
-        #breath-timer::before {
-            display: inline-block; margin-right: 4px; font-size: 0.7em; opacity: 0.7; vertical-align: 1px;
-        }
-        #breath-timer[data-phase="in"]::before { content: "↑"; }
-        #breath-timer[data-phase="out"]::before { content: "↓"; }
-        #breath-timer[data-phase="hold-full"]::before { content: "="; }
-        #breath-timer[data-phase="hold-empty"]::before { content: "="; }
-
-        /* DESKTOP TWEAKS (Keep iPad/Mobile as is) */
-        @media (min-width: 1025px) {
-            #ui-container { 
-                max-width: 640px; left: 50%; bottom: 40px; transform: translateX(-50%); 
-                border-radius: 24px; 
-            }
-            #ui-container.hidden { transform: translate(-50%, 130%); }
-            
-            .controls-grid { gap: 12px; margin-bottom: 16px; }
-            input, select, .btn { padding: 12px; font-size: 1rem; }
-            
-            .preset-scroll { flex-wrap: wrap; justify-content: center; overflow: visible; }
-        }
-
-        /* IPAD LANDSCAPE OPTIMIZATION */
-        @media (orientation: landscape) {
-            .controls-grid { grid-template-columns: repeat(4, 1fr); }
-            #ui-container { padding-bottom: calc(10px + var(--safe-bottom)); }
-            .pos-top .instruction-text { top: 12%; }
-            .pos-top #breath-timer { top: 22%; }
-            .pos-bottom .instruction-text { bottom: 20%; }
-        }
-
-        /* MOBILE PLAYER LAYOUT (Symmetrical around Stop button) */
-        @media (max-width: 1024px) {
-            body.ui-hidden #breath-timer {
-                top: auto !important; bottom: 32px !important;
-                left: auto !important; right: 50% !important;
-                margin-right: 120px !important; transform: none !important;
-                font-size: 1.4rem !important;
-            }
-            #bottom-controls {
-                right: auto !important; left: 50% !important;
-                bottom: 32px !important; margin-left: 120px !important;
-            }
-            #preset-display {
-                bottom: 95px !important; left: 20px !important; right: auto !important; transform: none !important;
-            }
-            #tap-float {
-                bottom: 95px !important; 
-                right: 20px !important; 
-                left: auto !important; 
-                transform: none !important;
-                width: auto !important;
-                padding: 0 15px !important;
-            }
-
-            /* Center Instruction Readability & Position */
-            .pos-center .instruction-text {
-                top: 50% !important;
-                background: rgba(0,0,0,0.25); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-                border: 1px solid rgba(255,255,255,0.08);
-            }
-        }
-
-        /* Mobile Summary Screen Fix */
-        @media (max-width: 767px) {
-            #summary-modal { overflow-y: auto; justify-content: flex-start; padding-top: 60px; touch-action: pan-y; }
-            .summary-stat { font-size: 2.8rem; margin: 10px 0; }
-            .summary-quote { font-size: 1.1rem; line-height: 1.4; }
-            .summary-author { font-size: 0.95rem; }
-            
-            /* Fix Header Overlap */
-            .pos-top .instruction-text { top: calc(var(--safe-top) + 60px); }
-            .pos-top #breath-timer { top: calc(var(--safe-top) + 105px); }
-        }
-
-        /* RESTORE UI BUTTON */
-        #restore-ui-btn {
-            position: fixed;
-            bottom: calc(var(--safe-bottom) + 20px);
-            left: 50%;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: var(--text-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 900;
-            
-            /* Visibility Transition */
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s ease, transform 0.2s ease, background 0.3s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        /* Hover State */
-        #restore-ui-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateX(-50%) scale(1.1);
-        }
-
-        /* SVG Icon */
-        #restore-ui-btn svg {
-            width: 32px;
-            height: 32px;
-            fill: currentColor;
-            opacity: 0.8;
-        }
-
-        /* THE LOGIC: Only show when body has 'ui-hidden' class */
-        body.ui-hidden:not(.app-running) #restore-ui-btn {
-            opacity: 1;
-            pointer-events: auto;
-            animation: gentlePulse 3s infinite ease-in-out;
-        }
-
-        @keyframes gentlePulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-            50% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.05); }
-        }
+        #timing-toggle-btn { display: none; } /* Hidden on desktop */
     </style>
 </head>
 <body class="theme-lotusabend">
@@ -568,36 +256,35 @@
         <div class="instruction-text" id="instruction">Atmen</div>
         <div id="breath-timer"></div>
         <div id="preset-display"></div>
-        <div id="bottom-controls">
-            <div id="session-timer"></div>
-        </div>
+        <div id="bottom-controls"><div id="session-timer"></div></div>
+        
         <div id="volume-control" class="top-ctrl">
-            <svg id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+            <svg class="ctrl-icon" id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             <input type="range" id="vol-slider" min="0" max="1" step="0.01">
         </div>
         <div id="color-control" class="top-ctrl">
-            <svg id="color-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5S18.33 12 17.5 12z"/></svg>
+            <svg class="ctrl-icon" id="color-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5S18.33 12 17.5 12z"/></svg>
             <input type="range" id="color-slider" min="0" max="100" step="0.1" value="0">
         </div>
-        <div id="top-random-btn" onclick="app.randomizeVisuals()">
+        <div id="top-random-btn" class="float-btn" onclick="app.randomizeVisuals()">
             <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zM14.83 13.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04L14.83 13.41z"/></svg>
         </div>
-        <div id="desktop-viz-toggle" onclick="app.toggleMixer()" title="Visuals bearbeiten">
+        <div id="desktop-viz-toggle" class="float-btn" onclick="app.toggleMixer()" title="Visuals bearbeiten">
             <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
         </div>
     </div>
 
     <div id="summary-modal">
-        <h2 style="font-weight: 100; opacity: 0.5; font-size: 1.8rem;">Breathwork abgeschlossen</h2>
+        <h2 style="font-weight: 300; opacity: 0.5; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 0.1em;">Sitzung beendet</h2>
         <div id="summary-time" class="summary-stat">0m</div>
         <p class="summary-quote" id="quote-text"></p>
         <div id="quote-author" class="summary-author"></div>
-        <button class="btn" style="margin-top: 30px; width: auto; padding: 12px 35px;" onclick="app.closeSummary()">Schließen</button>
+        <button class="btn" style="margin-top: 40px; width: auto; padding: 14px 40px;" onclick="app.closeSummary()">Schließen</button>
     </div>
 
     <div id="ui-container">
         <div class="handle"></div>
-        <div id="menu-shuffle-btn" onclick="app.shuffleSession()" role="button" aria-label="Zufällig">
+        <div id="menu-shuffle-btn" class="float-btn" style="position:absolute; top:15px; right:20px; box-shadow:none; border:1px solid rgba(255,255,255,0.1);" onclick="app.shuffleSession()">
             <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zM14.83 13.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04L14.83 13.41z"/></svg>
         </div>
 
@@ -606,6 +293,13 @@
             <button class="chip" onclick="app.setVisualMode('circle', this)">Kreis</button>
             <button class="chip" onclick="app.setVisualMode('ripple', this)">Welle</button>
             <button class="chip" onclick="app.setVisualMode('luma', this)">Licht</button>
+        </div>
+
+        <div id="bpm-selector-container" style="display: none; margin-bottom: 20px; animation: fadeIn 0.5s ease;">
+            <label style="margin-left: 5px; color: var(--accent-secondary);">Gefundene Takte (Tippen)</label>
+            <div id="bpm-selector" class="preset-scroll" style="flex-wrap: wrap; justify-content: flex-start; overflow: visible;">
+                <!-- Musical loop options will be injected here -->
+            </div>
         </div>
 
         <div style="display: flex; justify-content: center; margin-bottom: 20px;">
@@ -635,32 +329,33 @@
         <div class="controls-grid">
             <div class="full-width-col">
                 <label>Audio / Musik</label>
-                <div style="display:flex; gap:8px; align-items:center;">
+                <div style="display:flex; gap:10px; align-items:center;">
                     <select id="soundSelect" style="flex:1;">
                         <option value="none">Stille</option>
                         <option value="gentle">Generator: Sanft</option>
                         <option value="ambient">Generator: Ambient</option>
-                        <option value="bowl">Tibetische Klangschale</option>
+                        <option value="bowl">Tibetische Klangschale (Synth)</option>
+                        <option value="bowl-high">Tibetische Klangschale (Hell)</option>
+                        <option value="bowl-mp3">Tibetische Klangschale (Original)</option>
                         <option value="water">Fließendes Wasser</option>
                         <option value="audio/accede_atem_track-5_5.mp3">Accede: Atem Track (5.5)</option>
                         <option value="audio/altus_session3.mp3">Altus: Session 3 (5.5)</option>
                         <option value="audio/yrrpheus_coherence.mp3">Yrrpheus: Coherence</option>
                     </select>
                     <input type="file" id="audioFileInput" accept="audio/*" style="display:none">
-                    <button class="btn" id="uploadBtn" style="width:auto; padding:8px 10px;">+</button>
+                    <button class="btn" id="uploadBtn" style="width:auto; padding:10px 14px;">+</button>
                 </div>
             </div>
         </div>
 
         <label>Sitzungsdauer (Minuten)</label>
         <div class="preset-scroll" id="duration-scroll">
-            <button class="chip active" onclick="app.setDuration(0, this)">∞ (Endlos)</button>
+            <button class="chip active" onclick="app.setDuration(0, this)">∞</button>
             <button class="chip" onclick="app.setDuration(3, this)">3</button>
             <button class="chip" onclick="app.setDuration(5, this)">5</button>
             <button class="chip" onclick="app.setDuration(10, this)">10</button>
             <button class="chip" onclick="app.setDuration(15, this)">15</button>
             <button class="chip" onclick="app.setDuration(20, this)">20</button>
-            <button class="chip" onclick="app.setDuration(25, this)">25</button>
             <button class="chip" onclick="app.setDuration(30, this)">30</button>
             <input type="number" placeholder="Min" onchange="app.setDuration(this.value, null)">
         </div>
@@ -669,74 +364,54 @@
     </div>
 
     <button id="stop-float" class="btn stop-mode" style="display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:26px; z-index:200; width:220px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">Beenden</button>
-    <button id="tap-float">
-        ♫ Takt tippen
-    </button>
+    <button id="tap-float">♫ Takt tippen</button>
 
-    <button id="restore-ui-btn" onclick="app.toggleUI()" aria-label="Menü öffnen">
+    <button id="restore-ui-btn" aria-label="Menü öffnen">
         <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
     </button>
 
-    <!-- MOVED XY PAD CONTAINER (Outside UI Container) -->
     <div id="xy-pad-container">
         <div id="xy-pad">
-            <div class="xy-label xy-tl">Nebel</div>
-            <div class="xy-label xy-tr">Kreis</div>
-            <div class="xy-label xy-bl">Welle</div>
-            <div class="xy-label xy-br">Licht</div>
-            <div class="xy-zone xy-zone-dark">DUNKLER</div>
-            <div class="xy-zone xy-zone-light">HELLER</div>
+            <div class="xy-label xy-tl">nebel</div><div class="xy-label xy-tr">kreis</div>
+            <div class="xy-label xy-ml">dunkel</div><div class="xy-label xy-mr">hell</div>
+            <div class="xy-label xy-bl">welle</div><div class="xy-label xy-br">licht</div>
             <div id="xy-cursor" style="left: 0%; top: 0%;"></div>
         </div>
         
-        <button id="slider-toggle-btn" class="chip" style="margin-top: 15px; width: auto; font-size: 0.8rem; padding: 8px 16px; opacity: 0.8;" onclick="app.toggleSliders()">Einstellungen anzeigen</button>
+        <button id="slider-toggle-btn" class="chip" style="margin-top: 20px; width: 100%; opacity: 0.9;" onclick="app.toggleSliders()">Einstellungen verbergen</button>
 
-        <div class="slider-group" id="viz-sliders" style="display: none;">
-            <label>
-                <span>Chaos / Varianz</span>
-                <span id="chaos-val">0%</span>
-            </label>
-            <input type="range" id="randomness-slider" class="range-slider" min="0" max="1" step="0.01" value="0">
+        <div class="slider-group" id="viz-sliders" style="display: block;">
+            <label><span>Chaos / Varianz</span><span id="chaos-val">0%</span></label>
+            <input type="range" id="randomness-slider" min="0" max="1" step="0.01" value="0">
             
-            <label>
-                <span>Intensität / Menge</span>
-                <span id="intensity-val">75%</span>
-            </label>
-            <input type="range" id="intensity-slider" class="range-slider" min="0.1" max="1" step="0.01" value="0.75">
+            <label><span>Intensität</span><span id="intensity-val">75%</span></label>
+            <input type="range" id="intensity-slider" min="0.1" max="1" step="0.01" value="0.75">
             
-            <label>
-                <span>Licht: Ecken</span>
-                <span id="points-val">5</span>
-            </label>
-            <input type="range" id="points-slider" class="range-slider" min="3" max="12" step="1" value="5">
+            <label><span>Geometrie-Punkte</span><span id="points-val">5</span></label>
+            <input type="range" id="points-slider" min="3" max="12" step="1" value="5">
 
             <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                <button id="drift-btn" class="chip" style="width:100%; justify-content: space-between; display: flex;" onclick="app.toggleDrift()">
-                    <span>Auto-Drift</span>
-                    <span id="drift-status" style="opacity:0.5">Aus</span>
-                </button>
+                <label style="margin-bottom: 12px; opacity: 0.5;">Drift & Sync</label>
+                <button id="drift-btn" class="chip" style="width:100%; justify-content: space-between; display: flex;" onclick="app.toggleDrift()"><span>Auto-Drift</span><span id="drift-status" style="opacity:0.5">Aus</span></button>
                 <div id="drift-controls" style="display:none; margin-top:12px;">
                     <label><span>Dauer: <span id="drift-val">4</span> <span id="drift-unit">Atemzüge</span> / Phase</span></label>
-                    <input type="range" id="drift-slider" class="range-slider" min="1" max="12" step="1" value="4">
+                    <input type="range" id="drift-slider" min="1" max="12" step="1" value="4">
                 </div>
-                
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <button id="color-drift-btn" class="chip" style="width:100%; justify-content: space-between; display: flex;" onclick="app.toggleColorDrift()">
-                        <span>Farb-Drift</span>
-                        <span id="color-drift-status" style="opacity:0.5">Aus</span>
-                    </button>
+                    <button id="color-drift-btn" class="chip" style="width:100%; justify-content: space-between; display: flex;" onclick="app.toggleColorDrift()"><span>Farb-Drift</span><span id="color-drift-status" style="opacity:0.5">Aus</span></button>
                     <div id="color-drift-controls" style="display:none; margin-top:12px;">
                         <label><span>Dauer: <span id="color-drift-val">4</span> <span id="color-drift-unit">Atemzüge</span> / Farbe</span></label>
-                        <input type="range" id="color-drift-slider" class="range-slider" min="1" max="12" step="1" value="4">
+                        <input type="range" id="color-drift-slider" min="1" max="12" step="1" value="4">
                     </div>
                 </div>
             </div>
         </div>
-        <button class="btn" style="margin-top: 20px; padding: 12px;" onclick="app.toggleMixer()">Schließen</button>
+        <button class="btn" style="margin-top: 25px; padding: 12px; font-size: 1rem; background: rgba(255,255,255,0.1);" onclick="app.toggleMixer()">Schließen</button>
     </div>
+    <style>@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }</style>
 
     <script>
-    // Optimized Simplex Noise with Zero Allocation per Call
+    /* --- OPTIMIZED SIMPLEX NOISE --- */
     const GRAD3 = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[1,0],[-1,0],[0,1],[0,-1],[0,1],[0,-1]];
     class SimplexNoise { 
         constructor() {
@@ -766,47 +441,33 @@
     }
 
     const THEME_PALETTE = [
-        { r:14, g:11, b:12,  ar:166, ag:89, ab:89  }, // Lotus
-        { r:7,  g:16, b:18,  ar:93,  ag:122, ab:102 }, // Dantian
-        { r:7,  g:7,  b:9,   ar:94,  ag:114, ab:145 }, // Mani
-        { r:11, g:16, b:38,  ar:107, ag:140, ab:150 }, // Himmel
-        { r:18, g:12, b:8,   ar:186, ag:150, ab:85  }, // Gold
-        { r:18, g:18, b:18,  ar:207, ag:216, ab:220 }  // Licht
+        { r:14, g:11, b:12,  ar:166, ag:89, ab:89  }, { r:7,  g:16, b:18,  ar:93,  ag:122, ab:102 },
+        { r:7,  g:7,  b:9,   ar:94,  ag:114, ab:145 }, { r:11, g:16, b:38,  ar:107, ag:140, ab:150 },
+        { r:18, g:12, b:8,   ar:186, ag:150, ab:85  }, { r:18, g:18, b:18,  ar:207, ag:216, ab:220 }
     ];
 
+    /* --- OPTIMIZED VISUAL ENGINE --- */
     class BreathVisuals {
         constructor(canvas) {
             this.canvas = canvas; this.ctx = this.canvas.getContext('2d', { alpha: false, desynchronized: true });
             this.noise = new SimplexNoise(); 
             this.dpr = Math.min(window.devicePixelRatio || 1, 2);
             this.width = 0; this.height = 0; this.centerX = 0; this.centerY = 0;
-            this.weights = { mist: 1, circle: 0, ripple: 0, luma: 0 }; this.breathValue = 0.5; this.colors = { r:138, g:138, b:138 };
+            this.weights = { mist: 1, circle: 0, ripple: 0, luma: 0 }; 
+            this.breathValue = 0.5; this.colors = { r:138, g:138, b:138 };
             this.bgR = 10; this.bgG = 10; this.bgB = 10;
+            this.randomness = 0; this.intensity = 0.75; this.lumaPoints = 5; 
+            this.tapPulse = 0; this.phase = 'hold-empty'; this.turnSignal = 0;
             
-            // DEFAULTS
-            this.randomness = 0;
-            this.intensity = 0.75; // Default 75%
-            this.lumaPoints = 5;  // Default 5 corners
-            
-            // TAP PULSE (Flash Effect)
-            this.tapPulse = 0;
-
-            // Optimization: Structure of Arrays (SoA) for zero-GC particles
+            // Memory Optimization: Pre-allocate particles (Structure of Arrays)
             this.pCount = 500;
-            this.p_x = new Float32Array(this.pCount);
-            this.p_y = new Float32Array(this.pCount);
-            this.p_vx = new Float32Array(this.pCount);
-            this.p_vy = new Float32Array(this.pCount);
-            this.p_life = new Float32Array(this.pCount);
-            this.p_maxLife = new Float32Array(this.pCount);
-            this.p_size = new Float32Array(this.pCount);
-            this.p_baseAlpha = new Float32Array(this.pCount);
+            this.p_x = new Float32Array(this.pCount); this.p_y = new Float32Array(this.pCount);
+            this.p_vx = new Float32Array(this.pCount); this.p_vy = new Float32Array(this.pCount);
+            this.p_life = new Float32Array(this.pCount); this.p_maxLife = new Float32Array(this.pCount);
+            this.p_size = new Float32Array(this.pCount); this.p_baseAlpha = new Float32Array(this.pCount);
             
-            this.particleSprite = null;
-            this.phase = 'hold-empty';
-            this.lastPhase = '';
-            this.turnSignal = 0;
-            this.initParticles = false;
+            this.particleSprite = null; this.initParticles = false;
+            this.PI2 = Math.PI * 2;
             
             window.addEventListener('resize', () => this.resize(), { passive: true }); 
             this.resize(); 
@@ -819,34 +480,15 @@
             if (hex.length === 6) {
                 const bi = parseInt(hex, 16); this.colors = { r: (bi >> 16) & 255, g: (bi >> 8) & 255, b: bi & 255 };
             }
-            
-            // Fix for "White Screen"
             let bgStr = style.getPropertyValue('--bg-color').trim();
-            if (bgStr.startsWith('#') && bgStr.length === 7) {
-                this.bgR = parseInt(bgStr.slice(1,3),16);
-                this.bgG = parseInt(bgStr.slice(3,5),16);
-                this.bgB = parseInt(bgStr.slice(5,7),16);
+            if (bgStr.startsWith('#')) {
+                this.bgR = parseInt(bgStr.slice(1,3),16); this.bgG = parseInt(bgStr.slice(3,5),16); this.bgB = parseInt(bgStr.slice(5,7),16);
             } else if (bgStr.startsWith('rgb')) {
                 const rgb = bgStr.match(/\d+/g);
-                if(rgb && rgb.length === 3) {
-                    this.bgR = parseInt(rgb[0]);
-                    this.bgG = parseInt(rgb[1]);
-                    this.bgB = parseInt(rgb[2]);
-                }
-            } else {
-                this.bgR = 10; this.bgG = 10; this.bgB = 10;
+                if(rgb) { this.bgR = parseInt(rgb[0]); this.bgG = parseInt(rgb[1]); this.bgB = parseInt(rgb[2]); }
             }
-            
             this.generateSprite();
         }
-
-        triggerPulse() {
-            this.tapPulse = 1.0;
-        }
-
-        setRandomness(v) { this.randomness = v; }
-        setIntensity(v) { this.intensity = v; }
-        setLumaPoints(v) { this.lumaPoints = v; }
 
         generateSprite() {
             this.particleSprite = document.createElement('canvas');
@@ -866,409 +508,194 @@
             this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
             this.centerX = this.width / 2; this.centerY = this.height / 2;
             this.updateThemeColors(); 
-            this.initParticles = false; // Trigger reset
+            this.initParticles = false;
         }
 
         setBreathState(v, p) { 
-            if (p === 'out' && this.lastPhase !== 'out') {
-                this.turnSignal = 1.0;
-            }
-            this.lastPhase = p;
-            this.breathValue = Math.max(0, Math.min(1, v)); 
-            this.phase = p;
+            if (p === 'out' && this.phase !== 'out') this.turnSignal = 1.0;
+            this.breathValue = v; this.phase = p;
         }
         
+        triggerPulse(intensity = 1.0) { this.tapPulse = Math.max(this.tapPulse, intensity); }
+        setRandomness(v) { this.randomness = v; }
+        setIntensity(v) { this.intensity = v; }
+        setLumaPoints(v) { this.lumaPoints = v; }
+
         animate() {
             requestAnimationFrame(() => this.animate());
             
-            this.turnSignal *= 0.92;
-            if (this.turnSignal < 0.01) this.turnSignal = 0;
+            // Decay signals
+            if (this.turnSignal > 0) this.turnSignal *= 0.92;
+            if (this.tapPulse > 0.01) this.tapPulse *= 0.85; else this.tapPulse = 0;
 
-            // Decay Tap Pulse
-            this.tapPulse *= 0.85; 
-            if(this.tapPulse < 0.01) this.tapPulse = 0;
+            const safeR = this.bgR || 10, safeG = this.bgG || 10, safeB = this.bgB || 10;
+            // Adaptive fade trail
+            let alpha = 0.05; 
+            if (this.weights.mist > 0.5) alpha = 0.12;
             
-            let totalW = 0, weightedFade = 0;
-            for(let k in this.weights) {
-                const w = this.weights[k];
-                totalW += w; weightedFade += w * (k==='mist' ? 0.12 : 0.025);
-            }
-            const fade = totalW > 0.01 ? weightedFade / totalW : 0.05;
-
             this.ctx.globalCompositeOperation = 'source-over';
-            const safeR = isNaN(this.bgR) ? 10 : this.bgR;
-            const safeG = isNaN(this.bgG) ? 10 : this.bgG;
-            const safeB = isNaN(this.bgB) ? 10 : this.bgB;
-            this.ctx.fillStyle = `rgba(${safeR}, ${safeG}, ${safeB}, ${fade})`;
+            this.ctx.fillStyle = `rgba(${safeR}, ${safeG}, ${safeB}, ${alpha})`;
             this.ctx.fillRect(0, 0, this.width, this.height);
             this.ctx.globalCompositeOperation = 'lighter';
 
             if (this.weights.mist > 0.01) this.renderMist(this.weights.mist);
+            if (this.weights.circle > 0.01) { this.ctx.save(); this.ctx.globalAlpha = this.weights.circle; this.renderCircle(); this.ctx.restore(); }
+            if (this.weights.ripple > 0.01) { this.ctx.save(); this.ctx.globalAlpha = this.weights.ripple; this.renderRipple(); this.ctx.restore(); }
+            if (this.weights.luma > 0.01) { this.ctx.save(); this.ctx.globalAlpha = this.weights.luma; this.renderLuma(); this.ctx.restore(); }
             
-            if (this.weights.circle > 0.01) {
-                this.ctx.save(); this.ctx.globalAlpha = this.weights.circle;
-                this.renderCircle(); this.ctx.restore();
-            }
-            
-            if (this.weights.ripple > 0.01) {
-                this.ctx.save(); this.ctx.globalAlpha = this.weights.ripple;
-                this.renderRipple(); this.ctx.restore();
-            }
-            
-            if (this.weights.luma > 0.01) {
-                this.ctx.save(); this.ctx.globalAlpha = this.weights.luma;
-                this.renderLuma(); this.ctx.restore();
-            }
-            
-            // Optimized Tap Flash (Radial Gradient Overlay)
+            // Tap Flash
             if (this.tapPulse > 0.01) {
-                this.ctx.globalCompositeOperation = 'lighter';
                 const maxDim = Math.max(this.width, this.height);
+                const generalGlowAmount = 1.0 - this.weights.mist;
                 const g = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, maxDim * 0.15);
-                g.addColorStop(0, `rgba(255, 255, 255, ${this.tapPulse * 0.08})`);
+                const alpha = this.tapPulse * 0.3 * generalGlowAmount * (0.4 + 0.6 * this.breathValue);
+                if (alpha > 0.001) g.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
                 g.addColorStop(1, "rgba(255, 255, 255, 0)");
-                this.ctx.fillStyle = g;
-                this.ctx.fillRect(0, 0, this.width, this.height);
+                this.ctx.fillStyle = g; this.ctx.fillRect(0, 0, this.width, this.height);
             }
         }
 
         resetParticle(i) {
-            this.p_x[i] = Math.random() * this.width;
-            this.p_y[i] = Math.random() * this.height;
-            this.p_vx[i] = 0; 
-            this.p_vy[i] = 0;
-            this.p_life[i] = 0; 
-            this.p_maxLife[i] = 150 + Math.random() * 250;
+            this.p_x[i] = Math.random() * this.width; this.p_y[i] = Math.random() * this.height;
+            this.p_vx[i] = 0; this.p_vy[i] = 0;
+            this.p_life[i] = 0; this.p_maxLife[i] = 150 + Math.random() * 250;
             this.p_size[i] = (4 + Math.random() * 24) * (this.dpr * 0.6);
             this.p_baseAlpha[i] = 0.05 + Math.random() * 0.25;
         }
 
         renderMist(layerOpacity) {
-            if (!this.initParticles) {
-                for (let i = 0; i < this.pCount; i++) this.resetParticle(i);
-                this.initParticles = true;
-            }
-
+            if (!this.initParticles) { for (let i = 0; i < this.pCount; i++) this.resetParticle(i); this.initParticles = true; }
+            
             const time = Date.now() * 0.0003;
-            const center = { x: this.centerX, y: this.centerY };
             const maxR = Math.min(this.width, this.height) * 0.4;
             const targetR = 20 + (maxR * this.breathValue);
-
-            let turbulence = 0.03;
-            if (this.phase === 'hold-full') turbulence = 0.05;
-            else if (this.phase === 'hold-empty') turbulence = 0.01;
-
-            turbulence += this.randomness * 0.25; 
-            turbulence += this.turnSignal * 0.15;
             const noiseScale = 0.0015 + (this.randomness * 0.02);
+            
+            // Optimization: Calculate invariant physics outside loop
+            let turbulence = 0.03 + (this.randomness * 0.25) + (this.turnSignal * 0.15);
+            if (this.phase === 'hold-full') turbulence += 0.02;
+            
+            let attraction = 0.0005;
+            if (this.phase === 'out') attraction = 0.0008;
+            else if (this.phase === 'hold-full') attraction = 0.001;
 
             const activeCount = Math.floor(this.pCount * (0.1 + this.intensity * 0.9));
+            const pulseBoost = this.tapPulse * 0.4 * (0.4 + 0.6 * this.breathValue);
 
             for (let i = 0; i < activeCount; i++) {
-                this.p_life[i]++;
-                if (this.p_life[i] > this.p_maxLife[i]) this.resetParticle(i);
+                if (++this.p_life[i] > this.p_maxLife[i]) this.resetParticle(i);
 
                 const n = this.noise.noise2D(this.p_x[i] * noiseScale, this.p_y[i] * noiseScale + time);
-                const angle = n * 12.56; 
-                
+                const angle = n * 12.56;
                 this.p_vx[i] += Math.cos(angle) * turbulence;
                 this.p_vy[i] += Math.sin(angle) * turbulence;
 
-                const dx = this.p_x[i] - center.x;
-                const dy = this.p_y[i] - center.y;
-                const distSq = dx*dx + dy*dy;
-                const dist = Math.sqrt(distSq); 
+                const dx = this.p_x[i] - this.centerX;
+                const dy = this.p_y[i] - this.centerY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
                 
-                const invDist = dist > 0.1 ? 1.0 / dist : 0;
-                const dirX = dx * invDist;
-                const dirY = dy * invDist;
-
-                let force = 0;
-                if (this.phase === 'in') {
-                    force = (targetR - dist) * 0.0005; 
-                    if (dist < targetR * 0.5) force += 0.002;
-                } else if (this.phase === 'out') {
-                    force = (targetR - dist) * 0.0008;
-                } else if (this.phase === 'hold-full') {
-                    force = (targetR - dist) * 0.001;
-                } else {
-                    force = (targetR - dist) * 0.0005;
+                if (dist > 0.1) {
+                    const force = (targetR - dist) * attraction + (this.phase === 'in' && dist < targetR * 0.5 ? 0.002 : 0);
+                    this.p_vx[i] += (dx/dist) * force;
+                    this.p_vy[i] += (dy/dist) * force;
                 }
 
-                this.p_vx[i] += dirX * force;
-                this.p_vy[i] += dirY * force;
-                
-                this.p_vx[i] *= 0.92; 
-                this.p_vy[i] *= 0.92;
-                this.p_x[i] += this.p_vx[i]; 
-                this.p_y[i] += this.p_vy[i];
+                this.p_x[i] += (this.p_vx[i] *= 0.92);
+                this.p_y[i] += (this.p_vy[i] *= 0.92);
 
                 const lifeProg = this.p_life[i] / this.p_maxLife[i];
-                let alphaMult = 0.5 + this.breathValue * 0.5;
-                if (this.phase === 'out') alphaMult *= 0.8;
-                
-                // PULSE EFFECT: Increase alpha significantly
-                const pulseBoost = this.tapPulse * 0.15;
-
+                let alphaMult = (0.5 + this.breathValue * 0.5) * (this.phase === 'out' ? 0.8 : 1);
                 const alpha = Math.sin(lifeProg * Math.PI) * this.p_baseAlpha[i] * alphaMult * layerOpacity * (0.5 + this.intensity * 0.5);
-                const size = this.p_size[i] * (0.8 + this.breathValue * 0.8) * (1 + this.tapPulse * 0.5);
+                const size = this.p_size[i] * (0.8 + this.breathValue * 0.8) * (1 + this.tapPulse * 0.4);
 
                 this.ctx.globalAlpha = Math.min(1, alpha + pulseBoost);
-                if(this.particleSprite) {
-                    this.ctx.drawImage(this.particleSprite, this.p_x[i] - size/2, this.p_y[i] - size/2, size, size);
-                }
+                if(this.particleSprite) this.ctx.drawImage(this.particleSprite, this.p_x[i] - size/2, this.p_y[i] - size/2, size, size);
             }
             this.ctx.globalAlpha = 1.0;
         }
 
         renderCircle() {
             const baseScale = Math.min(this.width, this.height) * 0.3;
-            // PULSE EFFECT: Radius expands slightly
-            const rBase = (baseScale * (0.4 + this.breathValue * 0.6)) * (1 + this.tapPulse * 0.05);
+            const rBase = (baseScale * (0.4 + this.breathValue * 0.6)) * (1 + this.tapPulse * 0.04);
+            const time = Date.now() * (0.0003 + this.randomness * 0.0002);
+            const distortion = (20 * this.breathValue + (this.randomness * 5)) * this.intensity;
 
             this.ctx.beginPath();
-            const time = Date.now() * (0.0003 + this.randomness * 0.0002);
-            const distortionAmount = (20 * this.breathValue + (this.randomness * 5)) * this.intensity;
-            
             for(let i=0; i<=100; i++) {
-                const a = (i/100)*6.28;
-                const n = this.noise.noise2D(Math.cos(a)+time, Math.sin(a));
-                const r = rBase + n * distortionAmount;
+                const a = (i/100) * this.PI2;
+                const r = rBase + this.noise.noise2D(Math.cos(a)+time, Math.sin(a)) * distortion;
                 const x = this.centerX + Math.cos(a)*r, y = this.centerY + Math.sin(a)*r;
                 if(i===0) this.ctx.moveTo(x,y); else this.ctx.lineTo(x,y);
             }
             this.ctx.closePath();
             
-            // PULSE EFFECT: Stroke width increases
-            this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${(0.3 + this.tapPulse) * this.intensity})`;
-            this.ctx.lineWidth = 1.5 + (this.tapPulse * 2);
+            this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${(0.3 + this.tapPulse * 0.8 * (0.4 + 0.6 * this.breathValue)) * this.intensity})`;
+            this.ctx.lineWidth = 1.5 + (this.tapPulse * 1.5);
             this.ctx.stroke();
 
             const g = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, rBase*1.2);
-            const coreAlpha = (0.3 + this.breathValue * 0.2) * this.intensity;
-            g.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${coreAlpha})`);
+            g.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${(0.3 + this.breathValue * 0.2 + this.tapPulse * 0.2 * (0.4 + 0.6 * this.breathValue)) * this.intensity})`);
             g.addColorStop(1, "rgba(0,0,0,0)");
-            this.ctx.fillStyle = g;
-            this.ctx.fill();
-
-            if (this.turnSignal > 0.01) {
-                const gasOuterR = rBase * (1.5 + this.turnSignal * 0.5);
-                const gGas = this.ctx.createRadialGradient(this.centerX, this.centerY, rBase * 0.8, this.centerX, this.centerY, gasOuterR);
-                gGas.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},0)`);
-                const gasAlpha = 0.15 * this.turnSignal * this.intensity;
-                gGas.addColorStop(0.4, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${gasAlpha})`);
-                gGas.addColorStop(1, "rgba(0,0,0,0)");
-                this.ctx.fillStyle = gGas;
-                this.ctx.fillRect(0,0, this.width, this.height);
-            }
+            this.ctx.fillStyle = g; this.ctx.fill();
         }
 
         renderRipple() {
             const t = Date.now() * (0.0002 + this.randomness * 0.0001);
             const count = Math.max(3, Math.floor(8 * this.intensity));
-            const maxDimension = Math.min(this.width, this.height);
-            const rSq = this.randomness * this.randomness;
+            const maxD = Math.min(this.width, this.height);
+            const segments = 60 + Math.floor(this.randomness * 40);
 
             for(let i=0; i<count; i++) {
-                const baseR = (maxDimension * 0.4) * ((i+1)/8);
-                const breathRange = 0.2 + (rSq * 0.15); 
-                const minScale = 1.0 - breathRange;
-                const breathExpansion = baseR * (minScale + this.breathValue * breathRange);
-                const wobbleAmount = rSq * (10 + baseR * 0.2);
-
-                this.ctx.beginPath();
-                const segments = 60 + Math.floor(this.randomness * 40); 
-                for(let s=0; s<=segments; s++) {
-                    const angle = (s / segments) * Math.PI * 2;
-                    const n = this.noise.noise2D(Math.cos(angle) + i * 0.5, Math.sin(angle) + t);
-                    const distortion = n * wobbleAmount * (0.3 + this.breathValue * 0.7);
-                    
-                    // PULSE EFFECT: Radius bump
-                    const rFinal = Math.max(0, breathExpansion + distortion) * (1 + this.tapPulse * 0.02);
-                    
-                    const x = this.centerX + Math.cos(angle) * rFinal;
-                    const y = this.centerY + Math.sin(angle) * rFinal;
-                    if (s===0) this.ctx.moveTo(x, y); else this.ctx.lineTo(x, y);
-                }
+                const baseR = (maxD * 0.4) * ((i+1)/8);
+                const expansion = baseR * ((1.0 - (0.2 + this.randomness*0.15)) + this.breathValue * (0.2 + this.randomness*0.15));
+                const wobble = (this.randomness * this.randomness) * (10 + baseR * 0.2);
                 
+                this.ctx.beginPath();
+                for(let s=0; s<=segments; s++) {
+                    const angle = (s / segments) * this.PI2;
+                    const r = Math.max(0, expansion + this.noise.noise2D(Math.cos(angle) + i*0.5, Math.sin(angle) + t) * wobble * (0.3 + this.breathValue*0.7)) * (1 + this.tapPulse*0.02);
+                    const x = this.centerX + Math.cos(angle)*r, y = this.centerY + Math.sin(angle)*r;
+                    if(s===0) this.ctx.moveTo(x, y); else this.ctx.lineTo(x, y);
+                }
                 this.ctx.closePath();
-                // PULSE EFFECT: Brighter lines
-                const alpha = Math.min(1, ((0.1 + this.breathValue * 0.1) * this.intensity) + this.tapPulse * 0.25);
+                const alpha = Math.min(1, ((0.1 + this.breathValue * 0.1) * this.intensity) + this.tapPulse * 0.4 * (0.4 + 0.6 * this.breathValue));
                 this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${alpha})`;
+                this.ctx.lineWidth = 1.0 + this.tapPulse * 1.5;
                 this.ctx.stroke();
             }
         }
 
         renderLuma() {
             const t = Date.now() * (0.0004 + this.randomness * 0.001);
-            const baseR = Math.min(this.width, this.height) * 0.20; 
-            const pulse = 1 + Math.sin(t) * 0.05; 
+            const baseR = Math.min(this.width, this.height) * 0.20;
+            const innerR = baseR * (0.5 + this.breathValue * 0.8) * (1 + Math.sin(t)*0.05) * (1 + this.tapPulse * 0.08);
             
-            // PULSE EFFECT: Core expansion
-            const pMod = 1 + this.tapPulse * 0.1;
-
-            const innerR = baseR * (0.5 + this.breathValue * 0.8) * pulse * pMod; 
-            const outerR = baseR * (1.0 + this.breathValue * 1.0) + (this.turnSignal * (baseR * 0.4));
-
-            const g2 = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, outerR);
-            g2.addColorStop(0, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, ${0.02 * this.breathValue * this.intensity})`);
-            g2.addColorStop(1, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, 0)`);
-            
-            this.ctx.fillStyle = g2;
-            this.ctx.fillRect(0, 0, this.width, this.height);
-
             const g1 = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, innerR);
-            const alpha = (0.05 + (this.breathValue * 0.1)) * this.intensity;
-            g1.addColorStop(0, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, ${alpha})`);
-            g1.addColorStop(0.5, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, ${alpha * 0.3})`);
-            g1.addColorStop(1, `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, 0)`);
-
-            this.ctx.beginPath();
-            this.ctx.arc(this.centerX, this.centerY, innerR, 0, Math.PI * 2);
-            this.ctx.fillStyle = g1;
-            this.ctx.fill();
+            const alpha = (0.05 + (this.breathValue * 0.1) + this.tapPulse * 0.15 * (0.4 + 0.6 * this.breathValue)) * this.intensity;
+            g1.addColorStop(0, `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${alpha})`);
+            g1.addColorStop(1, "rgba(0,0,0,0)");
             
-            const t2 = Date.now() * (0.0008 + this.randomness * 0.001);
+            this.ctx.beginPath(); this.ctx.arc(this.centerX, this.centerY, innerR, 0, this.PI2);
+            this.ctx.fillStyle = g1; this.ctx.fill();
+
+            // Mandala
+            this.ctx.save(); this.ctx.translate(this.centerX, this.centerY); this.ctx.rotate(t * 0.15);
             const petals = this.lumaPoints;
             const mInnerR = Math.min(this.width, this.height) * 0.1;
             const expansion = this.breathValue * (Math.min(this.width, this.height) * 0.2);
             
-            this.ctx.save();
-            this.ctx.translate(this.centerX, this.centerY);
-            
-            this.ctx.save();
-            this.ctx.rotate(t2 * 0.15); 
-            
             for (let i = 0; i < petals; i++) {
-                const angle = (i / petals) * Math.PI * 2 + (t2 * 0.5);
-                const noiseVal = this.noise.noise2D(Math.cos(angle) + t2 * 0.1, Math.sin(angle));
-                
-                this.ctx.beginPath();
-                this.ctx.rotate((Math.PI * 2) / petals);
-                
-                for (let a = 0; a < Math.PI * 2; a += 0.1) {
-                    // PULSE EFFECT: Mandala spikes jump
-                    const r = (mInnerR + expansion) + Math.sin(a * 5 + t2 * 2) * (10 * this.breathValue + this.randomness * 30 + (this.tapPulse * 10));
-                    const x = Math.cos(a) * r;
-                    const y = Math.sin(a) * (r * 0.4);
-                    
-                    if (a === 0) this.ctx.moveTo(x, y);
-                    else this.ctx.lineTo(x, y);
+                const angle = (i / petals) * this.PI2 + (t * 0.5);
+                this.ctx.beginPath(); this.ctx.rotate(this.PI2 / petals);
+                for (let a = 0; a < this.PI2; a += 0.1) {
+                    const r = (mInnerR + expansion) + Math.sin(a*5 + t*2) * (10*this.breathValue + this.randomness*30 + this.tapPulse*10);
+                    const x = Math.cos(a) * r, y = Math.sin(a) * (r * 0.4);
+                    if (a === 0) this.ctx.moveTo(x, y); else this.ctx.lineTo(x, y);
                 }
-                
-                const hueShift = noiseVal * (30 + this.randomness * 80); 
-                // PULSE EFFECT: Bright white lines on tap
-                const lumaAlpha = Math.min(1, ((0.1 + this.breathValue * 0.2) * this.intensity) + this.tapPulse * 0.25);
-                this.ctx.strokeStyle = `rgba(${this.colors.r + hueShift}, ${this.colors.g}, ${this.colors.b + hueShift}, ${lumaAlpha})`;
-                this.ctx.lineWidth = 1.5;
-                this.ctx.stroke();
+                const lumaAlpha = Math.min(1, ((0.1 + this.breathValue*0.2) * this.intensity) + this.tapPulse*0.4 * (0.4 + 0.6 * this.breathValue));
+                this.ctx.strokeStyle = `rgba(${this.colors.r},${this.colors.g},${this.colors.b},${lumaAlpha})`;
+                this.ctx.lineWidth = 1.5; this.ctx.stroke();
             }
-            this.ctx.restore();
-
-            // Layer 2: Counter-Clockwise Sparkle Ring
-            this.ctx.save();
-            this.ctx.rotate(-t2 * 0.1); 
-            const sparkleCount = Math.floor(12 * this.intensity);
-            for(let i=0; i<sparkleCount; i++) {
-                const a = (i/sparkleCount) * Math.PI * 2;
-                const n = this.noise.noise2D(Math.cos(a), Math.sin(a) + t2);
-                if(n > 0) {
-                    const r = (mInnerR + expansion) * 1.5 + n * 20;
-                    const x = Math.cos(a) * r;
-                    const y = Math.sin(a) * r;
-                    
-                    this.ctx.beginPath();
-                    this.ctx.fillStyle = `rgba(255, 255, 255, ${n * (0.1 + this.breathValue * 0.3) * this.intensity})`;
-                    this.ctx.moveTo(x, y-3);
-                    this.ctx.lineTo(x+2, y);
-                    this.ctx.lineTo(x, y+3);
-                    this.ctx.lineTo(x-2, y);
-                    this.ctx.fill();
-                }
-            }
-            this.ctx.restore();
-            this.ctx.restore();
-
-            // 3. Final Layer
-            this.ctx.save();
-            this.ctx.translate(this.centerX, this.centerY);
-            this.ctx.rotate(-t2 * 8.0); 
-            
-            const coreR = mInnerR * 0.3;
-            this.ctx.beginPath();
-            const spikes = this.lumaPoints * 4;
-            for (let i = 0; i < spikes; i++) { 
-                const a = (i / spikes) * Math.PI * 2;
-                const spike = (i % 2 === 0 ? 2 : 8) * (0.5 + this.breathValue); 
-                const r = coreR + spike;
-                this.ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-            }
-            this.ctx.closePath();
-            this.ctx.fillStyle = `rgba(255, 255, 255, ${(0.01 + this.breathValue * 0.08) * this.intensity})`;
-            this.ctx.fill();
-            this.ctx.strokeStyle = `rgba(255, 255, 255, ${(0.05 + this.breathValue * 0.05) * this.intensity})`;
-            this.ctx.lineWidth = 0.5;
-            this.ctx.stroke();
-            this.ctx.restore();
-
-            // Inner Sphere
-            this.ctx.save();
-            const driftX = Math.sin(t * 3) * (4 + 8 * this.breathValue);
-            const driftY = Math.cos(t * 2.5) * (4 + 8 * this.breathValue);
-            this.ctx.translate(this.centerX + driftX, this.centerY + driftY);
-            
-            const sphereR = mInnerR * 0.5;
-            
-            this.ctx.beginPath();
-            this.ctx.arc(0, 0, sphereR * (0.6 + Math.sin(t*5)*0.05), 0, Math.PI*2);
-            this.ctx.fillStyle = `rgba(0, 0, 0, ${(0.1 * this.breathValue) * this.intensity})`;
-            this.ctx.fill();
-
-            const lineCount = Math.max(1, Math.floor(4 * this.intensity));
-            for(let i=0; i<lineCount; i++) {
-                this.ctx.beginPath();
-                this.ctx.rotate(t2 * (5.0 + i*1.5) + Math.sin(t)*0.5); 
-                for(let a=0; a<=Math.PI*2; a+=0.1) {
-                    const n = this.noise.noise2D(Math.cos(a) + t2 * 2, Math.sin(a) + i);
-                    const r = sphereR + n * (12 * this.breathValue);
-                    const x = Math.cos(a) * r;
-                    const y = Math.sin(a) * (r * (0.6 + Math.sin(t2 + i)*0.3));
-                    if(a===0) this.ctx.moveTo(x, y); else this.ctx.lineTo(x, y);
-                }
-                this.ctx.strokeStyle = `rgba(0, 0, 0, ${(0.15 + this.breathValue * 0.15) * this.intensity})`;
-                this.ctx.lineWidth = 0.6;
-                this.ctx.stroke();
-            }
-            this.ctx.restore();
-
-            // Rands: "Etheric Field"
-            const rimR = Math.min(this.width, this.height) * 0.44;
-            this.ctx.save();
-            this.ctx.translate(this.centerX, this.centerY);
-            
-            this.ctx.save();
-            this.ctx.rotate(t * 0.12); 
-            this.ctx.beginPath();
-            const rimPoints = Math.floor(90 * this.intensity);
-            for (let i = 0; i < rimPoints; i++) {
-                const wobble = Math.sin(t * 2 + i * 0.1) * 0.15;
-                const a = (i / rimPoints) * Math.PI * 2 + wobble;
-                const n = this.noise.noise2D(Math.cos(a) * 1.5, Math.sin(a) * 1.5 + t * 0.3);
-                
-                if (n > -0.2) {
-                    const r = rimR + (n * 50 * this.breathValue) + (Math.sin(i * 13.1 + t) * 8);
-                    const x = Math.cos(a) * r;
-                    const y = Math.sin(a) * r;
-                    
-                    this.ctx.moveTo(x, y);
-                    const size = (1.0 + n * 1.5) + (this.breathValue * 1.5);
-                    this.ctx.arc(x, y, Math.max(0.5, size), 0, Math.PI*2); 
-                }
-            }
-            this.ctx.fillStyle = `rgba(${this.colors.r}, ${this.colors.g}, ${this.colors.b}, ${(0.08 + this.breathValue * 0.12) * this.intensity})`;
-            this.ctx.fill();
-            this.ctx.restore();
-
             this.ctx.restore();
         }
     }
@@ -1276,50 +703,38 @@
     /* --- AUDIO ENGINE --- */
     class GentleAudio {
         constructor() { 
-            this.ctx = null; this.nodes = []; 
-            this.masterGain = null;
+            this.ctx = null; this.nodes = []; this.masterGain = null;
             this.volume = parseFloat(localStorage.getItem('atem-volume')) || 0.3;
-            this.audioEl = new Audio();
-            this.audioEl.crossOrigin = "anonymous";
-            this.audioEl.loop = true;
-            this.mediaSource = null;
-            this.bowlBuffer = null;
-            this.waterBuffer = null;
-            this.currentType = 'none';
-            this.genNodes = {};
-            this.reverbNode = null;
-            this.musicGain = null;
+            this.audioEl = new Audio(); this.audioEl.crossOrigin = "anonymous"; this.audioEl.loop = true;
+            this.buffers = {}; this.currentType = 'none'; this.genNodes = {};
         }
         async init() {
             const AC = window.AudioContext || window.webkitAudioContext;
             if (!this.ctx && AC) { 
+                // iOS / iPad unlock
+                this.unlockAudio = () => {
+                    if (this.ctx.state === 'suspended') {
+                        this.ctx.resume();
+                        const buffer = this.ctx.createBuffer(1, 1, 22050);
+                        const source = this.ctx.createBufferSource(); source.buffer = buffer; source.connect(this.ctx.destination); source.start();
+                        source.onended = () => { document.removeEventListener('touchstart', this.unlockAudio); document.removeEventListener('mousedown', this.unlockAudio); }
+                    }
+                };
+                document.addEventListener('touchstart', this.unlockAudio); document.addEventListener('mousedown', this.unlockAudio);
                 this.ctx = new AC();
-                this.masterGain = this.ctx.createGain();
-                this.masterGain.gain.value = this.volume;
+                this.masterGain = this.ctx.createGain(); this.masterGain.gain.value = this.volume;
                 this.masterGain.connect(this.ctx.destination);
-                
-                this.musicGain = this.ctx.createGain();
-                this.musicGain.gain.value = 0.25;
-                this.musicGain.connect(this.masterGain);
                 
                 this.reverbNode = this.ctx.createConvolver();
                 this.reverbNode.buffer = this.createReverbBuffer();
                 this.reverbNode.connect(this.masterGain);
                 
+                this.musicGain = this.ctx.createGain(); this.musicGain.gain.value = 1.0;
+                this.musicGain.connect(this.masterGain);
                 this.mediaSource = this.ctx.createMediaElementSource(this.audioEl);
                 this.mediaSource.connect(this.musicGain);
             }
-            if (this.ctx && this.ctx.state === 'suspended') {
-                await this.ctx.resume();
-            }
-            // iOS Unlock: Play silent buffer
-            if (this.ctx) {
-                const b = this.ctx.createBuffer(1, 1, 22050);
-                const s = this.ctx.createBufferSource();
-                s.buffer = b;
-                s.connect(this.ctx.destination);
-                if(s.start) s.start(0);
-            }
+            if (this.ctx && this.ctx.state === 'suspended') await this.ctx.resume();
         }
         setVolume(v) {
             this.volume = parseFloat(v); localStorage.setItem('atem-volume', this.volume);
@@ -1329,353 +744,187 @@
             const len = this.ctx.sampleRate * 3.0;
             const buf = this.ctx.createBuffer(2, len, this.ctx.sampleRate);
             for(let c=0;c<2;c++){
-                const d = buf.getChannelData(c);
-                for(let i=0;i<len;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/len, 3);
+                const d = buf.getChannelData(c); for(let i=0;i<len;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/len, 3);
             }
             return buf;
         }
-        async loadBowl() {
-            if(this.bowlBuffer) return;
-            const file = 'e-flat-tibetan-singing-bowl-struck-38746.mp3';
+        async loadBuffer(key, url) {
+            if(this.buffers[key]) return;
             try {
-                let ab;
-                try {
-                    const resp = await fetch(file);
-                    if(!resp.ok) throw new Error('404');
-                    ab = await resp.arrayBuffer();
-                } catch(e) {
-                    const resp = await fetch('audio/' + file);
-                    if(!resp.ok) throw new Error('404');
-                    ab = await resp.arrayBuffer();
+                // Debugging: Direkter Versuch ohne automatischen "audio/" Prefix-Fallback, 
+                // da die Optionen im <select> bereits "audio/..." enthalten.
+                const r = await fetch(url);
+                if(!r.ok) {
+                    console.error(`Audio-Fehler: Datei nicht gefunden unter ${url}`);
+                    return;
                 }
-                this.bowlBuffer = await new Promise((resolve, reject) => {
-                    const res = this.ctx.decodeAudioData(ab, resolve, reject);
-                    if(res && typeof res.then === 'function') res.then(resolve).catch(reject);
-                });
-            } catch(e) { console.warn("Bowl load failed", e); }
-        }
-        async loadWater() {
-            if(this.waterBuffer) return;
-            const file = 'flowing-water-loop-1-183953.mp3';
-            try {
-                let ab;
-                try {
-                    const resp = await fetch(file);
-                    if(!resp.ok) throw new Error('404');
-                    ab = await resp.arrayBuffer();
-                } catch(e) {
-                    const resp = await fetch('audio/' + file);
-                    if(!resp.ok) throw new Error('404');
-                    ab = await resp.arrayBuffer();
-                }
-                this.waterBuffer = await new Promise((resolve, reject) => {
-                    const res = this.ctx.decodeAudioData(ab, resolve, reject);
-                    if(res && typeof res.then === 'function') res.then(resolve).catch(reject);
-                });
-            } catch(e) { console.warn("Water load failed", e); }
+                const ab = await r.arrayBuffer();
+                this.buffers[key] = await this.ctx.decodeAudioData(ab);
+                console.log(`Audio geladen: ${key}`);
+            } catch(e) {
+                console.error(`Decoding-Fehler bei ${key}:`, e);
+            }
         }
         updateGenerator(breathVal) {
-            if ((this.currentType !== 'gentle' && this.currentType !== 'ambient') || !this.ctx) return;
+            if (!this.ctx || (this.currentType !== 'gentle' && this.currentType !== 'ambient')) return;
             const t = this.ctx.currentTime;
-            const drift = Math.sin(t * 0.2) * 4 + Math.sin(t * 0.37) * 4; 
-
             if (this.currentType === 'gentle') {
-                const targetGain = 0.02 + (breathVal * 0.15);
-                if(this.genNodes.gain) this.genNodes.gain.gain.setTargetAtTime(targetGain, t, 0.2);
-                
-                if(this.genNodes.oscs) {
-                    this.genNodes.oscs.forEach((osc, i) => {
-                        osc.detune.setTargetAtTime(drift * (i % 2 === 0 ? 1 : -1), t, 0.2);
-                    });
-                }
-            } else if (this.currentType === 'ambient') {
-                const targetFreq = 60 + (breathVal * 220);
-                if(this.genNodes.filter) this.genNodes.filter.frequency.setTargetAtTime(targetFreq, t, 0.2);
-                
-                const targetGain = 0.08 + (breathVal * 0.04);
-                if(this.genNodes.gain) this.genNodes.gain.gain.setTargetAtTime(targetGain, t, 0.2);
+                if(this.genNodes.gain) this.genNodes.gain.gain.setTargetAtTime(0.05 + (breathVal * 0.15), t, 0.2);
+                if(this.genNodes.filter) this.genNodes.filter.frequency.setTargetAtTime(800 + (breathVal * 700), t, 0.2);
+            }else {
+                if(this.genNodes.filter) this.genNodes.filter.frequency.setTargetAtTime(60 + (breathVal * 220), t, 0.2);
+                if(this.genNodes.gain) this.genNodes.gain.gain.setTargetAtTime(0.08 + (breathVal * 0.06), t, 0.2);
             }
         }
         triggerImpulse(pType) {
             if(!this.ctx) return;
             const t = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const g = this.ctx.createGain();
-            osc.connect(g); g.connect(this.masterGain);
-            if(this.reverbNode) g.connect(this.reverbNode);
-
-            let f = 440;
-            if(this.currentType === 'gentle') f = pType==='in' ? 698.46 : 523.25; 
-            else f = pType==='in' ? 392.00 : 196.00; 
-
-            osc.frequency.value = f; osc.type = 'sine';
-            g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.08, t+0.02);
-            g.gain.exponentialRampToValueAtTime(0.001, t+2.5);
+            const osc = this.ctx.createOscillator(); const g = this.ctx.createGain();
+            osc.connect(g); g.connect(this.masterGain); g.connect(this.reverbNode);
+            osc.frequency.value = this.currentType === 'gentle' ? (pType==='in'?698.46:523.25) : (pType==='in'?392:196);
+            g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t+0.02); g.gain.exponentialRampToValueAtTime(0.001, t+2.5);
             osc.start(t); osc.stop(t+2.5);
-            setTimeout(()=>{osc.disconnect();g.disconnect();}, 2600);
+            osc.onended = () => { osc.disconnect(); g.disconnect(); };
         }
-        triggerBowl(semitones) {
-            if(!this.bowlBuffer || !this.ctx) return;
-            const src = this.ctx.createBufferSource();
-            src.buffer = this.bowlBuffer;
-            src.detune.value = semitones * 100;
-            
-            const g = this.ctx.createGain();
-            g.gain.value = 0.25;
-            src.connect(g); g.connect(this.masterGain);
-            
-            src.start(0);
-            src.onended = () => { const i = this.nodes.indexOf(src); if(i>-1)this.nodes.splice(i,1); };
-            this.nodes.push(src);
+        triggerBowl(st) {
+            if(!this.buffers['bowl'] || !this.ctx) return;
+            const s = this.ctx.createBufferSource(); s.buffer = this.buffers['bowl']; s.detune.value = st * 100;
+            const g = this.ctx.createGain(); g.gain.value = 0.6;
+            s.connect(g); g.connect(this.masterGain);
+            s.start(0); s.onended = () => { s.disconnect(); g.disconnect(); };
         }
+
         async play(type) {
-            this.stop(); 
-            this.currentType = type;
+            if (this.ctx && this.ctx.state === 'suspended') await this.ctx.resume();
+
+            this.stop(); this.currentType = type;
             if (!this.ctx) await this.init();
-            
             if (type === 'none') return;
-            
-            if (type === 'bowl') { await this.loadBowl(); return; }
-            
+
+            if (type === 'bowl-mp3') { await this.loadBuffer('bowl', 'audio/e-flat-tibetan-singing-bowl-struck-38746.mp3'); return; }
+            if (type === 'bowl' || type === 'bowl-high') { return; } // Sound is triggered from loop, not here.
             if (type === 'water') {
-                await this.loadWater();
-                if(!this.waterBuffer) return;
-                const src = this.ctx.createBufferSource();
-                src.buffer = this.waterBuffer;
-                src.loop = true;
-                const g = this.ctx.createGain();
-                g.gain.value = 0; 
-                g.gain.linearRampToValueAtTime(0.25, this.ctx.currentTime + 2.0);
-                src.connect(g); g.connect(this.masterGain);
-                src.start(0);
-                this.nodes.push(src); this.nodes.push(g);
+                await this.loadBuffer('water', 'audio/flowing-water-loop-1-183953.mp3');
+                if(!this.buffers['water']) return;
+                const s = this.ctx.createBufferSource(); s.buffer = this.buffers['water']; s.loop = true;
+                const g = this.ctx.createGain(); g.gain.value = 0; g.gain.linearRampToValueAtTime(0.8, this.ctx.currentTime + 2.0);
+                s.connect(g); g.connect(this.masterGain); s.start(0);
+                this.nodes.push({stop:()=>s.stop(), disconnect:()=>{s.disconnect();g.disconnect();}});
                 return;
             }
-            
             if (type === 'gentle' || type === 'ambient') {
-                const master = this.ctx.createGain();
-                master.connect(this.masterGain);
-                master.gain.value = 0;
-                master.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 2.0);
-                this.nodes.push(master);
+                const gainNode = this.ctx.createGain(); gainNode.connect(this.masterGain);
+                if (type === 'gentle') gainNode.connect(this.reverbNode);
                 
-                this.genNodes = { gain: master, oscs: [] };
+                gainNode.gain.value = 0; gainNode.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 2.0);
+                this.nodes.push(gainNode); this.genNodes = { gain: gainNode, oscs: [] };
+                
+                let targetNode = gainNode;
+                if (type === 'ambient' || type === 'gentle') {
+                    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; 
+                    f.frequency.value = type === 'gentle' ? 800 : 80;
+                    f.connect(gainNode); this.genNodes.filter = f; targetNode = f;
+                }
 
                 if (type === 'gentle') {
-                    const freqs = [174.61, 261.63, 349.23]; 
-                    freqs.forEach((f, i) => {
-                        const osc = this.ctx.createOscillator();
-                        osc.type = 'sine'; osc.frequency.value = f;
-                        osc.detune.value = (i * 5) - 5; 
-                        osc.connect(master); osc.start();
-                        this.nodes.push(osc); this.genNodes.oscs.push(osc);
+                    const freqs = [174.61, 261.63, 349.23];
+                    freqs.forEach(f => {
+                        const osc1 = this.ctx.createOscillator(); osc1.type = 'sawtooth'; osc1.frequency.value = f; osc1.detune.value = -7;
+                        osc1.connect(targetNode); osc1.start(); this.nodes.push(osc1); this.genNodes.oscs.push(osc1);
+                        const osc2 = this.ctx.createOscillator(); osc2.type = 'sawtooth'; osc2.frequency.value = f; osc2.detune.value = 7;
+                        osc2.connect(targetNode); osc2.start(); this.nodes.push(osc2); this.genNodes.oscs.push(osc2);
                     });
                 } else {
-                    const filter = this.ctx.createBiquadFilter();
-                    filter.type = 'lowpass'; filter.frequency.value = 80; filter.Q.value = 0.5;
-                    filter.connect(master); this.genNodes.filter = filter;
-                    
-                    [65.41, 98.00].forEach((f, i) => { 
-                        const osc = this.ctx.createOscillator();
-                        osc.type = i === 0 ? 'sine' : 'triangle'; 
-                        osc.frequency.value = f;
-                        osc.detune.value = i===0 ? -4 : 4; 
-                        osc.connect(filter); osc.start();
+                    const config = { freq: [65.41, 98.00], type: 'triangle' };
+                    config.freq.forEach((f, i) => {
+                        const osc = this.ctx.createOscillator(); osc.type = i===0 ? 'sine' : config.type;
+                        osc.frequency.value = f; osc.connect(targetNode); osc.start();
                         this.nodes.push(osc); this.genNodes.oscs.push(osc);
                     });
                 }
             } else {
-                try {
-                    this.audioEl.src = type;
-                    this.audioEl.currentTime = 0;
-                    await this.audioEl.play();
-                } catch (e) {
-                    console.warn("Audio play failed/aborted", e);
-                }
+                try { this.audioEl.src = type; this.audioEl.currentTime = 0; await this.audioEl.play(); } catch(e){}
             }
         }
-        stop() { 
-            this.nodes.forEach(n => { try{if(n.stop)n.stop();n.disconnect();}catch(e){} }); 
-            this.nodes = []; 
-            this.audioEl.pause();
+        triggerBowlSynth(detune = 0) {
+            if (!this.ctx) return;
+            const t = this.ctx.currentTime;
+            const baseFreq = 360 * Math.pow(2, detune / 12);
+            const partials = [1, 2, 3, 4.2, 5.8];
+            const attackTime = 0.02;
+            const releaseTime = 7.0;
+
+            partials.forEach((ratio, index) => {
+                const freq = baseFreq * ratio;
+                const gain = 0.1 / (1 + index * 0.4);
+
+                const osc = this.ctx.createOscillator();
+                const envelope = this.ctx.createGain();
+
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                osc.connect(envelope); envelope.connect(this.masterGain); envelope.connect(this.reverbNode);
+
+                envelope.gain.setValueAtTime(0, t);
+                envelope.gain.linearRampToValueAtTime(gain, t + attackTime);
+                envelope.gain.exponentialRampToValueAtTime(0.0001, t + attackTime + releaseTime);
+
+                const stopTime = t + attackTime + releaseTime + 0.2;
+                osc.start(t);
+                osc.stop(stopTime);
+            });
+        }
+        stop() {
+            this.nodes.forEach(n => { try{if(n.stop)n.stop();n.disconnect();}catch(e){} });
+            this.nodes = []; this.audioEl.pause();
         }
     }
 
+    /* --- APPLICATION LOGIC --- */
     const quotes = [
-        { id: 1, quote: "Stellt euch euren Atem als den Weg vor, der die Energie um euch herum aufnimmt und sie mit eurer eigenen Energie verbindet. Atmet aus und macht euch leer, atmet ein und füllt euer Wesen mit der Vitalität des Lebens. Visualisiert dabei, wie eure Lebenskraft zirkuliert und eure inneren Organe nährt.", source: "Nancy N. Chen", book: "Breathing Spaces [1, 2]" },
-        { id: 2, quote: "In der Tonglen-Praxis atmet man zuerst ein und nimmt das Leid anderer Wesen in sich auf. Während man inhaliert, nimmt man deren Schwierigkeiten und die Ursachen ihres Kummers an. Man befreit sie dadurch symbolisch von ihrem Schmerz und den Wurzeln ihres Leidens.", source: "Shamar Rinpoche", book: "The Path to Awakening [3, 4]" },
-        { id: 3, quote: "Wenn du ausatmest, stelle dir vor, dass du all dein Glück und deine positiven Umstände an andere abgibst. Dein Mitgefühl strahlt wie helles Licht aus. Dein Atem verbreitet sich überall, ähnlich wie das Spiegelbild der Sonne auf einer weiten Wasserfläche.", source: "Shamar Rinpoche", book: "The Path to Awakening [3, 4]" },
-        { id: 4, quote: "Das Wesentliche im Qi Gong ist, das Herz nicht allzu sehr in den Atem zu legen, da der Atem direkt vom Bewusstsein kommt. Sobald sich das Herz regt, entsteht Atemkraft, denn die Atemtätigkeit ist ursprünglich verwandelte Herztätigkeit. Man vereinigt die innere Ruhe mit dem Rhythmus des Atems.", source: "Meister Lü Dsu (via Olvedi)", book: "Das Stille Qi Gong [5, 6]" },
-        { id: 5, quote: "Der Mensch fungiert als Leiter und Transformator der universellen Lebensenergie. Zwischen Himmel und Erde entsteht ein natürlicher Fluss, in dem wir uns als Nutznießer dieses Stromes befinden. Durch die richtige Ausrichtung wird dieser Fluss intensiviert.", source: "Günther Dogan", book: "Professionelles Qi Gong [7, 8]" },
-        { id: 6, quote: "Die beste Atmung im Qi Gong ist die sanfteste, am weitesten reduzierte Atmung. Dies ist nicht das Ergebnis eines Zwangs, sondern ein natürlicher Prozess der inneren Stille. Je mehr der Atem auf natürliche Weise zur Ruhe kommt, desto wirkungsvoller wird die Arbeit mit der Energie.", source: "Ulli Olvedi", book: "Das Stille Qi Gong [9]" },
-        { id: 7, quote: "Höre nicht nur  mit deinen Ohren, sondern mit dem Atem. Dieser Prozess beinhaltet eine tiefe Verbindung zum eigenen Inneren, um den Körper zu erneuern. Der Atem ist das zentrale Prinzip, das Körper, Selbst und Umwelt miteinander verbindet.", source: "Nancy N. Chen", book: "Breathing Spaces [10, 11]" },
-        { id: 8, quote: "In der Einfachheit der natürlichen Dinge liegen die größten Wirkkräfte. Das Atmen und die Nahrungsaufnahme sind Vorgänge, die jedes Kind beherrscht, und die in Wirklichkeit doch komplexer sind. Wir suchen im Qi Gong die grundlegende Einfachheit der Schöpfung.", source: "Günther Dogan", book: "Professionelles Qi Gong [12, 13]" },
-        { id: 9, quote: "Wenn du atmest, ist es die Natur, die dich atmet. In der tiefen Praxis können Geist und Körper leer werden, bis das Innere und Äußere zu einem einheitlichen Feld verschmelzen. In diesem Zustand gibt es keinen getrennten Teil mehr – kein isoliertes Ich.", source: "Ken Cohen", book: "The Essential Qigong Training Guide [14]" },
-        { id: 10, quote: "Der Atemrhythmus ist eine Funktion unseres Bewusstseins, in der Welt zu sein. Atemmuster sind anpassungsfähig und bilden eine körperliche Umgebung, die durch unsere Emotionen strukturiert wird. Heilende Atemzüge betonen das tiefe Atmen aus der Mitte des Körpers.", source: "Nancy N. Chen", book: "Breathing Spaces [15]" },
-        { id: 11, quote: "Das Geheimnis des Atmens liegt in der Aufnahme von Lebenskraft aus der Luft. Die Luft ist eine der primären Quellen für unseren Organismus. Wir nutzen diesen Umstand bewusst, um unseren energetischen Zustand zu steigern und die Vitalität zu fördern.", source: "Günther Dogan", book: "Professionelles Qi Gong [16]" },
-        { id: 12, quote: "Wenn du die Gelenke lockerst und die Muskeln entspannst, verbesserst du deine energetische Leitfähigkeit. Die Energie möchte immer frei fließen wie ein ungestörter Fluss. Blockaden im Geist erzeugen unweigerlich Blockaden im physischen Körper.", source: "Günther Dogan", book: "Professionelles Tai Chi Chuan [17, 18]" },
-        { id: 13, quote: "Stimmen Sie Ihren Körper, Ihren Atem und Ihren Geist aufeinander ab. Sobald dieses Instrument gestimmt ist, können Sie die Feinheiten des Lebens lernen und schöne Musik machen. Ohne ein starkes Fundament im Körper kann der Geist nicht stabil bleiben.", source: "Ken Cohen", book: "The Essential Qigong Training Guide [19]" },
-        { id: 14, quote: "Wenn die Stille ihren Höhepunkt erreicht hat, erzeugt sie ganz von selbst die Bewegung der Energie. Der Atem sollte dabei sehr sanft sein und niemals angestrengt wirken. In der fortgeschrittenen Übung wird die äußere Atmung immer feiner.", source: "Meister Zhi-Chang Li (via Olvedi)", book: "Das Stille Qi Gong [20, 21]" },
-        { id: 15, quote: "In der buddhistischen Praxis wird der Atem als Fahrzeug für das Bewusstsein betrachtet. Wenn die Energien im Zentralkanal zusammenströmen, lösen sich grobe Geisteszustände auf. An ihre Stelle tritt das ursprüngliche Gewahrsein des klaren Lichts.", source: "Lama Thubten Yeshe (via Olvedi)", book: "Das Stille Qi Gong [22, 23]" },
-        { id: 16, quote: "Ein langer Atem ist wie ein Gebirgsbach, der ohne künstliche Dämme fließt. Er sollte glatt wie feine Seide sein und nicht grob wie Sandpapier. Durch ruhiges Atmen kultivieren wir Weisheit und Vitalität im Zentrum unseres Seins.", source: "Ken Cohen", book: "The Essential Qigong Training Guide [24, 25]" },
-        { id: 17, quote: "Lebenskraft stellt den Beginn jeder organischen Kausalitätskette dar und beeinflusst direkt den Fluss in unserem Körper. Die Energie folgt dabei immer der Aufmerksamkeit deines Geistes. Wo du deine Achtsamkeit hinlenkst, dort entfaltet sich die Wirkung.", source: "Günther Dogan", book: "Professionelles Qi Gong [26, 27]" },
-        { id: 18, quote: "Tonglen ist die Praxis des Gebens und Nehmens auf dem Atemzug. Das Einatmen ist wie das Lindern einer Wunde, während das Ausatmen dem Verabreichen von heilender Medizin gleicht. Es ist eine Übung, die unser Herz für die Welt öffnet.", source: "Shamar Rinpoche", book: "The Path to Awakening [3, 4]" },
-        { id: 19, quote: "Der Atem ist die Verbindung, der Leim zwischen Körper, Geist und Seele. Er ist das Bindeglied zwischen unserer Wahrnehmung der inneren und der äußeren Welt. Jede Sekunde unseres Lebens hängt an diesem seidenen Faden aus Luft.", source: "Mantak Chia", book: "Tao Yoga der Liebe [10, 28]" },
-        { id: 20, quote: "Ein untrainierter Geist ist wie ein Sack voll kranker Medizin, der keine Heilung bringt. Nur durch Sammlung und Ruhe in der Meditation kann Klarheit erreicht werden. Die Kraft des Geistes bestimmt, wie wir die Welt erfahren.", source: "Tsong-kha-pa", book: "Lamrim Chenmo [26, 29]" },
-        { id: 21, quote: "Der Atem ist die Brücke zwischen dem Sichtbaren und dem Unsichtbaren. Durch achtsames Atmen verbinden wir uns mit der primordialen Kraft der Erde und des Himmels. Diese Harmonie ist die Grundlage für jede Form der inneren Heilung.", source: "Günther Dogan", book: "Professionelles Tai Chi Chuan [30, 31]" },
-        { id: 22, quote: "Wenn Atem und Gewahrsein entspannt sind, wird wahre Weisheit erlangt. Der Atem wird hauchdünn, bis das Kommen und Gehen schließlich ganz zur Ruhe kommt. In diesem Zustand löst sich die dualistische Fixierung des Geistes auf.", source: "Jigme Lingpa", book: "Yeshe Lama [32, 33]" },
-        { id: 23, quote: "Die Energie eines jeden Gedankens wird im Körper gespeichert. Wer Liebe in sich trägt, wird überall auf die transformierende Kraft der Liebe stoßen. Veredle deine Absichten, damit sie deinen Pfad durch das Leben erhellen.", source: "Mantak Chia", book: "Tao Yoga der Liebe [34, 35]" },
-        { id: 24, quote: "Die Lebensenergie ist für Informationen hochempfänglich und lässt sich durch bloße Intention laden. Du kannst Qualitäten in die Energie hineinlegen, allein durch deinen Wunsch und deine Vorstellungskraft. Deine Konzentration bestimmt die Wirkung der Energie.", source: "Günther Dogan", book: "Professionelles Qi Gong [36, 37]" },
-        { id: 25, quote: "In der Stille des Geistes wird die ursprüngliche Natur des Herzens offenbar. Leere das Gefäß deines Geistes von allen störenden Gedanken. Das so entstehende Vakuum wird von einer kraftvollen, klaren Energie aufgefüllt werden.", source: "Mantak Chia", book: "Tao Yoga der Liebe [38, 39]" },
-        { id: 26, quote: "Durch Mitgefühl und Demut öffnen wir das Tor zu unserem wahren Potenzial. Jeder Atemzug kann eine Tat der inneren Befreiung sein. Sorge zuerst dafür, dass die Kanäle deiner Lebensenergie offen und rein sind.", source: "Tsong-kha-pa", book: "Lamrim Chenmo [40]" },
-        { id: 27, quote: "Körperliche Gesundheit ist kein Endzweck, sondern die Stütze für den spirituellen Pfad. Wenn das Schiff deines Körpers beschädigt ist, wird die Seele nicht weit kommen. Pflege deinen Körper mit der gleichen Sorgfalt wie einen kostbaren Diamanten.", source: "Mantak Chia", book: "Tao Yoga der Liebe [41, 42]" },
-        { id: 28, quote: "Lasse dein Gewahrsein wie einen weiten Ozean sein, in dem die Wellen der Gedanken von selbst zur Ruhe kommen. Beobachte deinen Atem, ohne ihn zu verändern, und erkenne die Stille hinter der Bewegung. Dies ist der Pfad zur Gelassenheit.", source: "Namkhai Norbu", book: "The Cycle of Day and Night [43, 44]" },
-        { id: 29, quote: "Jeder Atemzug erinnert uns an unsere Verbindung zum großen Ganzen. Wir sind Transformatoren der universalen Energie und Boten des Friedens. Atme ein für dich selbst und atme aus für die ganze Welt.", source: "Shamar Rinpoche", book: "The Path to Awakening [4, 45]" },
-        { id: 30, quote: "Lasse den Atem einfach so sein, wie er ist, ohne Korrekturen oder Modifikationen. In diesem unkorrigierten Zustand bleibt das momentane Gewahrsein präsent und unverändert. Alles manifestiert sich als natürliche Offenheit.", source: "Namkhai Norbu", book: "The Cycle of Day and Night [44, 46]" },
-        { id: 31, quote: "Das Kultivieren der Stille lässt den Geist klar werden wie einen gereinigten Spiegel. Wenn kein störender Gedanke im Geist ist, ist der Geist in seiner reinen Natur. Diese Ruhe führt in ungeahnte Höhen der inneren Erfahrung.", source: "Ulli Olvedi", book: "Das Stille Qi Gong [47, 48]" },
-        { id: 32, quote: "Atme ein: Nimm das Elend der Welt in dich auf. Während du einatmest, transformiere dieses Leiden durch dein Herz. Atme aus: Denke, dass du all dein gutes Karma und Glück an Wesen überall abgibst.", source: "Shamar Rinpoche", book: "The Path to Awakening [3, 4]" },
-        { id: 33, quote: "Wenn der Körper angespannt ist, kann der Atem nicht langsam oder tief sein. Der einfachste Weg, den Geist zu ändern, besteht darin, zuerst den Körper zu entspannen. Dies ist das perfekte Gegenmittel gegen den Stress des Alltags.", source: "Ken Cohen", book: "The Essential Qigong Training Guide [49]" },
-        { id: 34, quote: "Stehe fest verwurzelt wie ein Baum. Wie bei einem Baum geschieht das eigentliche Wachstum anfangs unmerklich. Geduld und Ausdauer werden sich lohnen, denn in dieser Einfachheit liegen die größten Wirkkräfte.", source: "Günther Dogan", book: "Professionelles Qi Gong [7, 24]" },
-        { id: 35, quote: "In unserer Zeit wird die Spanne des Lebens oft durch Sorgen und Agitation verkürzt. Viele Krankheiten verbrauchen unsere Zeit und Energie. Nur die Praxis der Achtsamkeit kann uns helfen, die kostbare Zeit sinnvoll zu nutzen.", source: "Tsong-kha-pa", book: "Lamrim Chenmo [50]" },
-        { id: 36, quote: "Bodhicitta ist der Wunsch, Erleuchtung zum Wohl aller Wesen zu erlangen. Diese altruistische Absicht ist die höchste Form der geistigen Schulung. Sie verwandelt jedes Handeln und jeden Atemzug in eine Quelle des Nutzens für andere.", source: "Shamar Rinpoche", book: "The Path to Awakening [51]" },
-        { id: 37, quote: "Konzentriere dich auf die weite Offenheit des äußeren Raums. Tue dies, bis es scheint, als ob sich dein Bewusstsein völlig darin auflöst. Dann wird eine Präsenz von reinem und strahlendem Licht in deinem Herzen erscheinen.", source: "Jigme Lingpa", book: "Yeshe Lama [52, 53]" },
-        { id: 38, quote: "Die Qualität deiner Empfindung bestimmt die Qualität der Energie, die du erzeugst. Wenn deine Motivation gütig ist, wird die Energie emporsteigen und den höheren Genius deines Herzens und deines Geistes aufschließen.", source: "Mantak Chia", book: "Tao Yoga der Liebe [54]" },
-        { id: 39, quote: "Reine, positive und gütige Gedanken fördern die Qualität der Lebenskraft sehr stark. Das ist es, was wir während des Trainings in unserem Geist halten sollten: Dass die Kraft, die uns durchfließt, eine intelligente Heilkraft ist.", source: "Günther Dogan", book: "Professionelles Qi Gong [55, 56]" },
-        { id: 40, quote: "Qi Gong bietet dem Einzelnen die Möglichkeit, Geist und Körper zu kultivieren. Durch Atemübungen und Visualisierung entstehen neue Freiräume, die den Alltag transformieren. Öffne deine Sinne für das Universum, in dem du lebst.", source: "Nancy N. Chen", book: "Breathing Spaces [1, 2]" }
+        { id: 1, quote: "Stellt euch euren Atem als den Weg vor, der die Energie um euch herum aufnimmt und sie mit eurer eigenen Energie verbindet.", source: "Nancy N. Chen" },
+        { id: 4, quote: "Das Wesentliche im Qi Gong ist, das Herz nicht allzu sehr in den Atem zu legen, da der Atem direkt vom Bewusstsein kommt.", source: "Meister Lü Dsu" },
+        { id: 9, quote: "Wenn du atmest, ist es die Natur, die dich atmet. In der tiefen Praxis können Geist und Körper leer werden.", source: "Ken Cohen" },
+        { id: 14, quote: "Wenn die Stille ihren Höhepunkt erreicht hat, erzeugt sie ganz von selbst die Bewegung der Energie.", source: "Meister Zhi-Chang Li" },
+        { id: 19, quote: "Der Atem ist die Verbindung, der Leim zwischen Körper, Geist und Seele.", source: "Mantak Chia" },
+        { id: 28, quote: "Lasse dein Gewahrsein wie einen weiten Ozean sein, in dem die Wellen der Gedanken von selbst zur Ruhe kommen.", source: "Namkhai Norbu" },
+        { id: 31, quote: "Das Kultivieren der Stille lässt den Geist klar werden wie einen gereinigten Spiegel.", source: "Ulli Olvedi" }
     ];
 
     class BreathApp {
         constructor() {
             this.viz = new BreathVisuals(document.getElementById('viz-canvas'));
             this.audio = new GentleAudio();
-            this.isRunning = false; 
-            this.abortCtrl = null;
-            this.sessionDuration = 0;
-            this.startTime = 0;
-            this.sessionTimerInterval = null;
-            this.lastVolume = 0.5;
+            this.isRunning = false; this.abortCtrl = null; this.sessionDuration = 0; this.startTime = 0;
             
-            this.evolveActive = false;
-            this.evolveCycles = 4;
-            this.evolveProgress = 0;
+            this.draggingXY = false;
+            this.tapTimes = [];
+            this.isTapperActive = false;
+            this.tapperTimeout = null;
+            this.metronomeTimeout = null;
+            this.musicalLoopOptions = [];
+            this.msPerBeat = 0;
+
+            // Drift State
+            this.evolveActive = false; this.evolveCycles = 4; this.evolveProgress = 0;
             this.xyDriftBounds = {x1:0, x2:1, y1:0, y2:1};
             this.currentX = 0; this.currentY = 0;
-            this.colorDriftActive = false;
-            this.colorDriftDirection = 1;
-            this.colorDriftCycles = 4;
-            this.currentColorValue = 0;
-            this.currentPreset = "";
-            this.setupUI();
-            this.randomizeVisuals();
-            const p1Btn = document.querySelector(`.preset-scroll .chip[onclick*="'p1'"]`);
-            this.loadPreset('p1', p1Btn);
-        }
+            this.colorDriftActive = false; this.colorDriftDirection = 1; this.colorDriftCycles = 4;
+            this.currentColorValue = 0; this.currentPreset = "";
+            
+            // Web Worker for background timing
+            const blob = new Blob(["let t;self.onmessage=e=>{if(e.data=='start'){if(t)clearInterval(t);t=setInterval(()=>postMessage('t'),25)}else{clearInterval(t)}}"], {type: 'application/javascript'});
+            this.timerWorker = new Worker(URL.createObjectURL(blob));
 
-        setupUI() {
-            document.getElementById('startBtn').addEventListener('click', () => this.toggle());
-            document.getElementById('stop-float').addEventListener('click', () => this.stop());
-            
-            // --- TAP TEMPO SYNC LOGIC ---
-            const tapFloat = document.getElementById('tap-float');
-            let tapTimes = [];
-            
-            const handleTap = (e, btn) => {
-                e.preventDefault();
-                const now = Date.now();
-                
-                // VISUAL FLASH ON TAP (Glow Effect)
-                this.viz.triggerPulse();
-
-                // Reset if it's been more than 2 seconds since last tap
-                if (tapTimes.length > 0 && now - tapTimes[tapTimes.length - 1] > 2000) {
-                    tapTimes = [];
-                    tapFloat.innerText = "♫ Takt tippen";
-                }
-            
-                tapTimes.push(now);
-            
-                // Button Visual Feedback
-                btn.style.background = 'var(--accent-primary)';
-                btn.style.color = '#fff';
-                setTimeout(() => {
-                    btn.style.background = '';
-                    btn.style.color = '';
-                }, 100);
-            
-                // We need at least 3 taps to calculate a valid average
-                if (tapTimes.length >= 3) {
-                    // Calculate average interval between taps
-                    let intervals = [];
-                    for (let i = 1; i < tapTimes.length; i++) {
-                        intervals.push(tapTimes[i] - tapTimes[i - 1]);
-                    }
-                    
-                    const avgMs = intervals.reduce((a, b) => a + b) / intervals.length;
-                    
-                    // Convert to Seconds per Beat
-                    const secondsPerBeat = avgMs / 1000;
-                    
-                    // Start with 4 beats (Standard musical phrasing)
-                    let beats = 4;
-                    let duration = secondsPerBeat * beats;
-
-                    // Cap: Ensure breath phase is at least 3.5 seconds
-                    // If too fast, double the musical duration (4 -> 8 -> 16 beats)
-                    while (duration < 3.5) {
-                        beats *= 2;
-                        duration = secondsPerBeat * beats;
-                    }
-            
-                    const breathPhaseDuration = parseFloat(duration.toFixed(2));
-            
-                    // Update the UI Inputs
-                    document.getElementById('inTime').value = breathPhaseDuration;
-                    document.getElementById('outTime').value = breathPhaseDuration;
-                    document.getElementById('holdFullTime').value = 0;
-                    document.getElementById('holdEmptyTime').value = 0;
-            
-                    // Update Label
-                    const label = `♫ ${breathPhaseDuration}s`;
-                    tapFloat.innerText = label;
-                    
-                    document.querySelectorAll('.preset-scroll .chip').forEach(c => c.classList.remove('active'));
-                    this.currentPreset = label;
-                    if(this.isRunning) document.getElementById('preset-display').innerHTML = this.generatePresetHTML();
-                    
-                    // INSTANT SYNC: RESTART LOOP IMMEDIATELY
-                    // We restart the loop exactly NOW, treating this tap as the "1" (Start of Inhale)
-                    if (this.isRunning) {
-                        // Kill current loop
-                        if(this.abortCtrl) this.abortCtrl.abort();
-                        this.abortCtrl = new AbortController();
-                        
-                        // Start new loop immediately (This aligns phase to finger tap)
-                        // Use setTimeout to break the call stack and ensure clean restart
-                        setTimeout(() => this.loop(this.abortCtrl.signal), 0);
-                    }
-                    
-                    // Keep array short
-                    if (tapTimes.length > 5) tapTimes.shift();
-                }
-            };
-            tapFloat.addEventListener('pointerdown', (e) => handleTap(e, tapFloat));
-            
-            document.getElementById('instruction').addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!this.isRunning) {
-                    document.getElementById('inTime').value = 5.5;
-                    document.getElementById('outTime').value = 5.5;
-                    document.getElementById('holdFullTime').value = 0;
-                    document.getElementById('holdEmptyTime').value = 0;
-                    this.start();
-                }
-            });
-
+            try { window.focus(); document.body.focus(); } catch(e) {}
             document.addEventListener('keydown', (e) => {
-                if (e.code === 'Space' || e.key === ' ') {
+                if (e.code === 'Space' && !e.repeat) {
+                    const activeEl = document.activeElement;
+                    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'SELECT' || activeEl.tagName === 'BUTTON' || activeEl.isContentEditable)) {
+                        return;
+                    }
                     e.preventDefault();
-                    const summary = document.getElementById('summary-modal');
-                    if (summary.classList.contains('visible')) {
+                    if (document.getElementById('summary-modal').classList.contains('visible')) {
                         this.closeSummary();
                     } else {
                         this.toggle();
@@ -1683,674 +932,598 @@
                 }
             });
 
-            // Mobile Top Controls Toggle Logic
-            const toggleTopCtrl = (id) => {
-                if (window.innerWidth >= 768) return;
-                const el = document.getElementById(id);
-                const isExpanded = el.classList.contains('expanded');
-                document.querySelectorAll('.top-ctrl').forEach(c => c.classList.remove('expanded'));
-                if (!isExpanded) el.classList.add('expanded');
+            this.setupUI(); this.randomizeVisuals();
+            this.loadPreset('p1', document.querySelector(`.preset-scroll .chip:first-child`));
+            this.setDuration(0, null);
+            this.updateInfoPanel(); // Ensure initial preset display is correct
+        }
+        
+        startIdleLoop() {
+            let last = Date.now();
+            const loop = () => {
+                if (!this.isRunning) {
+                    const now = Date.now();
+                    this.updateDrift((now - last) / 1000);
+                    last = now;
+                    requestAnimationFrame(loop);
+                }
             };
+            loop();
+        }
 
-            document.getElementById('volume-control').addEventListener('click', (e) => {
-                if (e.target.tagName === 'INPUT') return;
-                toggleTopCtrl('volume-control');
-            });
-            document.getElementById('color-control').addEventListener('click', (e) => {
-                if (e.target.tagName === 'INPUT') return;
-                toggleTopCtrl('color-control');
-            });
+        setupUI() {
+            const getEl = id => document.getElementById(id);
+            getEl('startBtn').addEventListener('click', () => this.toggle());
+            
+            // Firefox/Touch Fix: Use pointerdown for UI toggles
+            const handle = document.querySelector('.handle');
+            if(handle) handle.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.toggleUI(); });
+            getEl('restore-ui-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); this.toggleUI(); });
 
-            // Color Slider (Floating)
-            document.getElementById('color-slider').addEventListener('input', (e) => {
-                const v = parseFloat(e.target.value);
-                this.currentColorValue = v;
-                this.updateThemeColor(v);
+            getEl('stop-float').addEventListener('click', () => this.stop());
+            getEl('instruction').addEventListener('click', (e) => { e.stopPropagation(); if (!this.isRunning) this.start(); });
+            getEl('soundSelect').addEventListener('change', (e) => {
+                if(e.target.value.includes('yrrpheus')) this.loadPreset('p8', document.querySelector("button[onclick*='p8']"));
+                if(this.isRunning) this.audio.play(e.target.value);
             });
             
-            document.getElementById('soundSelect').addEventListener('change', (e) => {
-                const val = e.target.value;
-                if(val.includes('yrrpheus')) {
-                    this.loadPreset('p8', document.querySelector("button[onclick*='p8']"));
-                }
-                if(this.isRunning) this.audio.play(val);
-            });
-            
-            document.getElementById('uploadBtn').addEventListener('click', () => document.getElementById('audioFileInput').click());
-            document.getElementById('audioFileInput').addEventListener('change', (e) => {
-                if(e.target.files[0]) {
-                    const url = URL.createObjectURL(e.target.files[0]);
-                    const sel = document.getElementById('soundSelect');
-                    const opt = document.createElement('option');
-                    opt.value = url; opt.text = "♫ " + e.target.files[0].name; opt.selected = true;
-                    sel.add(opt);
-                    if(this.isRunning) this.audio.play(url);
+            getEl('uploadBtn').addEventListener('click', () => getEl('audioFileInput').click());
+            getEl('audioFileInput').addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    const url = URL.createObjectURL(file);
+                    const select = getEl('soundSelect');
+                    const option = document.createElement('option');
+                    option.value = url; option.text = "Eigene: " + file.name;
+                    select.add(option); select.value = url;
+                    if (this.isRunning) this.audio.play(url);
                 }
             });
             
-            const volSlider = document.getElementById('vol-slider');
-            volSlider.value = this.audio.volume;
-            this.updateVolumeIcon(this.audio.volume);
-            
-            volSlider.addEventListener('input', (e) => {
-                const v = parseFloat(e.target.value);
-                this.audio.setVolume(v);
-                this.updateVolumeIcon(v);
+            // Vol / Color
+            getEl('vol-slider').addEventListener('input', (e) => {
+                const v = parseFloat(e.target.value); this.audio.setVolume(v);
+                getEl('vol-icon').style.opacity = v <= 0.01 ? 0.5 : 0.9;
             }, { passive: true });
-
-            document.querySelector('.handle').addEventListener('pointerup', (e) => {
-                e.preventDefault();
-                this.toggleUI();
-            });
             
-            document.getElementById('vol-icon').addEventListener('pointerup', (e) => {
-                e.preventDefault();
-                this.toggleMute();
+            const colorSlider = getEl('color-slider');
+            colorSlider.addEventListener('input', (e) => {
+                this.currentColorValue = parseFloat(e.target.value); this.updateThemeColor(this.currentColorValue);
             });
-            
-            // XY Pad Logic
-            const pad = document.getElementById('xy-pad');
-            const handleXY = (e) => {
-                const rect = pad.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                
-                let x = (clientX - rect.left) / rect.width;
-                let y = (clientY - rect.top) / rect.height;
-                x = Math.max(0, Math.min(1, x));
-                y = Math.max(0, Math.min(1, y));
-                
-                if (this.evolveActive) {
-                    this.toggleDrift(false);
-                }
-                
-                this.updateXY(x, y);
+            const colorStops = THEME_PALETTE.map(p => `rgb(${p.ar}, ${p.ag}, ${p.ab})`).join(', ');
+            colorSlider.style.setProperty('--color-slider-gradient', `linear-gradient(to right, ${colorStops})`);
 
-                const vizArea = document.getElementById('visual-area');
-                if (vizArea.classList.contains('pos-center')) {
-                    vizArea.classList.remove('pos-center');
-                    vizArea.classList.add('pos-top');
-                }
-            };
-            pad.addEventListener('pointerdown', (e) => {
-                pad.setPointerCapture(e.pointerId);
-                pad.addEventListener('pointermove', handleXY);
-                pad.addEventListener('pointerup', () => pad.removeEventListener('pointermove', handleXY), { once: true });
-                handleXY(e);
-            });
-
-            document.getElementById('randomness-slider').addEventListener('input', (e) => {
-                const v = parseFloat(e.target.value);
-                this.viz.setRandomness(v);
-                document.getElementById('chaos-val').innerText = Math.round(v * 100) + '%';
-            });
-
-            document.getElementById('intensity-slider').addEventListener('input', (e) => {
-                const v = parseFloat(e.target.value);
-                this.viz.setIntensity(v);
-                document.getElementById('intensity-val').innerText = Math.round(v * 100) + '%';
-            });
-
-            document.getElementById('points-slider').addEventListener('input', (e) => {
-                const v = parseInt(e.target.value);
-                this.viz.setLumaPoints(v);
-                document.getElementById('points-val').innerText = v;
-            });
-
-            document.getElementById('drift-slider').addEventListener('input', (e) => {
-                const v = parseInt(e.target.value);
-                this.evolveCycles = v;
-                document.getElementById('drift-val').innerText = v;
-                document.getElementById('drift-unit').innerText = v === 1 ? "Atemzug" : "Atemzüge";
-            });
-            
-            document.getElementById('color-drift-slider').addEventListener('input', (e) => {
-                const v = parseInt(e.target.value);
-                this.colorDriftCycles = v;
-                document.getElementById('color-drift-val').innerText = v;
-                document.getElementById('color-drift-unit').innerText = v === 1 ? "Atemzug" : "Atemzüge";
-            });
-            
-            const timeInputs = document.querySelectorAll('.controls-grid input');
-            timeInputs.forEach(input => {
-                input.addEventListener('change', () => {
-                    const snd = document.getElementById('soundSelect').value;
-                    if(snd.includes('yrrpheus')) {
-                        document.getElementById('soundSelect').value = 'bowl';
-                        if(this.isRunning) this.audio.play('bowl');
-                    }
+            // Sliders & Drifters
+            const bindSlider = (id, key, dispId) => {
+                getEl(id).addEventListener('input', (e) => {
+                    const v = parseFloat(e.target.value);
+                    if(key.startsWith('viz.')) this.viz[key.split('.')[1]](v);
+                    else this[key] = v;
+                    if(dispId) getEl(dispId).innerText = (v % 1 === 0 ? v : Math.round(v*100)+'%');
                 });
+            };
+            bindSlider('randomness-slider', 'viz.setRandomness', 'chaos-val');
+            bindSlider('intensity-slider', 'viz.setIntensity', 'intensity-val');
+            bindSlider('points-slider', 'viz.setLumaPoints', 'points-val');
+            bindSlider('drift-slider', 'evolveCycles', 'drift-val');
+            bindSlider('color-drift-slider', 'colorDriftCycles', 'color-drift-val');
+
+            // XY Pad
+            this.padElement = getEl('xy-pad');
+            this.padElement.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                this.padElement.setPointerCapture(e.pointerId);
+                this.draggingXY = true;
+                this.updateXYFromEvent(e);
+            });
+            this.padElement.addEventListener('pointermove', (e) => {
+                if (this.draggingXY) {
+                    e.preventDefault();
+                    this.updateXYFromEvent(e);
+                }
+            });
+            const endDrag = () => {
+                this.draggingXY = false;
+            };
+            this.padElement.addEventListener('pointerup', endDrag);
+            this.padElement.addEventListener('pointercancel', endDrag);
+            this.padElement.addEventListener('pointerleave', endDrag);
+
+            // Tap Sync
+            const tapBtn = getEl('tap-float');
+            tapBtn.addEventListener('pointerdown', (e) => { // MODIFIED for Musical Loop Selector
+                e.preventDefault();
+
+                if (this.isTapperActive) {
+                    this.resetTapperAndLoadDefault();
+                    return;
+                }
+
+                this.viz.triggerPulse(1.0);
+                const now = Date.now();
+                if (this.tapperTimeout) clearTimeout(this.tapperTimeout);
+
+                if (this.tapTimes.length > 0 && now - this.tapTimes[this.tapTimes.length - 1] > 2000) {
+                    this.tapTimes = [];
+                }
+                this.tapTimes.push(now);
+                if (this.tapTimes.length > 5) this.tapTimes.shift();
+
+                if (this.tapTimes.length >= 3) {
+                    const intervals = [];
+                    for (let i = 1; i < this.tapTimes.length; i++) {
+                        intervals.push(this.tapTimes[i] - this.tapTimes[i-1]);
+                    }
+                    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+
+                    if (avgInterval > 0) {
+                        const bpm = Math.round(60000 / avgInterval);
+                        this.msPerBeat = 60000 / bpm;
+                        const barDurationSeconds = (this.msPerBeat * 4) / 1000;
+                        
+                        const multipliers = [1, 2, 4, 8, 16];
+                        const minLoopDur = 4.0; // 2s per phase, matches input min="2"
+                        const maxLoopDur = 20.0; // 10s per phase
+                        this.musicalLoopOptions = multipliers.map(m => {
+                            const totalDuration = barDurationSeconds * m;
+                            return { multiplier: m, duration: totalDuration };
+                        }).filter(opt => opt.duration >= minLoopDur && opt.duration <= maxLoopDur);
+
+                        if (this.musicalLoopOptions.length > 0) {
+                            const selector = getEl('bpm-selector');
+                            selector.innerHTML = '';
+                            this.musicalLoopOptions.forEach(opt => {
+                                const takte = opt.multiplier === 1 ? 'Takt' : 'Takte';
+                                const chip = document.createElement('button');
+                                chip.className = 'chip';
+                                chip.innerText = `${opt.multiplier} ${takte} (${opt.duration.toFixed(1)}s)`;
+                                chip.onclick = () => this.setMusicalLoop(opt.multiplier, opt.duration, chip);
+                                selector.appendChild(chip);
+                            });
+                            getEl('bpm-selector-container').style.display = 'block';
+
+                            let bestOption = this.musicalLoopOptions.reduce((prev, curr) => 
+                                (Math.abs(curr.duration - 11) < Math.abs(prev.duration - 11)) ? curr : prev
+                            );
+                            const chips = Array.from(selector.getElementsByTagName('button'));
+                            const bestChip = chips.find(c => c.innerText.startsWith(`${bestOption.multiplier} `));
+                            if (bestChip) {
+                                this.setMusicalLoop(bestOption.multiplier, bestOption.duration, bestChip);
+                            }
+
+                            tapBtn.innerText = `♫ ${bpm} BPM`;
+                            tapBtn.classList.add('active');
+                            this.startMetronome();
+
+                            this.tapperTimeout = setTimeout(() => {
+                                this.isTapperActive = true;
+                            }, 2000);
+                        } else {
+                            tapBtn.innerText = 'Tempo ungültig';
+                            setTimeout(() => {
+                                if (!this.isTapperActive) this._resetTapperState();
+                            }, 1500);
+                        }
+                    }
+                }
             });
 
-            document.getElementById('randomness-slider').value = this.viz.randomness;
-            document.getElementById('chaos-val').innerText = Math.round(this.viz.randomness * 100) + '%';
-            
-            document.getElementById('intensity-slider').value = this.viz.intensity;
-            document.getElementById('intensity-val').innerText = Math.round(this.viz.intensity * 100) + '%';
-            
-            document.getElementById('points-slider').value = this.viz.lumaPoints;
-            document.getElementById('points-val').innerText = this.viz.lumaPoints;
-
+            getEl('vol-slider').value = this.audio.volume;
             this.updateThemeColor(0);
+        }
+        
+        updateDrift(dt) {
+            // Only run time-based drift here. Sync-based drift happens in loop().
+
+            if (this.evolveActive) {
+                const cycleDur = parseFloat(document.getElementById('inTime').value)*2 + 2; 
+                const step = dt / (cycleDur * this.evolveCycles);
+                this.evolveProgress = (this.evolveProgress + step) % 4;
+                
+                const b = this.xyDriftBounds, p = this.evolveProgress;
+                let dx, dy;
+                if (p < 1) { dx = b.x1 + p * (b.x2 - b.x1); dy = b.y1; }
+                else if (p < 2) { dx = b.x2; dy = b.y1 + (p - 1) * (b.y2 - b.y1); }
+                else if (p < 3) { dx = b.x2 - (p - 2) * (b.x2 - b.x1); dy = b.y2; }
+                else { dx = b.x1; dy = b.y2 - (p - 3) * (b.y2 - b.y1); }
+                this.updateXY(dx, dy);
+            }
+
+            if (this.colorDriftActive) {
+                const cycleDur = parseFloat(document.getElementById('inTime').value)*2; 
+                const speed = 25 / (this.colorDriftCycles * cycleDur); 
+                this.currentColorValue += speed * dt * this.colorDriftDirection;
+                if (this.currentColorValue >= 100) { this.currentColorValue = 100; this.colorDriftDirection = -1; }
+                if (this.currentColorValue <= 0) { this.currentColorValue = 0; this.colorDriftDirection = 1; }
+                this.updateThemeColor(this.currentColorValue);
+                
+                if(!document.body.classList.contains('ui-hidden')) {
+                        document.getElementById('color-slider').value = this.currentColorValue;
+                }
+            }
+        }
+
+        startMetronome() {
+            // Stop any existing timer, but without resetting the beat duration state.
+            // The previous implementation called stopMetronome(), which incorrectly set msPerBeat to 0,
+            // causing the metronome to never start.
+            if (this.metronomeTimeout) clearTimeout(this.metronomeTimeout);
+
+            if (this.msPerBeat <= 0) return;
+            const nextBeat = () => {
+                this.viz.triggerPulse(0.33);
+                this.metronomeTimeout = setTimeout(nextBeat, this.msPerBeat);
+            };
+            this.metronomeTimeout = setTimeout(nextBeat, this.msPerBeat);
+        }
+
+        stopMetronome() {
+            if (this.metronomeTimeout) clearTimeout(this.metronomeTimeout);
+            this.metronomeTimeout = null;
+            this.msPerBeat = 0;
+        }
+
+        _resetTapperState() {
+            this.isTapperActive = false;
+            if (this.tapperTimeout) clearTimeout(this.tapperTimeout); this.tapperTimeout = null;
+            this.stopMetronome(); this.tapTimes = [];
+            const tapBtn = document.getElementById('tap-float');
+            tapBtn.classList.remove('active'); tapBtn.innerText = '♫ Takt tippen';
+
+            const bpmContainer = document.getElementById('bpm-selector-container');
+            bpmContainer.style.display = 'none';
+            document.getElementById('bpm-selector').innerHTML = '';
+            this.musicalLoopOptions = [];
+        }
+
+        resetTapperAndLoadDefault() {
+            this._resetTapperState();
+            this.loadPreset('p1', document.querySelector("button[onclick*='p1']"));
+        }
+
+        updateXYFromEvent(e) {
+            const rect = this.padElement.getBoundingClientRect();
+            const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+            if (this.evolveActive) this.toggleDrift(false);
+            this.updateXY(x, y);
         }
 
         updateXY(x, y) {
-            this.currentX = x;
-            this.currentY = y;
+            this.currentX = x; this.currentY = y;
             const cursor = document.getElementById('xy-cursor');
-            cursor.style.left = (x * 100) + '%';
-            cursor.style.top = (y * 100) + '%';
-            
-            this.viz.weights = {
-                mist: (1-x) * (1-y),
-                circle: x * (1-y),
-                ripple: (1-x) * y,
-                luma: x * y
-            };
-            
+            cursor.style.left = (x * 100) + '%'; cursor.style.top = (y * 100) + '%';
+            this.viz.weights = { mist: (1-x)*(1-y), circle: x*(1-y), ripple: (1-x)*y, luma: x*y };
             if (x%1!==0 || y%1!==0) document.querySelectorAll('.mode-row .chip').forEach(c => c.classList.remove('active'));
+            
+            // Adjust text position based on lightness of visuals
+            const vizArea = document.getElementById('visual-area');
+            if(y > 0.6 && x > 0.6) { vizArea.classList.remove('pos-center'); vizArea.classList.add('pos-top'); }
+            else { vizArea.classList.remove('pos-top'); vizArea.classList.add('pos-center'); }
         }
 
         updateThemeColor(val) {
             const pct = val / 100;
-            const segmentCount = THEME_PALETTE.length - 1;
-            const index = Math.min(Math.floor(pct * segmentCount), segmentCount - 1);
-            const nextIndex = index + 1;
-            const segmentSize = 1 / segmentCount;
-            const segmentStart = index * segmentSize;
-            const t = (pct - segmentStart) / segmentSize; 
-
-            const c1 = THEME_PALETTE[index];
-            const c2 = THEME_PALETTE[nextIndex];
-
-            const lerp = (a, b, f) => a + (b - a) * f;
+            const idx = Math.min(Math.floor(pct * (THEME_PALETTE.length - 1)), THEME_PALETTE.length - 2);
+            const c1 = THEME_PALETTE[idx], c2 = THEME_PALETTE[idx + 1];
+            const t = (pct - (idx / (THEME_PALETTE.length - 1))) * (THEME_PALETTE.length - 1);
             
-            const r = Math.round(lerp(c1.r, c2.r, t));
-            const g = Math.round(lerp(c1.g, c2.g, t));
-            const b = Math.round(lerp(c1.b, c2.b, t));
-            
-            const rA = Math.round(lerp(c1.ar, c2.ar, t));
-            const gA = Math.round(lerp(c1.ag, c2.ag, t));
-            const bA = Math.round(lerp(c1.ab, c2.ab, t));
+            const lerp = (a, b) => Math.round(a + (b - a) * t);
+            const r = lerp(c1.r, c2.r), g = lerp(c1.g, c2.g), b = lerp(c1.b, c2.b);
+            const rA = lerp(c1.ar, c2.ar), gA = lerp(c1.ag, c2.ag), bA = lerp(c1.ab, c2.ab);
 
             document.body.style.setProperty('--bg-color', `rgb(${r},${g},${b})`);
             document.body.style.setProperty('--accent-primary', `rgb(${rA},${gA},${bA})`);
-            
             this.viz.bgR = r; this.viz.bgG = g; this.viz.bgB = b;
             this.viz.colors = { r: rA, g: gA, b: bA };
             this.viz.generateSprite();
         }
 
         randomizeVisuals() {
-            const rndVal = Math.random() * 100;
-            this.currentColorValue = rndVal;
-            const slider = document.getElementById('color-slider');
-            if(slider) {
-                slider.value = rndVal;
-                this.updateThemeColor(rndVal);
-            }
-
+            const r = Math.random() * 100;
+            this.currentColorValue = r; document.getElementById('color-slider').value = r; this.updateThemeColor(r);
             const modes = ['mist', 'circle', 'ripple', 'luma'];
-            const randomMode = modes[Math.floor(Math.random() * modes.length)];
-            const modeBtn = document.querySelector(`.mode-row .chip[onclick*="'${randomMode}'"]`);
-            this.setVisualMode(randomMode, modeBtn);
+            this.setVisualMode(modes[Math.floor(Math.random()*modes.length)], null);
             
-            const positions = ['pos-top', 'pos-center', 'pos-bottom'];
-            const randomPos = positions[Math.floor(Math.random() * positions.length)];
-            const vizArea = document.getElementById('visual-area');
-            vizArea.classList.remove('pos-top', 'pos-center', 'pos-bottom');
-            vizArea.classList.add(randomPos);
+            const audioPool = ['gentle', 'ambient', 'bowl-mp3'];
+            const rndAudio = audioPool[Math.floor(Math.random() * audioPool.length)];
+            document.getElementById('soundSelect').value = rndAudio;
+            if (this.isRunning) this.audio.play(rndAudio);
         }
 
-        shuffleSession() {
-            this.randomizeVisuals();
+        toggleDrift(state) {
+            this.evolveActive = state !== undefined ? state : !this.evolveActive;
+            const cx = this.currentX, cy = this.currentY;
+            const d = Math.min(cx, 1-cx, cy, 1-cy);
+            this.xyDriftBounds = { x1: d, x2: 1-d, y1: d, y2: 1-d };
             
-            const opts = Array.from(document.getElementById('soundSelect').options);
-            const valid = opts.filter(o => o.value !== 'none').map(o => o.value);
-            const rndSound = valid[Math.floor(Math.random() * valid.length)];
-            
-            document.getElementById('soundSelect').value = rndSound;
-            
-            if(rndSound.includes('yrrpheus')) {
-                this.loadPreset('p8', document.querySelector("button[onclick*='p8']"));
-            } else {
-                 if(this.isRunning) this.audio.play(rndSound);
-            }
-
-            this.setDuration(0, document.querySelector('#duration-scroll .chip:first-child'));
-        }
-
-        loadPreset(k, el) {
-            const presets = { 
-                p1:[5.5,5.5], p2:[4,4], p3:[4,7,8], p4:[5,5,5,5], 
-                p5:[6,6], p6:[7,7], p7:[8,8], p8:[5,5] 
-            };
-            const v = presets[k];
-            if(!v) return;
-
-            const currentSound = document.getElementById('soundSelect').value;
-            if (currentSound.includes('yrrpheus') && k !== 'p8') {
-                 document.getElementById('soundSelect').value = 'bowl';
-                 if(this.isRunning) this.audio.play('bowl');
-            }
-
-            if(el) this.currentPreset = el.innerText;
-
-            document.getElementById('inTime').value = v[0];
-            document.getElementById('holdFullTime').value = v.length>2?v[1]:0;
-            document.getElementById('outTime').value = v.length>2?v[2]:v[1];
-            document.getElementById('holdEmptyTime').value = v.length==4?v[3]:0;
-
-            const soundSelect = document.getElementById('soundSelect');
-            if (k === 'p8') {
-                if(!soundSelect.value.includes('yrrpheus')) soundSelect.value = "audio/yrrpheus_coherence.mp3";
-            } else if (k === 'p1') {
-                soundSelect.value = "bowl";
+            if (this.evolveActive) {
+                const b = this.xyDriftBounds;
+                const w = b.x2 - b.x1, h = b.y2 - b.y1;
+                if (w < 0.001 || h < 0.001) this.evolveProgress = 0;
+                else if (Math.abs(cy - b.y1) < 0.001) this.evolveProgress = (cx - b.x1) / w;
+                else if (Math.abs(cx - b.x2) < 0.001) this.evolveProgress = 1 + (cy - b.y1) / h;
+                else if (Math.abs(cy - b.y2) < 0.001) this.evolveProgress = 2 + (b.x2 - cx) / w;
+                else this.evolveProgress = 3 + (b.y2 - cy) / h;
             }
             
-            if (this.isRunning) this.audio.play(soundSelect.value);
-
-            document.querySelectorAll('.preset-scroll .chip').forEach(c=>c.classList.remove('active'));
-            if(el) el.classList.add('active');
-        }
-        
-        setVisualMode(mode, el) {
-            let x=0, y=0;
-            if(mode === 'mist') { x=0; y=0; }
-            else if(mode === 'circle') { x=1; y=0; }
-            else if(mode === 'ripple') { x=0; y=1; }
-            else if(mode === 'luma') { x=1; y=1; }
-            this.updateXY(x, y);
-            
-            document.querySelectorAll('.mode-row .chip').forEach(c=>c.classList.remove('active'));
-            if(el) el.classList.add('active');
-        }
-
-        setDuration(min, el) {
-            this.sessionDuration = parseInt(min);
-            document.querySelectorAll('#duration-scroll .chip').forEach(c=>c.classList.remove('active'));
-            if(el) el.classList.add('active');
-        }
-
-        toggleMute() {
-            const slider = document.getElementById('vol-slider');
-            if (this.audio.volume > 0.01) {
-                this.lastVolume = this.audio.volume;
-                this.audio.setVolume(0);
-                slider.value = 0;
-                this.updateVolumeIcon(0);
-            } else {
-                const target = this.lastVolume || 0.3;
-                this.audio.setVolume(target);
-                slider.value = target;
-                this.updateVolumeIcon(target); 
-            }
-        }
-
-        updateVolumeIcon(vol) {
-            const path = document.querySelector('#vol-icon path');
-            const isMuted = vol <= 0.01;
-            document.getElementById('vol-icon').style.opacity = isMuted ? 0.5 : 0.9;
-            if(isMuted) path.setAttribute('d', 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z');
-            else path.setAttribute('d', 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z');
-        }
-        
-        toggleMixer() {
-            const el = document.getElementById('xy-pad-container');
-            const btns = [document.getElementById('mixer-toggle'), document.getElementById('desktop-viz-toggle')];
-            const isVisible = el.style.display === 'flex';
-            el.style.display = isVisible ? 'none' : 'flex';
-            
-            btns.forEach(b => {
-                if(b) {
-                    if(!isVisible) b.classList.add('active');
-                    else b.classList.remove('active');
-                }
-            });
-        }
-
-        toggleSliders() {
-            const el = document.getElementById('viz-sliders');
-            const btn = document.getElementById('slider-toggle-btn');
-            const isHidden = el.style.display === 'none';
-            el.style.display = isHidden ? 'block' : 'none';
-            btn.innerText = isHidden ? "Einstellungen verbergen" : "Einstellungen anzeigen";
-            btn.classList.toggle('active', isHidden);
-            if(isHidden) {
-                setTimeout(() => document.getElementById('ui-container').scrollBy({ top: 100, behavior: 'smooth' }), 50);
-            }
+            // UI Update
+            const btn = document.getElementById('drift-btn');
+            const status = document.getElementById('drift-status');
+            btn.classList.toggle('active', this.evolveActive);
+            status.innerText = this.evolveActive ? "Ein" : "Aus";
+            document.getElementById('drift-controls').style.display = this.evolveActive ? 'block' : 'none';
         }
 
         toggleColorDrift() {
             this.colorDriftActive = !this.colorDriftActive;
-            const btn = document.getElementById('color-drift-btn');
-            const status = document.getElementById('color-drift-status');
-            const ctrls = document.getElementById('color-drift-controls');
-            if (this.colorDriftActive) {
-                btn.classList.add('active');
-                status.innerText = "Ein";
-                ctrls.style.display = 'block';
+            document.getElementById('color-drift-btn').classList.toggle('active', this.colorDriftActive);
+            document.getElementById('color-drift-status').innerText = this.colorDriftActive ? "Ein" : "Aus";
+            document.getElementById('color-drift-controls').style.display = this.colorDriftActive ? 'block' : 'none';
+        }
+
+        loadPreset(k, el) {
+            this._resetTapperState(); // Always reset tapper when a preset is chosen.
+
+            const presets = { p1:[5.5,5.5], p2:[4,4], p3:[4,7,8], p4:[5,5,5,5], p5:[6,6], p6:[7,7], p7:[8,8], p8:[5,5] };
+            const p = presets[k];
+            if(!p) return;
+            const getEl = id => document.getElementById(id);
+
+            // Explicitly map presets based on array length to fix bug
+            if (p.length === 4) {
+                getEl('inTime').value = p[0]; getEl('holdFullTime').value = p[1]; getEl('outTime').value = p[2]; getEl('holdEmptyTime').value = p[3];
+            } else if (p.length === 3) {
+                getEl('inTime').value = p[0]; getEl('holdFullTime').value = p[1]; getEl('outTime').value = p[2]; getEl('holdEmptyTime').value = 0;
+            } else if (p.length === 2) {
+                getEl('inTime').value = p[0]; getEl('holdFullTime').value = 0; getEl('outTime').value = p[1]; getEl('holdEmptyTime').value = 0;
+            }
+            
+            const snd = document.getElementById('soundSelect');
+            if (k === 'p8') {
+                if (!snd.value.includes('yrrpheus')) snd.value = "audio/yrrpheus_coherence.mp3";
             } else {
-                btn.classList.remove('active');
-                status.innerText = "Aus";
-                ctrls.style.display = 'none';
+                snd.value = "bowl-mp3";
+            }
+            if (this.isRunning) this.audio.play(snd.value);
+            
+            document.querySelectorAll('.preset-scroll .chip').forEach(c=>c.classList.remove('active'));
+            if(el) { el.classList.add('active'); this.currentPreset = el.innerText; }
+            this.updateInfoPanel();
+        }
+
+        setMusicalLoop(multiplier, duration, el) {
+            const getEl = id => document.getElementById(id);
+            const phaseDuration = parseFloat((duration / 2).toFixed(1));
+            getEl('inTime').value = phaseDuration; getEl('outTime').value = phaseDuration;
+            getEl('holdFullTime').value = 0; getEl('holdEmptyTime').value = 0;
+
+            document.querySelectorAll('#bpm-selector .chip').forEach(c => c.classList.remove('active'));
+            if (el) el.classList.add('active');
+            
+            document.querySelectorAll('.preset-scroll .chip').forEach(c => c.classList.remove('active'));
+
+            const bpm = Math.round(60000 / this.msPerBeat);
+            const takte = multiplier === 1 ? 'Takt' : 'Takte';
+            this.currentPreset = `♫ ${bpm} BPM / ${multiplier} ${takte}`;
+            this.updateInfoPanel();
+
+            if (this.isRunning) {
+                if (this.abortCtrl) this.abortCtrl.abort();
+                this.abortCtrl = new AbortController();
+                setTimeout(() => this.loop(this.abortCtrl.signal), 0);
             }
         }
 
-        toggleDrift(forceState) {
-            const newState = forceState !== undefined ? forceState : !this.evolveActive;
-            this.evolveActive = newState;
-            
-            const btn = document.getElementById('drift-btn');
-            const status = document.getElementById('drift-status');
-            const ctrls = document.getElementById('drift-controls');
-            
-            if (this.evolveActive) {
-                btn.classList.add('active');
-                status.innerText = "Ein";
-                ctrls.style.display = 'block';
-                
-                // Initialize bounds based on current position (inset from edges)
-                const cx = this.currentX;
-                const cy = this.currentY;
-                const dx = Math.min(cx, 1-cx);
-                const dy = Math.min(cy, 1-cy);
-                
-                this.xyDriftBounds = { x1: dx, x2: 1-dx, y1: dy, y2: 1-dy };
-                
-                // Set progress to nearest edge to prevent jumping
-                const b = this.xyDriftBounds;
-                const dTop = Math.abs(cy - b.y1);
-                const dBottom = Math.abs(cy - b.y2);
-                const dLeft = Math.abs(cx - b.x1);
-                const dRight = Math.abs(cx - b.x2);
-                const minD = Math.min(dTop, dBottom, dLeft, dRight);
-                
-                const w = b.x2 - b.x1;
-                const h = b.y2 - b.y1;
-                
-                if (minD === dTop) this.evolveProgress = w > 0.01 ? (cx - b.x1) / w : 0;
-                else if (minD === dRight) this.evolveProgress = 1 + (h > 0.01 ? (cy - b.y1) / h : 0);
-                else if (minD === dBottom) this.evolveProgress = 2 + (w > 0.01 ? (1 - (cx - b.x1) / w) : 0);
-                else this.evolveProgress = 3 + (h > 0.01 ? (1 - (cy - b.y1) / h) : 0);
-                
-            } else {
-                btn.classList.remove('active');
-                status.innerText = "Aus";
-                ctrls.style.display = 'none';
-            }
-        }
-
-        toggleTiming() {
-            const el = document.getElementById('timing-grid');
-            const btn = document.getElementById('timing-toggle-btn');
-            const isHidden = !el.classList.contains('visible');
-            if(isHidden) {
-                el.classList.add('visible');
-                btn.innerText = "Zeit-Details verbergen";
-                btn.classList.add('active');
-            } else {
-                el.classList.remove('visible');
-                btn.innerText = "Zeit-Details anzeigen";
-                btn.classList.remove('active');
-            }
+        setVisualMode(mode, el) {
+            const map = { mist:[0,0], circle:[1,0], ripple:[0,1], luma:[1,1] };
+            this.updateXY(...map[mode]);
+            document.querySelectorAll('.mode-row .chip').forEach(c=>c.classList.remove('active'));
+            if(el) el.classList.add('active');
+            else document.querySelector(`.mode-row .chip[onclick*="'${mode}'"]`).classList.add('active');
         }
 
         toggleUI() { 
-            const ui = document.getElementById('ui-container');
-            const isOpening = ui.classList.contains('hidden');
-            ui.classList.toggle('hidden'); 
-            document.body.classList.toggle('ui-hidden');
+            document.getElementById('ui-container').classList.toggle('hidden'); 
+            document.body.classList.toggle('ui-hidden'); 
+        }
+        toggleMixer() { document.getElementById('xy-pad-container').style.display = document.getElementById('xy-pad-container').style.display === 'flex' ? 'none' : 'flex'; }
+        toggleSliders() { 
+            const el = document.getElementById('viz-sliders'); 
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+            document.getElementById('slider-toggle-btn').innerText = el.style.display === 'block' ? "Einstellungen verbergen" : "Einstellungen anzeigen";
+        }
+        toggleTiming() { document.getElementById('timing-grid').classList.toggle('visible'); }
+        closeSummary() { document.getElementById('summary-modal').classList.remove('visible'); }
+        shuffleSession() { this.randomizeVisuals(); }
+        setDuration(m, el) {
+            this.sessionDuration = parseInt(m) || 0;
+            document.querySelectorAll('#duration-scroll .chip').forEach(c => c.classList.remove('active'));
+            const customInput = document.querySelector('#duration-scroll input[type=number]');
 
-            if (isOpening && !this.isRunning) {
-                document.getElementById('xy-pad-container').style.display = 'none';
-                document.getElementById('mixer-toggle').classList.remove('active');
+            if (el) { // A chip was clicked by the user
+                el.classList.add('active');
+                if (customInput) customInput.value = '';
+            } else { // Programmatic call OR from the custom input field's onchange
+                let matchingChip = null;
+                const chips = document.querySelectorAll('#duration-scroll .chip');
+                // Find if a pre-defined chip matches the duration value
+                for (const chip of chips) {
+                    const onclickVal = chip.getAttribute('onclick');
+                    if (onclickVal && onclickVal.startsWith(`app.setDuration(${this.sessionDuration},`)) {
+                        matchingChip = chip;
+                        break;
+                    }
+                }
+
+                if (matchingChip) {
+                    // A chip matches the value, so highlight it and clear the custom input.
+                    matchingChip.classList.add('active');
+                    if (customInput) customInput.value = '';
+                }
+                // If no chip matches, it's a custom value. The input field itself is the indicator.
             }
         }
-        closeSummary() { document.getElementById('summary-modal').classList.remove('visible'); }
-        
-        generatePresetHTML() {
-            const val = id => parseFloat(document.getElementById(id).value) || 0;
-            const i = val('inTime');
-            const hf = val('holdFullTime');
-            const o = val('outTime');
-            const he = val('holdEmptyTime');
-            const col = (n, l) => `<div class="pd-col"><span class="pd-num">${n}</span><span class="pd-meta">sek<br>${l}</span></div>`;
-            const sep = `<div class="pd-sep">:</div>`;
-            let h = col(i, 'ein');
-            if(hf>0) h += sep + col(hf, 'halten');
-            h += sep + col(o, 'aus');
-            if(he>0) h += sep + col(he, 'pause');
-            return h;
+
+        updateInfoPanel() {
+            const getEl = id => document.getElementById(id);
+            const val = id => parseFloat(getEl(id).value) || 0;
+            const i=val('inTime'), hf=val('holdFullTime'), o=val('outTime'), he=val('holdEmptyTime');
+            
+            // Helper to format numbers: integers as is, floats to 1 decimal place.
+            const formatNum = n => (n % 1 === 0) ? n : n.toFixed(1);
+
+            const col = (n,l) => `<div class="pd-col"><span class="pd-num">${formatNum(n)}</span><span class="pd-meta">${l}</span></div>`;
+            let h = col(i,'ein'); 
+            if(hf>0) h+=`<span class="pd-sep">:</span>`+col(hf,'halt'); 
+            h+=`<span class="pd-sep">:</span>`+col(o,'aus'); 
+            if(he>0) h+=`<span class="pd-sep">:</span>`+col(he,'pause');
+            
+            const displayEl = getEl('preset-display');
+            displayEl.innerHTML = h;
+            displayEl.classList.add('visible');
         }
 
         async toggle() { this.isRunning ? this.stop() : this.start(); }
-
         async start() {
             if (this.isRunning) return;
-            
             const btn = document.getElementById('startBtn');
-            const oldText = btn.innerText;
+            const instructionEl = document.getElementById('instruction'); 
             btn.innerText = "Laden...";
-            btn.disabled = true;
-
             try {
-                await this.audio.init();
-                await this.audio.play(document.getElementById('soundSelect').value);
+                await this.audio.init(); await this.audio.play(document.getElementById('soundSelect').value);
                 if(navigator.wakeLock) try { this.wakelock = await navigator.wakeLock.request('screen'); } catch(e){}
-
-                this.isRunning = true;
-                this.startTime = Date.now();
                 
+                this.isRunning = true; this.startTime = Date.now();
                 document.getElementById('ui-container').classList.add('hidden');
-                document.body.classList.add('ui-hidden');
-                document.body.classList.add('app-running');
+                document.body.classList.add('ui-hidden', 'app-running');
                 document.getElementById('summary-modal').classList.remove('visible');
-                btn.innerText = "Beenden";
-                btn.classList.add('stop-mode');
-                btn.disabled = false;
-                document.getElementById('stop-float').style.display = 'block';
-                
-                document.getElementById('preset-display').innerHTML = this.generatePresetHTML();
+                btn.innerText = "Beenden"; btn.classList.add('stop-mode');
+                document.getElementById('stop-float').style.display = 'flex';
                 document.getElementById('preset-display').classList.add('visible');
                 document.getElementById('tap-float').classList.add('visible');
-                
-                if(this.abortCtrl) this.abortCtrl.abort();
+                this.updateInfoPanel(); // Update display with current values
+
                 this.abortCtrl = new AbortController();
-                
                 this.loop(this.abortCtrl.signal);
-
-                document.getElementById('session-timer').classList.add('visible');
-                this.updateSessionTimer();
-                if(this.sessionTimerInterval) clearInterval(this.sessionTimerInterval);
-                this.sessionTimerInterval = setInterval(() => this.updateSessionTimer(), 1000);
                 
-            } catch (err) {
-                console.error(err);
+                const timerEl = document.getElementById('session-timer');
+                timerEl.classList.add('visible');
+                this.sessInt = setInterval(() => {
+                    const elap = Date.now() - this.startTime;
+                    if(this.sessionDuration > 0 && elap >= this.sessionDuration*60000) this.stop();
+                    const ms = this.sessionDuration > 0 ? (this.sessionDuration*60000 - elap) : elap;
+                    timerEl.innerText = `${Math.floor(Math.max(0,ms)/60000).toString().padStart(2,'0')}:${Math.floor((Math.max(0,ms)%60000)/1000).toString().padStart(2,'0')}`;
+                }, 1000);
+            } catch (e) {
+                console.error("Start failed:", e);
                 this.isRunning = false;
-                btn.innerText = oldText;
-                btn.disabled = false;
+                btn.innerText = "Beginnen";
+                if (this.audio.ctx && this.audio.ctx.state === 'suspended') {
+                    instructionEl.innerText = "Klicken zum Starten";
+                    instructionEl.animate([
+                        { opacity: 0.5, transform: 'translateX(-50%) scale(1)' },
+                        { opacity: 1, transform: 'translateX(-50%) scale(1.05)' },
+                        { opacity: 0.5, transform: 'translateX(-50%) scale(1)' }
+                    ], { duration: 800, iterations: 2, easing: 'ease-in-out' });
+                }
             }
-        }
-
-        getUniqueQuote() {
-            let history = [];
-            try { history = JSON.parse(localStorage.getItem('atem-quote-history')) || []; } catch(e){}
-            
-            let candidates = quotes.filter(q => !history.includes(q.id));
-            if (candidates.length === 0) { candidates = quotes; history = []; }
-            
-            const q = candidates[Math.floor(Math.random() * candidates.length)];
-            
-            history.push(q.id);
-            if (history.length > 30) history.shift();
-            localStorage.setItem('atem-quote-history', JSON.stringify(history));
-            return q;
         }
 
         stop() {
             this.isRunning = false;
-            if(this.abortCtrl) { this.abortCtrl.abort(); this.abortCtrl = null; }
-            this.audio.stop();
-            if(this.sessionTimerInterval) clearInterval(this.sessionTimerInterval);
-            document.getElementById('session-timer').classList.remove('visible');
-            document.getElementById('preset-display').classList.remove('visible');
-            document.getElementById('tap-float').classList.remove('visible');
-
+            if(this.abortCtrl) this.abortCtrl.abort();
+            this.audio.stop(); clearInterval(this.sessInt);
             if(this.wakelock) this.wakelock.release();
             
             document.getElementById('ui-container').classList.remove('hidden');
-            document.body.classList.remove('ui-hidden');
-            document.body.classList.remove('app-running');
+            document.body.classList.remove('ui-hidden', 'app-running');
             document.getElementById('startBtn').innerText = "Beginnen";
             document.getElementById('startBtn').classList.remove('stop-mode');
             document.getElementById('stop-float').style.display = 'none';
-            
-            const instr = document.getElementById('instruction');
-            instr.innerText = "Atmen";
-            instr.style.color = '';
+            document.getElementById('preset-display').classList.remove('visible');
+            document.getElementById('tap-float').classList.remove('visible');
+            document.getElementById('session-timer').classList.remove('visible');
+            document.getElementById('instruction').innerText = "Atmen";
             document.getElementById('breath-timer').innerText = "";
             this.viz.setBreathState(0.5, 'hold-empty');
-            
-            const elapsedSec = Math.floor((Date.now() - this.startTime) / 1000);
-            
-            if (elapsedSec >= 30) {
-                const m = Math.floor(elapsedSec / 60);
-                const s = elapsedSec % 60;
-                document.getElementById('summary-time').innerText = `${m} Minuten und ${s} Sekunden`;
 
-                const q = this.getUniqueQuote();
+            this.startIdleLoop(); // Restart idle drift
+            if ((Date.now() - this.startTime)/1000 >= 30) {
+                const q = quotes[Math.floor(Math.random()*quotes.length)];
+                document.getElementById('summary-time').innerText = Math.floor((Date.now()-this.startTime)/60000) + " Min";
                 document.getElementById('quote-text').innerText = q.quote;
                 document.getElementById('quote-author').innerText = q.source;
                 document.getElementById('summary-modal').classList.add('visible');
             }
         }
 
-        updateSessionTimer() {
-            const elapsed = Date.now() - this.startTime;
-            if (this.sessionDuration > 0) {
-                const totalMs = this.sessionDuration * 60 * 1000;
-                const remaining = Math.max(0, totalMs - elapsed);
-                const m = Math.floor(remaining / 60000);
-                const s = Math.floor((remaining % 60000) / 1000);
-                document.getElementById('session-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                if (remaining <= 0) this.stop();
-            } else {
-                const m = Math.floor(elapsed / 60000);
-                const s = Math.floor((elapsed % 60000) / 1000);
-                document.getElementById('session-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            }
-        }
-
         async loop(signal) {
             const val = id => parseFloat(document.getElementById(id).value) || 0;
             while(!signal.aborted && this.isRunning) {
-                if (this.currentPreset && this.currentPreset.startsWith('♫')) {
-                    this.viz.triggerPulse();
-                }
-
-                await this.phase("Einatmen", val('inTime'), 0, 1, '#82B1FF', signal, true);
-                await this.phase("Halten", val('holdFullTime'), 1, 1, '#D1D1D1', signal, false);
-                await this.phase("Ausatmen", val('outTime'), 1, 0, '#EF9A9A', signal, false);
-                await this.phase("Pause", val('holdEmptyTime'), 0, 0, '#D1D1D1', signal, false);
+                await this.phase("Einatmen", val('inTime'), 0, 1, '#82B1FF', signal);
+                await this.phase("Halten", val('holdFullTime'), 1, 1, '#D1D1D1', signal);
+                await this.phase("Ausatmen", val('outTime'), 1, 0, '#EF9A9A', signal);
+                await this.phase("Pause", val('holdEmptyTime'), 0, 0, '#D1D1D1', signal);
             }
         }
-        
-        async phase(text, dur, startV, endV, col, signal, countUp) {
+
+        phase(text, dur, startV, endV, col, signal) {
             if(signal.aborted || !this.isRunning || dur <= 0) return;
-            const val = id => parseFloat(document.getElementById(id).value) || 0;
+            document.getElementById('instruction').innerText = text;
+            document.getElementById('instruction').style.color = col;
             
-            const instr = document.getElementById('instruction');
-            instr.innerText = text;
-            instr.style.color = col;
-            
-            let pType = 'hold-empty';
-            if (startV < endV) pType = 'in';
-            else if (startV > endV) pType = 'out';
-            else if (startV === 1) pType = 'hold-full';
-            
+            let pType = startV < endV ? 'in' : (startV > endV ? 'out' : (startV === 1 ? 'hold-full' : 'hold-empty'));
             document.getElementById('breath-timer').setAttribute('data-phase', pType);
             
-            if (this.audio.currentType === 'bowl') {
-                if (pType === 'in') this.audio.triggerBowl(0);
-                else if (pType === 'out') this.audio.triggerBowl(-5);
-            } else if (this.audio.currentType === 'gentle' || this.audio.currentType === 'ambient') {
-                if (pType === 'in' || pType === 'out') this.audio.triggerImpulse(pType);
+            if ((this.audio.currentType === 'bowl' || this.audio.currentType === 'bowl-high') && (pType === 'in' || pType === 'out')) {
+                let detune = pType === 'in' ? 0 : -5;
+                if (this.audio.currentType === 'bowl-high') detune += 12;
+                this.audio.triggerBowlSynth(detune);
+            } else if (this.audio.currentType === 'bowl-mp3' && (pType === 'in' || pType === 'out')) {
+                this.audio.triggerBowl(pType === 'in' ? 0 : -5);
+            } else if (['gentle','ambient'].includes(this.audio.currentType) && (pType==='in'||pType==='out')) {
+                this.audio.triggerImpulse(pType);
             }
-            
+
             const start = Date.now();
             return new Promise(resolve => {
-                let lastTick = Date.now();
+                let lastTick = start;
                 const tick = () => {
-                    if(signal.aborted || !this.isRunning) return resolve();
-                    
-                    const now = Date.now();
-                    const prog = Math.min(1, (now - start)/(dur*1000));
-                    const eased = 0.5 * (1 - Math.cos(Math.PI * prog)); 
-                    const currentBreath = startV + (endV - startV) * eased;
+                    if(signal.aborted || !this.isRunning) {
+                        this.timerWorker.postMessage('stop');
+                        return resolve();
+                    }
+                    const now = Date.now(), prog = Math.min(1, (now - start)/(dur*1000));
+                    const currentBreath = startV + (endV - startV) * (0.5 * (1 - Math.cos(Math.PI * prog)));
                     
                     this.viz.setBreathState(currentBreath, pType);
                     this.audio.updateGenerator(currentBreath);
                     
-                    const timeVal = countUp ? (dur * prog) : (dur - (dur * prog));
-                    const timer = document.getElementById('breath-timer');
-                    timer.innerText = timeVal.toFixed(0); 
-                    timer.style.color = col;
+                    const timeDisp = (dur - (dur * prog)).toFixed(0);
+                    const timerEl = document.getElementById('breath-timer');
+                    if(timerEl.innerText !== timeDisp) { timerEl.innerText = timeDisp; timerEl.style.color = col; }
 
-                    const dt = (now - lastTick) / 1000;
+                    this.updateDrift((now - lastTick) / 1000);
 
-                    if (this.evolveActive) {
-                        const cycleDur = val('inTime') + val('holdFullTime') + val('outTime') + val('holdEmptyTime');
-                        if (cycleDur > 0) {
-                            const step = dt / (cycleDur * this.evolveCycles);
-                            this.evolveProgress = (this.evolveProgress + step) % 4;
-                            
-                            const p = this.evolveProgress;
-                            const b = this.xyDriftBounds;
-                            let dx=0, dy=0;
-                            
-                            if (p < 1) { // Top
-                                dx = b.x1 + p * (b.x2 - b.x1);
-                                dy = b.y1;
-                            } else if (p < 2) { // Right
-                                dx = b.x2;
-                                dy = b.y1 + (p - 1) * (b.y2 - b.y1);
-                            } else if (p < 3) { // Bottom
-                                dx = b.x2 - (p - 2) * (b.x2 - b.x1);
-                                dy = b.y2;
-                            } else { // Left
-                                dx = b.x1;
-                                dy = b.y2 - (p - 3) * (b.y2 - b.y1);
-                            }
-                            this.updateXY(dx, dy);
-                        }
-                    }
-                    
-                    if (this.colorDriftActive) {
-                        const cycleDur = val('inTime') + val('holdFullTime') + val('outTime') + val('holdEmptyTime');
-                        if (cycleDur > 0) {
-                            // 20 units is approx distance between theme presets (0, 20, 40...)
-                            // Speed = 20 units / (cycles * duration)
-                            const speed = 20 / (this.colorDriftCycles * cycleDur);
-                            
-                            this.currentColorValue += speed * dt * this.colorDriftDirection;
-                            if (this.currentColorValue >= 100) { this.currentColorValue = 100; this.colorDriftDirection = -1; }
-                            if (this.currentColorValue <= 0) { this.currentColorValue = 0; this.colorDriftDirection = 1; }
-                            document.getElementById('color-slider').value = this.currentColorValue;
-                            this.updateThemeColor(this.currentColorValue);
-                        }
-                    }
-                    
                     lastTick = now;
-                    
-                    if(prog < 1) requestAnimationFrame(tick); else resolve();
+
+                    if(prog >= 1) {
+                        this.timerWorker.postMessage('stop');
+                        resolve();
+                    }
                 };
+                this.timerWorker.onmessage = tick;
+                this.timerWorker.postMessage('start');
                 tick();
             });
         }
     }
 
-    document.addEventListener('DOMContentLoaded', () => window.app = new BreathApp());
+    document.addEventListener('DOMContentLoaded', () => {
+        window.app = new BreathApp();
+        window.app.startIdleLoop();
+    });
     </script>
 </body>
 </html>
